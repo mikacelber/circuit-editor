@@ -1,0 +1,310 @@
+/* ------------------------------------------------------------------
+   Circuit Editor — same visual language as the block architecture
+   editor: IBM Plex, paper/ink tokens, 2px ink rules, copper accents.
+   Everything below the "schematic" heading is new: the tool strip,
+   the docked panel group and the symbol styling.
+   ------------------------------------------------------------------ */
+:root{
+  --paper:#F7F5F0; --ink:#1B2A41; --ink-soft:#4A5A72;
+  --probe:#FFC53D; --probe-deep:#B8860B;
+  --copper:#B0793C; --copper-soft:#C9A06B; --grid:rgba(43,42,38,.07); --hv:#C43E1C;
+  --panel:#FFFFFF; --line:#DEDACC; --ok:#3D7A46; --warn:#A8890B;
+  --vellum:#F6EFDC; --field-bg:#FDFCF9;
+  --btn-hover:#EFECE2; --primary-hover:#2A3D5C; --danger-hover:#FBEAE4;
+  --overlay:rgba(27,42,65,.45);
+  /* Net-class palette — colour tells the class apart, never the line weight. */
+  --sig-hv:#C43E1C; --sig-power:#C46A12; --sig-control:#2A63C4; --sig-logic:#1B8E86;
+  --sig-analog:#3D7A46; --sig-switching:#8A4FC4; --sig-ground:#5A6472; --sig-other:#767F8C;
+  --wire:#1B2A41; --pin:#4A5A72;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Consolas,monospace;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+}
+:root[data-theme="dark"]{
+  --paper:#1B2027; --ink:#E7ECF3; --ink-soft:#8D99AC;
+  --probe:#FFC53D; --probe-deep:#D9A227;
+  --copper:#D3A06C; --copper-soft:#B98A57; --grid:rgba(232,230,225,.06); --hv:#FF7A5C;
+  --panel:#20262E; --line:#39424C; --ok:#5FBE6D; --warn:#F2C932;
+  --vellum:#2E2A1E; --field-bg:#161B21;
+  --btn-hover:#2A323C; --primary-hover:#C7CEDA; --danger-hover:#3A2620;
+  --overlay:rgba(0,0,0,.55);
+  --sig-hv:#FF7A5C; --sig-power:#F2A23D; --sig-control:#5B9BFF; --sig-logic:#3ED6C7;
+  --sig-analog:#5FBE6D; --sig-switching:#BE93F5; --sig-ground:#98A4B4; --sig-other:#8D99AC;
+  --wire:#E7ECF3; --pin:#8D99AC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--paper);display:flex;flex-direction:column;overflow:hidden;transition:background .15s,color .15s}
+
+/* ---------- top bar ---------- */
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:2px solid var(--ink);background:var(--paper);flex-shrink:0;min-height:62px}
+header button{flex-shrink:0;white-space:nowrap}
+.brand-logo{height:40px;width:auto;border-radius:4px;flex-shrink:0;display:block}
+.brand{display:flex;flex-direction:column;line-height:1.15;min-width:0;flex:1 1 auto}
+.brand .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-soft);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand h1{font-family:var(--mono);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.spacer{flex:1}
+button{font-family:var(--mono);font-size:12px;font-weight:500;border:1.5px solid var(--ink);background:var(--paper);color:var(--ink);padding:7px 12px;cursor:pointer;border-radius:3px;transition:background .12s,transform .06s}
+button:hover{background:var(--btn-hover)}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--ink);color:var(--paper)}
+button.primary:hover{background:var(--primary-hover)}
+button.danger{border-color:var(--hv);color:var(--hv)}
+button.danger:hover{background:var(--danger-hover)}
+button:focus-visible{outline:2px solid var(--probe);outline-offset:2px}
+button:disabled{opacity:.35;cursor:default;pointer-events:none}
+#btnUndo,#btnRedo{font-size:15px;padding:5px 10px;line-height:1}
+.linklike{background:none;border:none;padding:0;font:inherit;color:var(--ink-soft);text-decoration:underline;text-decoration-color:var(--copper);cursor:pointer}
+.linklike:hover{color:var(--ink)}
+
+/* ---------- layout ---------- */
+main{flex:1;display:flex;min-height:0}
+#canvasWrap{flex:1;position:relative;min-width:0;background:var(--paper)}
+svg#board{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+svg#board.panning{cursor:grabbing}
+svg#board.drawing{cursor:crosshair}
+svg#board.placing{cursor:copy}
+svg#board .dim{opacity:.22;filter:saturate(.35)}
+
+.breadcrumb{position:absolute;top:12px;left:12px;z-index:5;display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11.5px;background:var(--panel);border:1.5px solid var(--line);
+  border-radius:3px;padding:5px 10px;pointer-events:none;user-select:none;color:var(--ink-soft)}
+.breadcrumb b{color:var(--ink);font-weight:600}
+.breadcrumb .crumb-sep{color:var(--line)}
+
+/* ---------- schematic tool strip (top-centre of the sheet) ---------- */
+#toolbar{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:7;
+  display:flex;align-items:center;gap:2px;padding:4px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:6px;
+  box-shadow:0 2px 10px rgba(0,0,0,.12)}
+#toolbar button{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;
+  border:1.5px solid transparent;border-radius:4px;background:transparent;color:var(--ink-soft);line-height:0}
+#toolbar button:hover{background:var(--btn-hover);color:var(--ink)}
+#toolbar button.on{background:var(--btn-hover);border-color:var(--copper);color:var(--ink)}
+#toolbar button svg{width:19px;height:19px}
+#toolbar .tsep{width:1px;height:22px;background:var(--line);margin:0 4px;flex-shrink:0}
+
+/* ---------- docked panel group (right) ---------- */
+aside#dock{width:340px;flex-shrink:0;border-left:2px solid var(--ink);background:var(--panel);display:flex;flex-direction:column;min-height:0;
+  position:relative;overflow:hidden;transition:width .22s ease}
+aside#dock.collapsed{width:0 !important;border-left-width:0}
+aside#dock.resizing{transition:none}
+#dock .head{padding:12px 40px 12px 16px;border-bottom:1px solid var(--line)}
+#dock .head,#dock .body,#dock .dtabs{min-width:var(--dockw,340px)}
+#dock .head .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-soft);text-transform:uppercase}
+#dock .head h2{font-family:var(--mono);font-size:15px;font-weight:600;margin-top:2px;word-break:break-word}
+#dock .body{flex:1;overflow-y:auto;padding:14px 16px;font-size:13px}
+#dock .body p{color:var(--ink-soft);line-height:1.5;margin-bottom:10px}
+#dockPin{position:absolute;top:8px;right:8px;width:26px;height:26px;padding:3px;border:1px solid transparent;
+  background:none;border-radius:4px;cursor:pointer;color:var(--ink-soft);z-index:2;line-height:0}
+#dockPin:hover{border-color:var(--line);background:var(--btn-hover);color:var(--ink)}
+#dockPin svg{width:18px;height:18px;transition:transform .18s ease}
+#dockPin.pinned{color:var(--copper)}
+#dockPin:not(.pinned) svg{transform:rotate(48deg)}
+#dockResize{position:absolute;left:0;top:0;bottom:0;width:7px;cursor:ew-resize;z-index:2}
+#dockResize:hover,#dockResize.active{background:linear-gradient(90deg,var(--copper),transparent)}
+#dockHandle{position:absolute;right:-8px;top:50%;transform:translateY(-50%);width:16px;height:52px;
+  display:flex;align-items:center;justify-content:center;padding:0;
+  border:1.5px solid var(--ink);border-radius:5px;background:var(--panel);color:var(--ink-soft);
+  cursor:pointer;z-index:6;line-height:0}
+#dockHandle:hover{color:var(--ink);background:var(--btn-hover)}
+#dockHandle svg{width:11px;height:38px}
+#dockHandle.folded{right:0;border-radius:5px 0 0 5px;border-right:none}
+#dockHandle.folded svg{transform:scaleX(-1)}
+/* Tab strip at the BOTTOM of the dock — one box per enabled panel. */
+.dtabs{display:flex;flex-wrap:wrap;gap:0;border-top:1.5px solid var(--line);background:var(--field-bg);flex-shrink:0}
+.dtabs button{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:7px 10px;border:none;border-radius:0;
+  border-right:1px solid var(--line);border-top:2px solid transparent;background:transparent;color:var(--ink-soft)}
+.dtabs button:hover{background:var(--btn-hover);color:var(--ink)}
+.dtabs button.on{background:var(--panel);color:var(--ink);border-top-color:var(--copper);font-weight:600}
+.dtabs button .badge{display:inline-block;margin-left:5px;padding:0 4px;border-radius:7px;font-size:9px;
+  background:var(--warn);color:var(--paper);font-weight:700}
+
+/* ---------- Panels chooser (bottom-right corner, Altium style) ---------- */
+#panelsWrap{position:relative}
+#btnPanels{font-size:11px;padding:4px 10px}
+#panelsMenu{position:absolute;right:0;bottom:calc(100% + 6px);z-index:30;min-width:210px;
+  background:var(--panel);border:1.5px solid var(--ink);border-radius:5px;padding:6px;
+  box-shadow:0 6px 20px rgba(0,0,0,.22)}
+#panelsMenu[hidden]{display:none}
+#panelsMenu .pm-title{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-soft);padding:2px 6px 6px}
+#panelsMenu label{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:3px;cursor:pointer;
+  font-family:var(--mono);font-size:11.5px;color:var(--ink)}
+#panelsMenu label:hover{background:var(--btn-hover)}
+#panelsMenu input{accent-color:var(--copper);width:13px;height:13px}
+
+/* ---------- panel content bits ---------- */
+.kv{margin-bottom:10px}
+.kv label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.kv .val{line-height:1.45;word-break:break-word}
+.kv .val a{color:var(--ink);text-decoration-color:var(--copper)}
+input[type=text],input[type=search],input[type=number],textarea,select{width:100%;font-family:var(--mono);font-size:12px;padding:6px 8px;border:1.5px solid var(--line);border-radius:3px;background:var(--field-bg);color:var(--ink)}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--probe);border-color:var(--ink)}
+textarea{resize:vertical;min-height:52px;font-family:var(--sans)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.btnrow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btnrow button{flex:0 0 auto}
+.sechead{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
+  margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.sechead:first-child{margin-top:0}
+fieldset.subpane{border:1.5px solid var(--line);border-radius:3px;padding:10px 12px 4px;margin:12px 0 10px}
+fieldset.subpane legend{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);padding:0 6px}
+label.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;margin:2px 0 0;
+  font-family:var(--mono);font-size:11px;letter-spacing:0;text-transform:none;color:var(--ink-soft)}
+label.switch input{position:absolute;opacity:0;pointer-events:none}
+label.switch .knob{display:inline-block;width:34px;height:18px;border-radius:10px;border:1.5px solid var(--ink);
+  background:var(--field-bg);position:relative;transition:background .15s;flex-shrink:0}
+label.switch .knob::after{content:'';position:absolute;top:1.5px;left:2px;width:12px;height:12px;border-radius:50%;
+  background:var(--ink);transition:left .15s}
+label.switch input:checked + .knob{background:var(--probe)}
+label.switch input:checked + .knob::after{left:17px}
+
+/* net cards (Netlist panel) */
+.netcard{border:1.5px solid var(--line);border-left:4px solid var(--sig-other);border-radius:3px;padding:7px 9px;margin-bottom:6px;background:var(--field-bg);cursor:pointer}
+.netcard:hover{border-color:var(--copper)}
+.netcard.on{outline:2px solid var(--probe);outline-offset:1px}
+.netcard.cat-hv{border-left-color:var(--sig-hv)}
+.netcard.cat-power{border-left-color:var(--sig-power)}
+.netcard.cat-control{border-left-color:var(--sig-control)}
+.netcard.cat-logic{border-left-color:var(--sig-logic)}
+.netcard.cat-analog{border-left-color:var(--sig-analog)}
+.netcard.cat-switching{border-left-color:var(--sig-switching)}
+.netcard.cat-ground{border-left-color:var(--sig-ground)}
+.netcard .nettop{display:flex;align-items:center;gap:6px}
+.netcard .netname{font-family:var(--mono);font-size:12px;font-weight:600;flex:1;word-break:break-all}
+.netcard .nettype{font-family:var(--mono);font-size:9.5px;color:var(--ink-soft)}
+.netcard .netnodes{font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);line-height:1.5;margin-top:3px;word-break:break-all}
+.netcard .netstate{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:8px;
+  border:1.2px solid var(--ink-soft);color:var(--ink-soft);flex-shrink:0}
+.netcard .netstate.done{border-color:var(--ok);color:var(--ok)}
+.netcard .netstate.part{border-color:var(--warn);color:var(--warn)}
+
+/* component library rows */
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}
+.libitem{display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border:1.5px solid var(--line);
+  border-radius:4px;background:var(--field-bg);cursor:grab;font-family:var(--mono);font-size:9.5px;color:var(--ink-soft);
+  text-align:center;line-height:1.2}
+.libitem:hover{border-color:var(--copper);color:var(--ink)}
+.libitem.on{border-color:var(--probe);background:var(--btn-hover);color:var(--ink)}
+.libitem svg{width:46px;height:34px;overflow:visible;color:var(--ink)}
+.libitem .sym{stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.libitem .symfill{fill:currentColor;stroke:none}
+
+/* generic list rows (unplaced parts, db parts, messages) */
+.lrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 9px;margin-bottom:5px;
+  border:1.5px solid var(--line);border-radius:3px;background:var(--field-bg);cursor:pointer;font:inherit;color:var(--ink)}
+.lrow:hover{border-color:var(--copper)}
+.lrow.on{border-color:var(--probe);background:var(--btn-hover)}
+.lrow .lmain{flex:1;min-width:0}
+.lrow .lref{font-family:var(--mono);font-size:12px;font-weight:600}
+.lrow .lsub{font-family:var(--mono);font-size:10px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow .ltag{font-family:var(--mono);font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:3px;padding:1px 5px;flex-shrink:0}
+.lrow .ltag.ok{border-color:var(--ok);color:var(--ok)}
+.lrow .ltag.warn{border-color:var(--warn);color:var(--warn)}
+
+/* messages / rule check */
+.issue{display:block;width:100%;text-align:left;font-size:11.5px;line-height:1.4;
+  border:1.5px solid var(--line);border-left:4px solid var(--warn);border-radius:3px;
+  background:var(--field-bg);padding:6px 9px;margin-bottom:6px;cursor:pointer;color:var(--ink)}
+.issue:hover{border-color:var(--warn)}
+.issue.on{border-color:var(--warn);background:var(--danger-hover);border-left-width:6px}
+.issue.err{border-left-color:var(--hv)}
+.issue.info{border-left-color:var(--ink-soft)}
+.issue b{font-family:var(--mono);font-size:11.5px}
+.issue .isrc{font-family:var(--mono);font-size:9.5px;color:var(--ink-soft);display:block;margin-top:2px}
+
+/* datasheet facts (Database panel) */
+.facttbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.facttbl th{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);
+  text-align:left;padding:4px 6px;border-bottom:1.5px solid var(--line)}
+.facttbl td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.facttbl td.mono{font-family:var(--mono);font-size:11px}
+.figgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.figgrid img{width:100%;border:1.5px solid var(--line);border-radius:3px;background:#fff}
+
+/* ---------- footer / status ---------- */
+footer{display:flex;align-items:center;gap:10px;padding:5px 12px 5px 16px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;color:var(--ink-soft);flex-shrink:0;flex-wrap:nowrap}
+#statusChips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;border:1px solid var(--line);background:var(--field-bg);white-space:nowrap}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
+.chip.err{border-color:var(--hv);color:var(--hv)}
+.chip.ok{border-color:var(--ok);color:var(--ok)}
+button.chip{cursor:pointer;font:inherit}
+button.chip:hover{background:var(--btn-hover)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* ---------- empty sheet ---------- */
+#emptyState{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5;
+  display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;
+  background:var(--panel);border:1.5px solid var(--line);border-radius:6px;padding:28px 40px}
+#emptyState[hidden]{display:none}
+#emptyState .es-actions{display:flex;gap:26px;align-items:flex-start}
+#emptyState .es-choice{display:flex;flex-direction:column;align-items:center;gap:7px}
+#emptyState .es-cap{margin:0;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-soft)}
+#emptyImport,#emptyBlank{width:76px;height:76px;padding:0;display:flex;align-items:center;justify-content:center;
+  border:2px dashed var(--ink-soft);border-radius:8px;background:var(--field-bg);color:var(--ink-soft);
+  cursor:pointer;line-height:0;transition:color .12s,border-color .12s,background .12s}
+#emptyImport:hover,#emptyBlank:hover{color:var(--probe);border-color:var(--probe);background:var(--btn-hover)}
+#emptyImport svg,#emptyBlank svg{width:40px;height:40px}
+#emptyState .es-title{margin:0;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
+#emptyState .es-hint{margin:0;font-size:12px;color:var(--ink-soft);max-width:38ch;line-height:1.5}
+
+/* ---------- view controls ---------- */
+#viewTools{position:absolute;right:12px;bottom:12px;z-index:6;display:flex;flex-direction:column;
+  border:1.5px solid var(--line);border-radius:5px;background:var(--panel);overflow:hidden}
+#viewTools button{width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;
+  border:none;border-bottom:1px solid var(--line);border-radius:0;background:transparent;color:var(--ink-soft);line-height:0}
+#viewTools button:last-child{border-bottom:none}
+#viewTools button:hover{color:var(--ink);background:var(--btn-hover)}
+#viewTools button:disabled{opacity:.4;cursor:default;background:transparent;color:var(--ink-soft)}
+#viewTools svg{width:17px;height:17px}
+
+/* ---------- the sheet itself ---------- */
+#roomsG .room{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:6 5}
+#roomsG .roomlbl{font-family:var(--mono);font-size:11px;fill:var(--ink-soft);letter-spacing:.06em}
+#wiresG .wire{fill:none;stroke:var(--wire);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#wiresG .wire.hit{stroke:transparent;stroke-width:10}
+#wiresG .wire.on{stroke:var(--probe)}
+#wiresG .junction{fill:var(--wire)}
+#partsG .sym{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#partsG .symfill{fill:var(--ink);stroke:none}
+#partsG .pinline{stroke:var(--pin);stroke-width:1.6;stroke-linecap:round}
+#partsG .pindot{fill:none;stroke:var(--pin);stroke-width:1.2}
+#partsG .pindot.free{stroke:var(--warn);fill:var(--warn);fill-opacity:.35}
+#partsG .pinname{font-family:var(--mono);font-size:7px;fill:var(--ink-soft)}
+#partsG .ref{font-family:var(--mono);font-size:10px;font-weight:600;fill:var(--ink)}
+#partsG .value{font-family:var(--mono);font-size:9px;fill:var(--ink-soft)}
+#partsG .netstub{font-family:var(--mono);font-size:7.5px;fill:var(--ink-soft)}
+#partsG .icbody{fill:var(--paper);stroke:var(--ink);stroke-width:1.8}
+#partsG .hit{fill:transparent;stroke:none}
+#partsG .part.selon .sym,#partsG .part.selon .icbody{stroke:var(--probe)}
+#partsG .part.selon .ref{fill:var(--probe-deep)}
+#partsG .part.on .sym,#partsG .part.on .icbody{stroke:var(--probe)}
+#partsG .part:hover .sym,#partsG .part:hover .icbody{stroke:var(--copper)}
+#partsG .note{font-family:var(--sans);font-size:11px;fill:var(--ink)}
+#overlayG .preview{fill:none;stroke:var(--copper);stroke-width:2;stroke-dasharray:5 4;stroke-linecap:round}
+#overlayG .ghost{opacity:.6}
+#overlayG .snap{fill:none;stroke:var(--probe);stroke-width:1.6}
+#overlayG .marquee{fill:var(--probe);fill-opacity:.08;stroke:var(--probe);stroke-width:1.2;stroke-dasharray:4 3}
+
+/* ---------- modal ---------- */
+.overlay{position:fixed;inset:0;background:var(--overlay);display:none;align-items:center;justify-content:center;z-index:40}
+.overlay.open{display:flex}
+.modal{background:var(--panel);border:2px solid var(--ink);border-radius:4px;width:min(680px,92vw);max-height:88vh;display:flex;flex-direction:column}
+.modal .mhead{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.modal .mhead h3{font-family:var(--mono);font-size:14px}
+.modal .mbody{padding:14px 16px;overflow-y:auto;font-size:13px}
+.modal .mfoot{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.modal textarea{min-height:150px}
+.tabs{display:flex;gap:0;margin-bottom:12px;border-bottom:1.5px solid var(--line)}
+.tabs button{border:none;border-bottom:3px solid transparent;border-radius:0;background:none;padding:8px 12px}
+.tabs button.on{border-bottom-color:var(--probe);font-weight:600}
+.hint{font-size:11.5px;color:var(--ink-soft);line-height:1.45;margin:6px 0 10px}
+pre.out{font-family:var(--mono);font-size:11px;background:var(--field-bg);border:1.5px solid var(--line);border-radius:3px;padding:10px;max-height:240px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.toast{position:fixed;left:50%;bottom:52px;transform:translateX(-50%);background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:12px;padding:8px 14px;border-radius:3px;opacity:0;pointer-events:none;transition:opacity .18s;z-index:60}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:860px){aside#dock{width:280px}.brand h1{max-width:30vw}}

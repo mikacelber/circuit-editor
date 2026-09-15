@@ -1,0 +1,4000 @@
+[
+  {
+    "components": [
+      {
+        "partNumber": "BQ24075-Q1",
+        "ref": "U1",
+        "package": "RGT-16 QFN 3 mm × 3 mm with exposed pad",
+        "role": "BATTERY_CHARGER_POWER_PATH_MANAGER",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C1",
+        "capacitance": "1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "INPUT_BYPASS",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C2",
+        "capacitance": "4.7 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "SYSTEM_OUTPUT_BYPASS",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C3",
+        "capacitance": "4.7 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "BATTERY_BYPASS",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R1",
+        "resistance": "1.21 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "INPUT_CURRENT_LIMIT_PROGRAM",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R2",
+        "resistance": "1.13 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "CHARGE_CURRENT_PROGRAM",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R3",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "TS_BIAS_TERMINATION",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R4",
+        "resistance": "100 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "STATUS_PULLUP",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R5",
+        "resistance": "100 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "STATUS_PULLUP",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R6",
+        "resistance": "100 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "CONTROL_PULLDOWN",
+        "group": "BATTERY_CHARGER_FRONT_END"
+      },
+      {
+        "partNumber": "BQ2970",
+        "ref": "U2",
+        "package": "WSON-6 (DSE)",
+        "role": "BATTERY_PROTECTION_IC",
+        "group": "BATTERY_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R31",
+        "resistance": "330 Ω",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "BAT_INPUT_FILTER",
+        "group": "BATTERY_PROTECTION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C31",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "BAT_DECOUPLING",
+        "group": "BATTERY_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R32",
+        "resistance": "2.2 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "VM_SENSE_RESISTOR",
+        "group": "BATTERY_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R33",
+        "resistance": "5 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.063 W",
+        "role": "CHARGE_FET_GATE_DISCHARGE",
+        "group": "BATTERY_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R34",
+        "resistance": "5 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.063 W",
+        "role": "DISCHARGE_FET_GATE_DISCHARGE",
+        "group": "BATTERY_PROTECTION"
+      },
+      {
+        "partNumber": "TPS63070",
+        "ref": "U3",
+        "package": "VQFN-15 (2.5 mm x 3 mm)",
+        "role": "BUCK_BOOST_CONVERTER",
+        "group": "POWER_SUPPLY"
+      },
+      {
+        "partNumber": "inductor",
+        "ref": "L61",
+        "inductance": "1.5 µH",
+        "tolerance": "±20%",
+        "max_operational_frequency": "2.4 MHz",
+        "current_rating": "4.6 A",
+        "role": "POWER_INDUCTOR",
+        "group": "POWER_STAGE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C61",
+        "capacitance": "10 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "25 V",
+        "type": "X5R ceramic 0603",
+        "role": "INPUT_BYPASS",
+        "group": "INPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C62",
+        "capacitance": "10 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "25 V",
+        "type": "X7R ceramic 0805",
+        "role": "INPUT_BULK",
+        "group": "INPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C63",
+        "capacitance": "10 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "25 V",
+        "type": "X7R ceramic 0805",
+        "role": "INPUT_BULK",
+        "group": "INPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C64",
+        "capacitance": "10 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "10 V",
+        "type": "X5R ceramic 0603",
+        "role": "OUTPUT_BYPASS",
+        "group": "OUTPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C65",
+        "capacitance": "22 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic 0805",
+        "role": "OUTPUT_BULK",
+        "group": "OUTPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C66",
+        "capacitance": "22 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic 0805",
+        "role": "OUTPUT_BULK",
+        "group": "OUTPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C67",
+        "capacitance": "22 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic 0805",
+        "role": "OUTPUT_BULK",
+        "group": "OUTPUT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C68",
+        "capacitance": "100 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "25 V",
+        "type": "X7R ceramic 0402",
+        "role": "AUX_BYPASS",
+        "group": "BIAS_SUPPORT"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R61",
+        "resistance": "470 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_DIVIDER_TOP",
+        "group": "FEEDBACK"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R62",
+        "resistance": "150 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_DIVIDER_BOTTOM",
+        "group": "FEEDBACK"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R63",
+        "resistance": "100 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "POWER_SAVE_PULLUP",
+        "group": "MODE_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R64",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "ENABLE_PULLUP",
+        "group": "ENABLE_CONTROL"
+      },
+      {
+        "partNumber": "TPS7A20185PDBVR",
+        "ref": "U4",
+        "package": "SOT-23-5 (DBV)",
+        "role": "LDO_REGULATOR",
+        "group": "ANALOG_POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C91",
+        "capacitance": "1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "INPUT_BYPASS",
+        "group": "ANALOG_POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C92",
+        "capacitance": "1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "OUTPUT_BYPASS",
+        "group": "ANALOG_POWER"
+      },
+      {
+        "partNumber": "TPS61041",
+        "ref": "U5",
+        "package": "WSON-6 (DRV)",
+        "role": "BOOST_CONVERTER",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "inductor",
+        "ref": "L121",
+        "inductance": "10 μH",
+        "tolerance": "±20%",
+        "max_operational_frequency": "1 MHz",
+        "current_rating": "400 mA",
+        "role": "BOOST_ENERGY_STORAGE",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "diode",
+        "ref": "D121",
+        "diode_type": "Schottky",
+        "reverse_voltage": "30 V",
+        "current_rating": "500 mA",
+        "role": "BOOST_RECTIFIER",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C121",
+        "capacitance": "4.7 μF",
+        "tolerance": "±10%",
+        "voltage_rating": "6.3 V",
+        "type": "X5R ceramic",
+        "role": "INPUT_BYPASS",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C122",
+        "capacitance": "1 μF",
+        "tolerance": "±10%",
+        "voltage_rating": "25 V",
+        "type": "X7R ceramic",
+        "role": "OUTPUT_FILTER",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R121",
+        "resistance": "1.43 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_DIVIDER",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R122",
+        "resistance": "200 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_DIVIDER",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C123",
+        "capacitance": "10 pF",
+        "tolerance": "±5%",
+        "voltage_rating": "50 V",
+        "type": "C0G ceramic",
+        "role": "FEEDFORWARD_COMPENSATION",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C124",
+        "capacitance": "10 pF",
+        "tolerance": "±5%",
+        "voltage_rating": "50 V",
+        "type": "C0G ceramic",
+        "role": "FEEDBACK_FILTER",
+        "group": "AUXILIARY_POWER"
+      },
+      {
+        "partNumber": "UCC28C43",
+        "ref": "U6",
+        "package": "SOIC-8 (D)",
+        "role": "PWM_CONTROLLER",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C151",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "VDD_BYPASS",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C152",
+        "capacitance": "4.7 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "VDD_BULK_BYPASS",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C153",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "VREF_BYPASS",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R151",
+        "resistance": "15.4 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "OSCILLATOR_TIMING",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C154",
+        "capacitance": "1000 pF",
+        "tolerance": "±2%",
+        "voltage_rating": "50 V",
+        "type": "C0G ceramic",
+        "role": "OSCILLATOR_TIMING",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R152",
+        "resistance": "3.83 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "CURRENT_SENSE_FILTER",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C155",
+        "capacitance": "100 pF",
+        "tolerance": "±5%",
+        "voltage_rating": "50 V",
+        "type": "C0G ceramic",
+        "role": "CURRENT_SENSE_FILTER",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R153",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_INPUT_BIAS",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R154",
+        "resistance": "24.9 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "PWM_CONTROL_INJECTION",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R155",
+        "resistance": "24.9 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "ENABLE_CONTROL_INJECTION",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R156",
+        "resistance": "24.9 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "HV_FEEDBACK_INJECTION",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R157",
+        "resistance": "24.9 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "OVERVOLTAGE_SHUTDOWN_INJECTION",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C156",
+        "capacitance": "10 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "50 V",
+        "type": "X7R ceramic",
+        "role": "COMPENSATION_POLE",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R158",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "COMPENSATION_ZERO",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C157",
+        "capacitance": "10 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "50 V",
+        "type": "X7R ceramic",
+        "role": "COMPENSATION_ZERO",
+        "group": "PRIMARY_FLYBACK_CONTROL"
+      },
+      {
+        "partNumber": "UCC27517",
+        "ref": "U7",
+        "package": "SOT-23-5 (DBV)",
+        "role": "GATE_DRIVER",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R181",
+        "resistance": "10 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "GATE_SERIES_RESISTOR",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R182",
+        "resistance": "100 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "GATE_PULLDOWN",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R183",
+        "resistance": "22 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "INPUT_SERIES_RESISTOR",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C181",
+        "capacitance": "1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "VDD_BYPASS",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C182",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "HIGH_FREQUENCY_BYPASS",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C183",
+        "capacitance": "1 nF",
+        "tolerance": "10%",
+        "voltage_rating": "50 V",
+        "type": "C0G ceramic",
+        "role": "INPUT_NOISE_FILTER",
+        "group": "PRIMARY_FLYBACK_GATE_DRIVE"
+      },
+      {
+        "partNumber": "AMC1311",
+        "ref": "U8",
+        "package": "SOIC-8 (DWV)",
+        "role": "ISOLATED_PRECISION_AMPLIFIER",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C211",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "16 V",
+        "type": "X7R ceramic",
+        "role": "HIGH_SIDE_DECOUPLING",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C212",
+        "capacitance": "1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "16 V",
+        "type": "X7R ceramic",
+        "role": "HIGH_SIDE_BULK_DECOUPLING",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C213",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "16 V",
+        "type": "X7R ceramic",
+        "role": "LOW_SIDE_DECOUPLING",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C214",
+        "capacitance": "1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "16 V",
+        "type": "X7R ceramic",
+        "role": "LOW_SIDE_BULK_DECOUPLING",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C215",
+        "capacitance": "100 pF",
+        "tolerance": "5%",
+        "voltage_rating": "100 V",
+        "type": "C0G ceramic",
+        "role": "INPUT_FILTER",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R211",
+        "resistance": "10 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "OUTPUT_FILTER",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R212",
+        "resistance": "10 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "OUTPUT_FILTER",
+        "group": "HV_FEEDBACK_ISOLATION"
+      },
+      {
+        "partNumber": "AMC3330",
+        "ref": "U9",
+        "package": "DWE (SOIC-16)",
+        "role": "ISOLATED_AMPLIFIER",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C241",
+        "capacitance": "100 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "DCDC_INPUT_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C242",
+        "capacitance": "1 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "VDD_HIGH_FREQUENCY_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C243",
+        "capacitance": "1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "25 V",
+        "type": "X7R",
+        "role": "VDD_BULK_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C244",
+        "capacitance": "1 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "DCDC_OUTPUT_HIGH_FREQUENCY_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C245",
+        "capacitance": "1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "25 V",
+        "type": "X7R",
+        "role": "DCDC_OUTPUT_BULK_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C246",
+        "capacitance": "1 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "HLDO_HIGH_FREQUENCY_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C247",
+        "capacitance": "100 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "HLDO_BULK_DECOUPLING",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C248",
+        "capacitance": "1 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "50 V",
+        "type": "C0G",
+        "role": "INPUT_DIFFERENTIAL_FILTER",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R241",
+        "resistance": "47 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "DIAG_PULLUP",
+        "group": "CURRENT_SENSE_ISOLATION"
+      },
+      {
+        "partNumber": "TLV9062",
+        "ref": "U10",
+        "package": "PW (TSSOP, 8)",
+        "role": "SIGNAL_CONDITIONING_OP_AMP",
+        "group": "HV_SENSING_ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C271",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "16 V",
+        "type": "X7R ceramic",
+        "role": "POWER_SUPPLY_BYPASS",
+        "group": "POWER_DECOUPLING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R271",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_RESISTOR",
+        "group": "HV_MONITOR_FILTER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R272",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "INPUT_RESISTOR",
+        "group": "HV_MONITOR_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C272",
+        "capacitance": "4.7 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "25 V",
+        "type": "C0G ceramic",
+        "role": "FEEDBACK_FILTER",
+        "group": "HV_MONITOR_FILTER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R273",
+        "resistance": "1 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "OUTPUT_ISOLATION",
+        "group": "HV_MONITOR_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C273",
+        "capacitance": "10 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "25 V",
+        "type": "C0G ceramic",
+        "role": "OUTPUT_FILTER",
+        "group": "HV_MONITOR_FILTER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R274",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "FEEDBACK_RESISTOR",
+        "group": "PRIMARY_CURRENT_FILTER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R275",
+        "resistance": "10 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "INPUT_RESISTOR",
+        "group": "PRIMARY_CURRENT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C274",
+        "capacitance": "4.7 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "25 V",
+        "type": "C0G ceramic",
+        "role": "FEEDBACK_FILTER",
+        "group": "PRIMARY_CURRENT_FILTER"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R276",
+        "resistance": "1 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "OUTPUT_ISOLATION",
+        "group": "PRIMARY_CURRENT_FILTER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C275",
+        "capacitance": "10 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "25 V",
+        "type": "C0G ceramic",
+        "role": "OUTPUT_FILTER",
+        "group": "PRIMARY_CURRENT_FILTER"
+      },
+      {
+        "partNumber": "TLV7011",
+        "ref": "U11",
+        "package": "SOT-23 (DBV)",
+        "role": "COMPARATOR",
+        "group": "HV_SAFETY_SUPERVISION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R301",
+        "resistance": "1 MΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "REFERENCE_DIVIDER",
+        "group": "HV_SAFETY_SUPERVISION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R302",
+        "resistance": "1 MΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "REFERENCE_DIVIDER",
+        "group": "HV_SAFETY_SUPERVISION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C301",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R",
+        "role": "SUPPLY_BYPASS",
+        "group": "POWER_CONDITIONING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C302",
+        "capacitance": "10 nF",
+        "tolerance": "5%",
+        "voltage_rating": "10 V",
+        "type": "X7R",
+        "role": "REFERENCE_FILTER",
+        "group": "HV_SAFETY_SUPERVISION"
+      },
+      {
+        "partNumber": "REF3330",
+        "ref": "U12",
+        "package": "SOT-23-3 (DBZ)",
+        "role": "VOLTAGE_REFERENCE",
+        "group": "ANALOG_REFERENCE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C331",
+        "capacitance": "1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "INPUT_BYPASS",
+        "group": "ANALOG_REFERENCE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C332",
+        "capacitance": "1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "OUTPUT_STABILITY",
+        "group": "ANALOG_REFERENCE"
+      },
+      {
+        "partNumber": "MSPM0G3507",
+        "ref": "U13",
+        "package": "LQFP-48 (PT)",
+        "role": "MICROCONTROLLER",
+        "group": "DIGITAL_CONTROL"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C361",
+        "capacitance": "10 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "6.3 V",
+        "type": "X7R ceramic",
+        "role": "BULK_DECOUPLING",
+        "group": "POWER_SUPPLY"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C362",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "6.3 V",
+        "type": "X7R ceramic",
+        "role": "HIGH_FREQUENCY_DECOUPLING",
+        "group": "POWER_SUPPLY"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C363",
+        "capacitance": "0.47 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "6.3 V",
+        "type": "X7R ceramic low ESR",
+        "role": "CORE_REGULATOR_CAPACITOR",
+        "group": "POWER_SUPPLY"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C364",
+        "capacitance": "1 µF",
+        "tolerance": "±20%",
+        "voltage_rating": "6.3 V",
+        "type": "X7R ceramic",
+        "role": "VREF_DECOUPLING",
+        "group": "ANALOG_REFERENCE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C365",
+        "capacitance": "10 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "6.3 V",
+        "type": "X7R ceramic",
+        "role": "RESET_FILTER",
+        "group": "RESET_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R361",
+        "resistance": "47 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "RESET_PULLUP",
+        "group": "RESET_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R362",
+        "resistance": "100 kΩ",
+        "tolerance": "±0.1%",
+        "power_rating": "0.1 W",
+        "role": "ROSC_REFERENCE",
+        "group": "CLOCKING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R363",
+        "resistance": "4.7 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "I2C_PULLUP",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R364",
+        "resistance": "4.7 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "I2C_PULLUP",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R365",
+        "resistance": "0 Ω",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "EXTERNAL_RESET_ISOLATION",
+        "group": "RESET_INTERFACE"
+      },
+      {
+        "partNumber": "TPS3431-Q1",
+        "ref": "U14",
+        "package": "VSON-8 (DRB) 3.00 mm × 3.00 mm",
+        "role": "WATCHDOG_TIMER",
+        "group": "MCU_SUPERVISION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C391",
+        "capacitance": "0.1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "16 V",
+        "type": "X7R ceramic",
+        "role": "BYPASS_CAPACITOR",
+        "group": "POWER_DECOUPLING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R391",
+        "resistance": "100 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "PULLUP_RESISTOR",
+        "group": "WATCHDOG_OUTPUT"
+      },
+      {
+        "partNumber": "TMP117",
+        "ref": "U15",
+        "package": "WSON-6 (DRV)",
+        "role": "TEMPERATURE_SENSOR",
+        "group": "THERMAL_MONITORING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C421",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X7R ceramic",
+        "role": "DECOUPLING",
+        "group": "POWER_SUPPLY"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R422",
+        "resistance": "5 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.063 W",
+        "role": "ALERT_PULLUP",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "TPD4E05U06",
+        "ref": "U16",
+        "package": "USON-10 (DQA)",
+        "role": "ESD_PROTECTION_ARRAY",
+        "group": "USB_INTERFACE_PROTECTION"
+      },
+      {
+        "partNumber": "TPS25940A",
+        "ref": "U17",
+        "package": "WQFN-20 (RVC)",
+        "role": "EFUSE_POWER_PROTECTION",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R481",
+        "resistance": "475 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "OVERVOLTAGE_UNDERVOLTAGE_DIVIDER",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R482",
+        "resistance": "16.9 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "UNDERVOLTAGE_DIVIDER",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R483",
+        "resistance": "31.6 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "ENABLE_PULLDOWN_DIVIDER",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R484",
+        "resistance": "100 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "ENABLE_DRIVE_ISOLATION",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R485",
+        "resistance": "475 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "POWER_GOOD_DIVIDER",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R486",
+        "resistance": "47 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "POWER_GOOD_DIVIDER",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R487",
+        "resistance": "20 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "CURRENT_LIMIT_PROGRAMMING",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R488",
+        "resistance": "10 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "FAULT_PULLUP",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R489",
+        "resistance": "10 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "POWER_GOOD_PULLUP",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C481",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "25 V",
+        "type": "X7R ceramic",
+        "role": "INPUT_BYPASS",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C482",
+        "capacitance": "1 nF",
+        "tolerance": "5%",
+        "voltage_rating": "10 V",
+        "type": "C0G ceramic",
+        "role": "INRUSH_RAMP_PROGRAMMING",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C483",
+        "capacitance": "10 nF",
+        "tolerance": "10%",
+        "voltage_rating": "25 V",
+        "type": "X7R ceramic",
+        "role": "ENABLE_FILTER",
+        "group": "USB_INPUT_PROTECTION"
+      },
+      {
+        "partNumber": "ISO6741",
+        "ref": "U18",
+        "package": "SOIC wide-body (DW-16)",
+        "role": "DIGITAL_ISOLATOR",
+        "group": "ISOLATION_INTERFACE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C511",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "16 V",
+        "type": "X7R",
+        "role": "DECOUPLING",
+        "group": "PRIMARY_SIDE_SUPPLY"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C512",
+        "capacitance": "0.1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "16 V",
+        "type": "X7R",
+        "role": "DECOUPLING",
+        "group": "ISOLATED_SIDE_SUPPLY"
+      },
+      {
+        "partNumber": "SN74LVC2G17",
+        "ref": "U19",
+        "package": "SOT-23 (DBV)",
+        "role": "SCHMITT_TRIGGER_BUFFER",
+        "group": "USER_INPUT_CONDITIONING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R541",
+        "resistance": "100 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "INPUT_SERIES_FILTER",
+        "group": "USER_INPUT_CONDITIONING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R542",
+        "resistance": "100 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "INPUT_SERIES_FILTER",
+        "group": "USER_INPUT_CONDITIONING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C541",
+        "capacitance": "1 nF",
+        "tolerance": "10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "INPUT_EMI_FILTER",
+        "group": "USER_INPUT_CONDITIONING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C542",
+        "capacitance": "1 nF",
+        "tolerance": "10%",
+        "voltage_rating": "50 V",
+        "type": "X7R",
+        "role": "INPUT_EMI_FILTER",
+        "group": "USER_INPUT_CONDITIONING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C543",
+        "capacitance": "0.1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "16 V",
+        "type": "X7R",
+        "role": "VCC_BYPASS",
+        "group": "POWER_DECOUPLING"
+      },
+      {
+        "partNumber": "LP5562",
+        "ref": "U20",
+        "package": "DSBGA-12 (YQE)",
+        "role": "LED_DRIVER",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C571",
+        "capacitance": "1 µF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X5R ceramic",
+        "role": "SUPPLY_DECOUPLING",
+        "group": "POWER"
+      },
+      {
+        "partNumber": "ADS1220",
+        "ref": "U21",
+        "package": "TSSOP-16 (PW)",
+        "role": "PRECISION_ADC",
+        "group": "ANALOG_MEASUREMENT"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R601",
+        "resistance": "47 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "SPI_SERIES_TERMINATION",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R602",
+        "resistance": "47 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "SPI_SERIES_TERMINATION",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R603",
+        "resistance": "47 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "SPI_SERIES_TERMINATION",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R604",
+        "resistance": "47 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "SPI_SERIES_TERMINATION",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R605",
+        "resistance": "47 Ω",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "SPI_SERIES_TERMINATION",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R606",
+        "resistance": "100 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "DRDY_PULLUP",
+        "group": "DIGITAL_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R607",
+        "resistance": "1 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "ANALOG_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R608",
+        "resistance": "1 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "ANALOG_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R609",
+        "resistance": "1 kΩ",
+        "tolerance": "1%",
+        "power_rating": "0.1 W",
+        "role": "ANALOG_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C601",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R",
+        "role": "ANALOG_SUPPLY_DECOUPLING",
+        "group": "POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C602",
+        "capacitance": "100 nF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R",
+        "role": "DIGITAL_SUPPLY_DECOUPLING",
+        "group": "POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C603",
+        "capacitance": "1 µF",
+        "tolerance": "10%",
+        "voltage_rating": "10 V",
+        "type": "X7R",
+        "role": "ANALOG_BULK_DECOUPLING",
+        "group": "POWER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C604",
+        "capacitance": "100 nF",
+        "tolerance": "5%",
+        "voltage_rating": "10 V",
+        "type": "C0G",
+        "role": "DIFFERENTIAL_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C605",
+        "capacitance": "10 nF",
+        "tolerance": "5%",
+        "voltage_rating": "10 V",
+        "type": "C0G",
+        "role": "COMMON_MODE_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C606",
+        "capacitance": "10 nF",
+        "tolerance": "5%",
+        "voltage_rating": "10 V",
+        "type": "C0G",
+        "role": "COMMON_MODE_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C607",
+        "capacitance": "10 nF",
+        "tolerance": "5%",
+        "voltage_rating": "10 V",
+        "type": "C0G",
+        "role": "SINGLE_ENDED_INPUT_FILTER",
+        "group": "ANALOG_FRONT_END"
+      },
+      {
+        "partNumber": "DISCRETE_BLOCKS",
+        "ref": "NONE",
+        "role": "SYSTEM_INTERCONNECT_AND_HV_POWER_STAGE",
+        "group": "DISCRETE_SUBSYSTEMS"
+      },
+      {
+        "partNumber": "connector",
+        "ref": "J631",
+        "number_of_contacts": "4",
+        "mounting_type": "board edge receptacle",
+        "current_rating": "3 A",
+        "voltage_rating": "30 V",
+        "role": "USB_POWER_DATA_CONNECTOR",
+        "group": "USB_INTERFACE"
+      },
+      {
+        "partNumber": "connector",
+        "ref": "J632",
+        "number_of_contacts": "2",
+        "mounting_type": "wire-to-board",
+        "current_rating": "5 A",
+        "voltage_rating": "10 V",
+        "role": "BATTERY_CONNECTOR",
+        "group": "BATTERY_INTERFACE"
+      },
+      {
+        "partNumber": "connector",
+        "ref": "J633",
+        "number_of_contacts": "4",
+        "mounting_type": "pin header",
+        "current_rating": "0.5 A",
+        "voltage_rating": "30 V",
+        "role": "SWD_PROGRAMMING_CONNECTOR",
+        "group": "DEBUG_INTERFACE"
+      },
+      {
+        "partNumber": "connector",
+        "ref": "J634",
+        "number_of_contacts": "2",
+        "mounting_type": "wire-to-board",
+        "current_rating": "0.1 A",
+        "voltage_rating": "30 V",
+        "role": "THERMAL_SENSOR_CONNECTOR",
+        "group": "SENSING_INTERFACE"
+      },
+      {
+        "partNumber": "connector",
+        "ref": "J635",
+        "number_of_contacts": "2",
+        "mounting_type": "high-voltage insulated connector",
+        "current_rating": "0.01 A",
+        "voltage_rating": "20 kV",
+        "role": "HV_OUTPUT_CONNECTOR",
+        "group": "HV_OUTPUT_INTERFACE"
+      },
+      {
+        "partNumber": "switch",
+        "ref": "SW631",
+        "role": "USER_INPUT_SWITCH",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "switch",
+        "ref": "SW632",
+        "role": "USER_INPUT_SWITCH",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "LED",
+        "ref": "LED631",
+        "role": "STATUS_INDICATOR",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "LED",
+        "ref": "LED632",
+        "role": "STATUS_INDICATOR",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "LED",
+        "ref": "LED633",
+        "role": "STATUS_INDICATOR",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R631",
+        "resistance": "1 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "LED_CURRENT_LIMIT",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R632",
+        "resistance": "1 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "LED_CURRENT_LIMIT",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R633",
+        "resistance": "1 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.1 W",
+        "role": "LED_CURRENT_LIMIT",
+        "group": "USER_INTERFACE"
+      },
+      {
+        "partNumber": "MOSFET",
+        "ref": "Q631",
+        "vds_voltage": "100 V",
+        "id_current": "30 A",
+        "gate_voltage": "±20 V",
+        "polarity": "N-channel",
+        "role": "PRIMARY_FLYBACK_SWITCH",
+        "group": "PRIMARY_POWER_STAGE"
+      },
+      {
+        "partNumber": "shunt resistor",
+        "ref": "R634",
+        "resistance": "0.05 Ω",
+        "tolerance": "±1%",
+        "power_rating": "1 W",
+        "role": "PRIMARY_CURRENT_SHUNT",
+        "group": "PRIMARY_POWER_STAGE"
+      },
+      {
+        "partNumber": "transformer",
+        "ref": "T631",
+        "primary_magnetizing_inductance": "200 µH",
+        "turns_ratio": "1:120",
+        "operational_frequency_range": "40 kHz to 100 kHz",
+        "voltage_isolation": "20 kV",
+        "voltage_primary": "60 V",
+        "role": "FLYBACK_TRANSFORMER",
+        "group": "HV_GENERATION"
+      },
+      {
+        "partNumber": "diode",
+        "ref": "D631",
+        "diode_type": "high-voltage fast recovery",
+        "reverse_voltage": "3 kV",
+        "current_rating": "0.05 A",
+        "role": "HV_MULTIPLIER_RECTIFIER",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "diode",
+        "ref": "D632",
+        "diode_type": "high-voltage fast recovery",
+        "reverse_voltage": "3 kV",
+        "current_rating": "0.05 A",
+        "role": "HV_MULTIPLIER_RECTIFIER",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "diode",
+        "ref": "D633",
+        "diode_type": "high-voltage fast recovery",
+        "reverse_voltage": "3 kV",
+        "current_rating": "0.05 A",
+        "role": "HV_MULTIPLIER_RECTIFIER",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "diode",
+        "ref": "D634",
+        "diode_type": "high-voltage fast recovery",
+        "reverse_voltage": "3 kV",
+        "current_rating": "0.05 A",
+        "role": "HV_MULTIPLIER_RECTIFIER",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C631",
+        "capacitance": "2.2 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "6 kV",
+        "type": "ceramic C0G",
+        "role": "HV_MULTIPLIER_CAPACITOR",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C632",
+        "capacitance": "2.2 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "6 kV",
+        "type": "ceramic C0G",
+        "role": "HV_MULTIPLIER_CAPACITOR",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C633",
+        "capacitance": "2.2 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "6 kV",
+        "type": "ceramic C0G",
+        "role": "HV_MULTIPLIER_CAPACITOR",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C634",
+        "capacitance": "2.2 nF",
+        "tolerance": "±5%",
+        "voltage_rating": "6 kV",
+        "type": "ceramic C0G",
+        "role": "HV_MULTIPLIER_CAPACITOR",
+        "group": "HV_MULTIPLIER"
+      },
+      {
+        "partNumber": "relay",
+        "ref": "K631",
+        "contact_form": "normally open solid-state optical switch",
+        "coil_voltage": "5 V",
+        "current_rating": "0.01 A",
+        "voltage_rating": "20 kV",
+        "role": "HV_CHARGE_SWITCH",
+        "group": "HV_OUTPUT_SWITCHING"
+      },
+      {
+        "partNumber": "relay",
+        "ref": "K632",
+        "contact_form": "normally open solid-state optical switch",
+        "coil_voltage": "5 V",
+        "current_rating": "0.01 A",
+        "voltage_rating": "20 kV",
+        "role": "HV_DISCHARGE_SWITCH",
+        "group": "HV_OUTPUT_SWITCHING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R635",
+        "resistance": "100 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.125 W",
+        "role": "OPTO_LED_CURRENT_LIMIT",
+        "group": "HV_OUTPUT_SWITCHING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R636",
+        "resistance": "100 kΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.125 W",
+        "role": "OPTO_LED_CURRENT_LIMIT",
+        "group": "HV_OUTPUT_SWITCHING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R637",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R638",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R639",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R640",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R641",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R642",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R643",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R644",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R645",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R646",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R647",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R648",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R649",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R650",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R651",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R652",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_BUS_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R653",
+        "resistance": "100 kΩ",
+        "tolerance": "±0.1%",
+        "power_rating": "0.125 W",
+        "role": "HV_BUS_DIVIDER_BOTTOM",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C635",
+        "capacitance": "1 nF",
+        "tolerance": "±2%",
+        "voltage_rating": "100 V",
+        "type": "ceramic C0G",
+        "role": "HV_BUS_DIVIDER_FILTER",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R654",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R655",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R656",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R657",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R658",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R659",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R660",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R661",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R662",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R663",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R664",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R665",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R666",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R667",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R668",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R669",
+        "resistance": "100 MΩ",
+        "tolerance": "±1%",
+        "power_rating": "0.5 W",
+        "role": "HV_OUTPUT_DIVIDER_TOP",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R670",
+        "resistance": "100 kΩ",
+        "tolerance": "±0.1%",
+        "power_rating": "0.125 W",
+        "role": "HV_OUTPUT_DIVIDER_BOTTOM",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "capacitor",
+        "ref": "C636",
+        "capacitance": "1 nF",
+        "tolerance": "±2%",
+        "voltage_rating": "100 V",
+        "type": "ceramic C0G",
+        "role": "HV_OUTPUT_DIVIDER_FILTER",
+        "group": "HV_SENSING"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R671",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R672",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R673",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R674",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R675",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R676",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R677",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "resistor",
+        "ref": "R678",
+        "resistance": "1 GΩ",
+        "tolerance": "±5%",
+        "power_rating": "1 W",
+        "role": "HV_BLEED_RESISTOR",
+        "group": "HV_DISCHARGE"
+      },
+      {
+        "partNumber": "ntc",
+        "ref": "R679",
+        "thermistor_type": "10 kΩ NTC beta 3435",
+        "operating_temperature_range": "-40 °C to 125 °C",
+        "power_rating": "0.1 W",
+        "role": "BATTERY_TEMPERATURE_SENSOR",
+        "group": "SENSING_INTERFACE"
+      }
+    ],
+    "nets": [
+      {
+        "name": "BQ24075_TS",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R3-1",
+          "U1-1"
+        ]
+      },
+      {
+        "name": "PACK_BAT_P",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C3-1",
+          "U1-2",
+          "U1-3",
+          "R64-2"
+        ]
+      },
+      {
+        "name": "GND_LV",
+        "type": "GROUND",
+        "nodes": [
+          "C1-2",
+          "C2-2",
+          "C3-2",
+          "R1-2",
+          "R2-2",
+          "R3-2",
+          "R6-2",
+          "U1-EP",
+          "C61-2",
+          "C62-2",
+          "C63-2",
+          "C64-2",
+          "C65-2",
+          "C66-2",
+          "C67-2",
+          "C68-2",
+          "R62-2",
+          "C91-2",
+          "C92-2",
+          "U4-2",
+          "C121-2",
+          "C122-2",
+          "R122-2",
+          "C124-2",
+          "U5-1",
+          "U5-EP",
+          "C151-2",
+          "C152-2",
+          "C153-2",
+          "C154-2",
+          "C155-2",
+          "C156-2",
+          "U6-5",
+          "R182-2",
+          "C181-2",
+          "C182-2",
+          "C183-2",
+          "U7-2",
+          "U7-4",
+          "C213-2",
+          "C214-2",
+          "U8-5",
+          "C241-2",
+          "C242-2",
+          "C243-2",
+          "U9-9",
+          "U9-15",
+          "C271-2",
+          "C273-2",
+          "C275-2",
+          "U10-4",
+          "C301-2",
+          "C302-2",
+          "U11-2",
+          "C331-2",
+          "C332-2",
+          "U12-3",
+          "C361-2",
+          "C362-2",
+          "C363-2",
+          "C364-2",
+          "C365-2",
+          "R362-2",
+          "U13-21",
+          "U13-31",
+          "C391-2",
+          "U14-4",
+          "U14-EP",
+          "C421-2",
+          "U15-2",
+          "U15-4",
+          "U16-3",
+          "U16-8",
+          "R483-2",
+          "R486-2",
+          "R487-2",
+          "C481-2",
+          "C482-2",
+          "C483-2",
+          "U17-1",
+          "U17-16",
+          "U17-EP",
+          "C511-2",
+          "U18-2",
+          "U18-8",
+          "C541-2",
+          "C542-2",
+          "C543-2",
+          "U19-2",
+          "C571-2",
+          "U20-B1",
+          "U20-B2",
+          "U20-B3",
+          "C601-2",
+          "C602-2",
+          "C603-2",
+          "C605-2",
+          "C606-2",
+          "C607-2",
+          "U21-1",
+          "U21-2",
+          "U21-3",
+          "U21-6",
+          "J633-4",
+          "SW631-2",
+          "SW632-2",
+          "LED631-2",
+          "LED632-2",
+          "LED633-2",
+          "Q631-2",
+          "R634-2",
+          "T631-2",
+          "R679-2",
+          "U1-15",
+          "U1-6",
+          "R212-2"
+        ]
+      },
+      {
+        "name": "CHARGER_EN",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R6-1",
+          "U1-4",
+          "U13-27"
+        ]
+      },
+      {
+        "name": "PGOOD_CHARGER",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R4-1",
+          "U1-7",
+          "U13-15"
+        ]
+      },
+      {
+        "name": "CHG_STATUS",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R5-1",
+          "U1-9",
+          "U13-14"
+        ]
+      },
+      {
+        "name": "SYS_PWR",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C2-1",
+          "R4-2",
+          "R5-2",
+          "U1-10",
+          "U1-11"
+        ]
+      },
+      {
+        "name": "BQ24075_ILIM",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R1-1",
+          "U1-12"
+        ]
+      },
+      {
+        "name": "VIN_PROTECTED_5V",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C1-1",
+          "U1-13",
+          "U17-4",
+          "U17-5",
+          "U17-6",
+          "U17-7",
+          "U17-8"
+        ]
+      },
+      {
+        "name": "BQ24075_TMR",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U1-14"
+        ]
+      },
+      {
+        "name": "BQ24075_ISET",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R2-1",
+          "U1-16"
+        ]
+      },
+      {
+        "name": "CHARGER_USB_LIMIT_SEL",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U1-5",
+          "U13-29"
+        ]
+      },
+      {
+        "name": "BQ2970_BAT",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "R31-2",
+          "C31-1",
+          "U2-5"
+        ]
+      },
+      {
+        "name": "BQ2970_VM",
+        "type": "SENSING_LINE",
+        "nodes": [
+          "R32-1",
+          "U2-6"
+        ]
+      },
+      {
+        "name": "BQ2970_COUT",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R33-1",
+          "U2-2"
+        ]
+      },
+      {
+        "name": "BQ2970_DOUT",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R34-1",
+          "U2-3"
+        ]
+      },
+      {
+        "name": "BAT_CELL_P",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "R31-1",
+          "J632-1"
+        ]
+      },
+      {
+        "name": "BAT_CELL_N",
+        "type": "GROUND",
+        "nodes": [
+          "C31-2",
+          "R34-2",
+          "U2-4",
+          "J632-2"
+        ]
+      },
+      {
+        "name": "PACK_BAT_N",
+        "type": "GROUND",
+        "nodes": [
+          "R32-2",
+          "R33-2",
+          "U1-8",
+          "U3-4",
+          "U3-10"
+        ]
+      },
+      {
+        "name": "NC_U2_NC",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U2-1"
+        ]
+      },
+      {
+        "name": "TPS63070_VIN_IN",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C61-1",
+          "C62-1",
+          "C63-1",
+          "U3-12",
+          "U3-13",
+          "U3-15"
+        ]
+      },
+      {
+        "name": "TPS63070_L1",
+        "type": "SWITCHING_NODE",
+        "nodes": [
+          "U3-11",
+          "L61-1"
+        ]
+      },
+      {
+        "name": "TPS63070_L2",
+        "type": "SWITCHING_NODE",
+        "nodes": [
+          "U3-9",
+          "L61-2"
+        ]
+      },
+      {
+        "name": "VSYS_3V3",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C64-1",
+          "C65-1",
+          "C66-1",
+          "C67-1",
+          "R61-1",
+          "R63-1",
+          "U3-7",
+          "U3-8",
+          "C91-1",
+          "U4-1",
+          "U4-3",
+          "L121-1",
+          "C121-1",
+          "U5-2",
+          "U5-3",
+          "C151-1",
+          "C152-1",
+          "U6-7",
+          "C181-1",
+          "C182-1",
+          "U7-1",
+          "C213-1",
+          "C214-1",
+          "U8-8",
+          "C361-1",
+          "C362-1",
+          "R361-1",
+          "R363-1",
+          "R364-1",
+          "U13-30",
+          "C391-1",
+          "R391-2",
+          "U14-1",
+          "U14-3",
+          "U14-5",
+          "C421-1",
+          "R422-1",
+          "U15-5",
+          "C511-1",
+          "U18-1",
+          "U18-7",
+          "C543-1",
+          "U19-5",
+          "C571-1",
+          "U20-A2",
+          "C602-1",
+          "R606-2",
+          "U21-11",
+          "T631-3"
+        ]
+      },
+      {
+        "name": "TPS63070_VAUX",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "C68-1",
+          "U3-3"
+        ]
+      },
+      {
+        "name": "TPS63070_FB",
+        "type": "SENSING_LINE",
+        "nodes": [
+          "R61-2",
+          "R62-1",
+          "U3-5"
+        ]
+      },
+      {
+        "name": "TPS63070_PS_SYNC",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R63-2",
+          "U3-1"
+        ]
+      },
+      {
+        "name": "TPS63070_EN",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R64-1",
+          "U3-14"
+        ]
+      },
+      {
+        "name": "TPS63070_FB2",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U3-6"
+        ]
+      },
+      {
+        "name": "PGOOD_BUCKBOOST",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U3-2"
+        ]
+      },
+      {
+        "name": "3V3_ANA",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C92-1",
+          "U4-5",
+          "C242-1",
+          "C243-1",
+          "R241-2",
+          "U9-12",
+          "C271-1",
+          "U10-8",
+          "R302-2",
+          "C301-1",
+          "U11-5",
+          "C331-1",
+          "U12-1",
+          "C601-1",
+          "C603-1",
+          "U21-10"
+        ]
+      },
+      {
+        "name": "NC_U4_4",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U4-4"
+        ]
+      },
+      {
+        "name": "TPS61041_SW",
+        "type": "SWITCHING_NODE",
+        "nodes": [
+          "L121-2",
+          "D121-1",
+          "U5-6"
+        ]
+      },
+      {
+        "name": "AUX_BOOST_V",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "D121-2",
+          "C122-1",
+          "R121-1",
+          "C123-2"
+        ]
+      },
+      {
+        "name": "TPS61041_FB",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R121-2",
+          "R122-1",
+          "C123-1",
+          "C124-1",
+          "U5-4"
+        ]
+      },
+      {
+        "name": "NC_U5_NC",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U5-5"
+        ]
+      },
+      {
+        "name": "UCC28C43_VREF",
+        "type": "ANALOG_REFERENCE",
+        "nodes": [
+          "C153-1",
+          "R151-1",
+          "R153-1",
+          "U6-8"
+        ]
+      },
+      {
+        "name": "UCC28C43_RTCT",
+        "type": "TIMING_SIGNAL",
+        "nodes": [
+          "R151-2",
+          "C154-1",
+          "U6-4"
+        ]
+      },
+      {
+        "name": "UCC28C43_CS",
+        "type": "SENSING_LINE",
+        "nodes": [
+          "R152-2",
+          "C155-1",
+          "U6-3"
+        ]
+      },
+      {
+        "name": "UCC28C43_FB",
+        "type": "ANALOG_FEEDBACK",
+        "nodes": [
+          "R153-2",
+          "R154-2",
+          "R155-2",
+          "R156-2",
+          "R157-2",
+          "U6-2"
+        ]
+      },
+      {
+        "name": "UCC28C43_COMP",
+        "type": "ANALOG_COMPENSATION",
+        "nodes": [
+          "C156-1",
+          "R158-1",
+          "C157-1",
+          "U6-1"
+        ]
+      },
+      {
+        "name": "UCC28C43_COMP_Z",
+        "type": "ANALOG_COMPENSATION",
+        "nodes": [
+          "R158-2",
+          "C157-2"
+        ]
+      },
+      {
+        "name": "PRIMARY_CURRENT_SENSE",
+        "type": "SENSING_LINE",
+        "nodes": [
+          "R152-1",
+          "C248-1",
+          "U9-6",
+          "R634-1"
+        ]
+      },
+      {
+        "name": "PWM_CTRL",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R154-1",
+          "U13-38"
+        ]
+      },
+      {
+        "name": "HV_CHARGER_ENABLE",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R155-1",
+          "U13-39"
+        ]
+      },
+      {
+        "name": "HV_BUS_FB_ISO",
+        "type": "FEEDBACK_PATH",
+        "nodes": [
+          "R156-1",
+          "R211-2",
+          "R272-1",
+          "U10-3",
+          "U13-6"
+        ]
+      },
+      {
+        "name": "HV_OVERVOLTAGE_HW",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R157-1",
+          "U13-19"
+        ]
+      },
+      {
+        "name": "PRIMARY_GATE_DRIVE",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U6-6",
+          "R183-1",
+          "U7-3"
+        ]
+      },
+      {
+        "name": "UCC27517_OUT",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R181-1",
+          "R182-1",
+          "U7-5"
+        ]
+      },
+      {
+        "name": "PRIMARY_MOSFET_GATE",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R181-2",
+          "Q631-1"
+        ]
+      },
+      {
+        "name": "AMC1311_OUTP_FILT",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R211-1",
+          "U8-7"
+        ]
+      },
+      {
+        "name": "AMC1311_OUTN_FILT",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R212-1",
+          "U8-6"
+        ]
+      },
+      {
+        "name": "HV_AUX_ISO",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C211-1",
+          "C212-1",
+          "U8-1",
+          "U8-3",
+          "C512-1",
+          "U18-10",
+          "U18-16",
+          "R635-2",
+          "R636-2"
+        ]
+      },
+      {
+        "name": "HV_GND_ISO",
+        "type": "GROUND",
+        "nodes": [
+          "C211-2",
+          "C212-2",
+          "C215-2",
+          "U8-4",
+          "C244-2",
+          "C245-2",
+          "C246-2",
+          "C247-2",
+          "C248-2",
+          "U9-2",
+          "U9-7",
+          "U9-8",
+          "C512-2",
+          "U18-9",
+          "U18-15",
+          "R653-2",
+          "C635-2"
+        ]
+      },
+      {
+        "name": "HV_BUS_SENSE_RAW",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "C215-1",
+          "R652-2",
+          "R653-1",
+          "C635-1",
+          "U8-2"
+        ]
+      },
+      {
+        "name": "AMC3330_DCDC_OUT",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C244-1",
+          "C245-1",
+          "U9-1",
+          "U9-3"
+        ]
+      },
+      {
+        "name": "AMC3330_HLDO_OUT",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C246-1",
+          "C247-1",
+          "U9-5"
+        ]
+      },
+      {
+        "name": "AMC3330_LDO_OUT",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "C241-1",
+          "U9-13",
+          "U9-16"
+        ]
+      },
+      {
+        "name": "AMC3330_DIAG",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R241-1",
+          "U9-14"
+        ]
+      },
+      {
+        "name": "NC_U9_NC",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U9-4"
+        ]
+      },
+      {
+        "name": "TLV9062_HV_FB",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R271-1",
+          "R272-2",
+          "C272-1",
+          "U10-2"
+        ]
+      },
+      {
+        "name": "TLV9062_HV_OUT_RAW",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R271-2",
+          "C272-2",
+          "R273-1"
+        ]
+      },
+      {
+        "name": "HV_MONITOR_COND",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R273-2",
+          "C273-1",
+          "U10-1",
+          "U13-8",
+          "R607-1"
+        ]
+      },
+      {
+        "name": "PRIMARY_CURRENT_FB",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R275-1",
+          "U10-5",
+          "U9-11",
+          "U9-10"
+        ]
+      },
+      {
+        "name": "TLV9062_CUR_FB",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R274-1",
+          "R275-2",
+          "C274-1",
+          "U10-6"
+        ]
+      },
+      {
+        "name": "TLV9062_CUR_OUT_RAW",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R274-2",
+          "C274-2",
+          "R276-1"
+        ]
+      },
+      {
+        "name": "PRIMARY_CURRENT_COND",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R276-2",
+          "C275-1",
+          "U10-7",
+          "U13-5",
+          "R608-1"
+        ]
+      },
+      {
+        "name": "TLV7011_REF_MID",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R301-2",
+          "R302-1"
+        ]
+      },
+      {
+        "name": "TLV7011_REF_FILT",
+        "type": "QUIET_REFERENCE",
+        "nodes": [
+          "R301-1",
+          "C302-1",
+          "U11-4"
+        ]
+      },
+      {
+        "name": "SAFE_TO_TOUCH_HW",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U11-1",
+          "U13-18",
+          "U18-5"
+        ]
+      },
+      {
+        "name": "HV_OUTPUT_SENSE_RAW",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "U11-3",
+          "R669-2",
+          "R670-1",
+          "C636-1"
+        ]
+      },
+      {
+        "name": "REF_3V0",
+        "type": "QUIET_REFERENCE",
+        "nodes": [
+          "C332-1",
+          "U12-2",
+          "C364-1",
+          "U13-7",
+          "U13-24",
+          "U21-7"
+        ]
+      },
+      {
+        "name": "MSPM0G3507_VCORE",
+        "type": "POWER_INTEGRITY",
+        "nodes": [
+          "C363-1",
+          "U13-13"
+        ]
+      },
+      {
+        "name": "MSPM0G3507_NRST",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R361-2",
+          "C365-1",
+          "R365-1",
+          "U13-28"
+        ]
+      },
+      {
+        "name": "MCU_RESET_IN_N",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R365-2",
+          "U13-48",
+          "J633-3"
+        ]
+      },
+      {
+        "name": "MSPM0G3507_ROSC",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R362-1",
+          "U13-32"
+        ]
+      },
+      {
+        "name": "I2C_SDA",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R363-2",
+          "U13-25",
+          "U15-6",
+          "U20-C1"
+        ]
+      },
+      {
+        "name": "I2C_SCL",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R364-2",
+          "U13-26",
+          "U15-1",
+          "U20-C2"
+        ]
+      },
+      {
+        "name": "NC_U13_PB17",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U13-1"
+        ]
+      },
+      {
+        "name": "SWCLK",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-2",
+          "J633-2"
+        ]
+      },
+      {
+        "name": "SWDIO",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-3",
+          "J633-1"
+        ]
+      },
+      {
+        "name": "HV_OUTPUT_MONITOR_COND",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "U13-4",
+          "R609-1",
+          "U20-C4"
+        ]
+      },
+      {
+        "name": "HV_STATUS_ISO",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-9",
+          "U18-6",
+          "U18-11"
+        ]
+      },
+      {
+        "name": "HV_DISCHARGE_DONE_ISO",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-10",
+          "U18-12"
+        ]
+      },
+      {
+        "name": "LED_ENGINE_SYNC",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U13-11"
+        ]
+      },
+      {
+        "name": "LED_EN",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U13-12",
+          "U20-C3"
+        ]
+      },
+      {
+        "name": "EFUSE_FLT",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-16",
+          "R488-2",
+          "U17-20"
+        ]
+      },
+      {
+        "name": "ADC_DRDY_N",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-17",
+          "R604-1"
+        ]
+      },
+      {
+        "name": "TMP117_ALERT_N",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-20",
+          "R422-2",
+          "U15-3"
+        ]
+      },
+      {
+        "name": "SWITCH_CLEAN_1",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-22",
+          "U19-6"
+        ]
+      },
+      {
+        "name": "SWITCH_CLEAN_2",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-23",
+          "U19-4"
+        ]
+      },
+      {
+        "name": "NC_U13_PA3",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U13-33"
+        ]
+      },
+      {
+        "name": "NC_U13_PA4",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U13-34"
+        ]
+      },
+      {
+        "name": "NC_U13_PA5",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U13-35"
+        ]
+      },
+      {
+        "name": "NC_U13_PA6",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U13-36"
+        ]
+      },
+      {
+        "name": "WDI",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U13-37",
+          "U14-6"
+        ]
+      },
+      {
+        "name": "EFUSE_EN",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U13-40",
+          "R484-2"
+        ]
+      },
+      {
+        "name": "HV_PWM_CMD_ISO",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-41",
+          "U18-3"
+        ]
+      },
+      {
+        "name": "HV_DISCHARGE_CMD_ISO",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-42",
+          "U18-4"
+        ]
+      },
+      {
+        "name": "WATCHDOG_RST_N",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U13-43",
+          "R391-1",
+          "U14-7"
+        ]
+      },
+      {
+        "name": "SPI_SCLK",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-44",
+          "R601-1"
+        ]
+      },
+      {
+        "name": "SPI_MISO",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-45",
+          "R603-1"
+        ]
+      },
+      {
+        "name": "SPI_MOSI",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U13-46",
+          "R602-1"
+        ]
+      },
+      {
+        "name": "ADC_CS_N",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U13-47",
+          "R605-1"
+        ]
+      },
+      {
+        "name": "NC_U14_CWD",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U14-2"
+        ]
+      },
+      {
+        "name": "NC_U14_ENOUT",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U14-8"
+        ]
+      },
+      {
+        "name": "NC_U15_EP",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U15-EP"
+        ]
+      },
+      {
+        "name": "NC_U16_6",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U16-6"
+        ]
+      },
+      {
+        "name": "NC_U16_7",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U16-7"
+        ]
+      },
+      {
+        "name": "NC_U16_9",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U16-9"
+        ]
+      },
+      {
+        "name": "NC_U16_10",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U16-10"
+        ]
+      },
+      {
+        "name": "USB_5V_IN",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "U16-1",
+          "R481-1",
+          "R485-1",
+          "C481-1",
+          "R488-1",
+          "R489-2",
+          "U17-9",
+          "U17-10",
+          "U17-11",
+          "U17-12",
+          "U17-13",
+          "J631-1"
+        ]
+      },
+      {
+        "name": "USB_D_P",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U16-2",
+          "J631-3"
+        ]
+      },
+      {
+        "name": "USB_D_N",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U16-4",
+          "J631-2"
+        ]
+      },
+      {
+        "name": "SWITCH_RAW_1",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "U16-5",
+          "R541-1",
+          "SW631-1"
+        ]
+      },
+      {
+        "name": "TPS25940_EN_UVLO",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R482-1",
+          "R483-1",
+          "R484-1",
+          "C483-1",
+          "U17-14"
+        ]
+      },
+      {
+        "name": "TPS25940_OVP",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R481-2",
+          "R482-2",
+          "U17-15"
+        ]
+      },
+      {
+        "name": "TPS25940_PGTH",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R485-2",
+          "R486-1",
+          "U17-3"
+        ]
+      },
+      {
+        "name": "TPS25940_ILIM",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R487-1",
+          "U17-17"
+        ]
+      },
+      {
+        "name": "TPS25940_DVDT",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "C482-1",
+          "U17-18"
+        ]
+      },
+      {
+        "name": "TPS25940_PGOOD",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R489-1",
+          "U17-2"
+        ]
+      },
+      {
+        "name": "NC_U17_IMON",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U17-19"
+        ]
+      },
+      {
+        "name": "HV_DISCHARGE_OPTO_LED_DRIVE",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U18-13",
+          "R636-1",
+          "K632-1"
+        ]
+      },
+      {
+        "name": "HV_CHARGE_OPTO_LED_DRIVE",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "U18-14",
+          "R635-1",
+          "K631-1"
+        ]
+      },
+      {
+        "name": "SN74LVC2G17_IN1",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R541-2",
+          "C541-1",
+          "U19-1"
+        ]
+      },
+      {
+        "name": "SN74LVC2G17_IN2",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R542-2",
+          "C542-1",
+          "U19-3"
+        ]
+      },
+      {
+        "name": "SWITCH_RAW_2",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R542-1",
+          "SW632-1"
+        ]
+      },
+      {
+        "name": "NC_U20_CLK_32K",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U20-A3"
+        ]
+      },
+      {
+        "name": "LED_CH3",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "U20-A1",
+          "R633-1"
+        ]
+      },
+      {
+        "name": "LED_CH2",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "U20-A4",
+          "R632-1"
+        ]
+      },
+      {
+        "name": "LED_CH1",
+        "type": "POWER_DISTRIBUTION",
+        "nodes": [
+          "U20-B4",
+          "R631-1"
+        ]
+      },
+      {
+        "name": "ADS1220_SCLK_FILT",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R601-2",
+          "U21-15"
+        ]
+      },
+      {
+        "name": "ADS1220_DIN_FILT",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R602-2",
+          "U21-14"
+        ]
+      },
+      {
+        "name": "ADS1220_DOUT_FILT",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R603-2",
+          "U21-13"
+        ]
+      },
+      {
+        "name": "ADS1220_DRDY_INT",
+        "type": "DIGITAL_LOGIC",
+        "nodes": [
+          "R604-2",
+          "R606-1",
+          "U21-12"
+        ]
+      },
+      {
+        "name": "ADS1220_CS_FILT",
+        "type": "CONTROL_SIGNAL",
+        "nodes": [
+          "R605-2",
+          "U21-16"
+        ]
+      },
+      {
+        "name": "ADS1220_AIN0_FILT",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R607-2",
+          "C604-1",
+          "C605-1",
+          "U21-9"
+        ]
+      },
+      {
+        "name": "ADS1220_AIN1_FILT",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R608-2",
+          "C604-2",
+          "C606-1",
+          "U21-8"
+        ]
+      },
+      {
+        "name": "ADS1220_AIN2_FILT",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R609-2",
+          "C607-1",
+          "U21-5"
+        ]
+      },
+      {
+        "name": "NC_U21_AIN3_REFN1",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "U21-4"
+        ]
+      },
+      {
+        "name": "BATTERY_TEMP_SENSE",
+        "type": "SENSING_LINE",
+        "nodes": [
+          "J634-1",
+          "R679-1"
+        ]
+      },
+      {
+        "name": "NC_NONE_J634_2",
+        "type": "NO_CONNECT",
+        "nodes": [
+          "J634-2"
+        ]
+      },
+      {
+        "name": "HV_OUTPUT_NODE",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "J635-1",
+          "K631-2",
+          "K632-2",
+          "R654-1"
+        ]
+      },
+      {
+        "name": "HV_RETURN",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "J635-2",
+          "D632-2",
+          "D634-2",
+          "C634-2",
+          "K632-3",
+          "R670-2",
+          "C636-2",
+          "R678-2"
+        ]
+      },
+      {
+        "name": "DISC_LED1",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R631-2",
+          "LED631-1"
+        ]
+      },
+      {
+        "name": "DISC_LED2",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R632-2",
+          "LED632-1"
+        ]
+      },
+      {
+        "name": "DISC_LED3",
+        "type": "ANALOG_SIGNAL",
+        "nodes": [
+          "R633-2",
+          "LED633-1"
+        ]
+      },
+      {
+        "name": "PRIMARY_SWITCH_NODE",
+        "type": "SWITCHING_NODE",
+        "nodes": [
+          "Q631-3",
+          "T631-1"
+        ]
+      },
+      {
+        "name": "HV_TRANSFORMER_SEC_AC",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "T631-4",
+          "D631-1",
+          "C631-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_MUL_1",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "D631-2",
+          "D632-1",
+          "C631-2",
+          "C632-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_MUL_2",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "D633-1",
+          "C632-2",
+          "C633-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_MUL_3",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "D633-2",
+          "D634-1",
+          "C633-2",
+          "C634-1"
+        ]
+      },
+      {
+        "name": "HV_BUS_14KV",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "K631-3",
+          "R637-1",
+          "R671-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_1",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R637-2",
+          "R638-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_2",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R638-2",
+          "R639-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_3",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R639-2",
+          "R640-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_4",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R640-2",
+          "R641-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_5",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R641-2",
+          "R642-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_6",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R642-2",
+          "R643-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_7",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R643-2",
+          "R644-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_8",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R644-2",
+          "R645-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_9",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R645-2",
+          "R646-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_10",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R646-2",
+          "R647-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_11",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R647-2",
+          "R648-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_12",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R648-2",
+          "R649-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_13",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R649-2",
+          "R650-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_14",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R650-2",
+          "R651-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_BUS_DIV_15",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R651-2",
+          "R652-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_1",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R654-2",
+          "R655-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_2",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R655-2",
+          "R656-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_3",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R656-2",
+          "R657-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_4",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R657-2",
+          "R658-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_5",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R658-2",
+          "R659-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_6",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R659-2",
+          "R660-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_7",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R660-2",
+          "R661-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_8",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R661-2",
+          "R662-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_9",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R662-2",
+          "R663-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_10",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R663-2",
+          "R664-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_11",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R664-2",
+          "R665-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_12",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R665-2",
+          "R666-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_13",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R666-2",
+          "R667-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_14",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R667-2",
+          "R668-1"
+        ]
+      },
+      {
+        "name": "DISC_HV_OUT_DIV_15",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R668-2",
+          "R669-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_1",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R671-2",
+          "R672-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_2",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R672-2",
+          "R673-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_3",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R673-2",
+          "R674-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_4",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R674-2",
+          "R675-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_5",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R675-2",
+          "R676-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_6",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R676-2",
+          "R677-1"
+        ]
+      },
+      {
+        "name": "DISC_BLEED_7",
+        "type": "HIGH_VOLTAGE_PATH",
+        "nodes": [
+          "R677-2",
+          "R678-1"
+        ]
+      },
+      {
+        "name": "UCC28C43_OUT",
+        "type": "NA",
+        "nodes": [
+          "R183-2",
+          "C183-1"
+        ]
+      },
+      {
+        "name": "USB_GND",
+        "type": "NA",
+        "nodes": [
+          "J631-4"
+        ]
+      }
+    ]
+  }
+]

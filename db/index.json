@@ -1,0 +1,15 @@
+{
+  "generated": "2026-09-15T21:22:13.965Z",
+  "files": [
+    {
+      "path": "approved/BQ2970__BQ29707__2c7bf3ab65c3.json",
+      "gpn": "BQ2970",
+      "part_numbers": [
+        "BQ29707"
+      ],
+      "status": "approved",
+      "manufacturer": "ti",
+      "description": "Cost-effective single-cell Li-Ion/Li-polymer battery protection IC with factory-programmed overcharge, over-discharge, charge/discharge overcurrent and short-ci"
+    }
+  ]
+}

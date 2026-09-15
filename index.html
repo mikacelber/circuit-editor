@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 12h5l2-5 3 10 2-5h8' fill='none' stroke='%23B0793C' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script>
+  // Theme lives in the Project panel — read it before first paint so the page
+  // never flashes the wrong colors. Dark is the default.
+  try { document.documentElement.dataset.theme = localStorage.getItem('ui_theme')==='light' ? 'light' : 'dark'; }
+  catch(e){ document.documentElement.dataset.theme = 'dark'; }
+</script>
+</head>
+<body>
+
+<header>
+  <img src="nexodesign_logo.jpg" alt="NX Design" class="brand-logo" onerror="this.style.display='none'">
+  <div class="brand">
+    <span class="eyebrow">Schematic capture · pipeline stage 1</span>
+    <h1 id="projTitle">Untitled circuit</h1>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnUndo" title="Undo (Ctrl+Z)" disabled>&#8630;</button>
+  <button id="btnRedo" title="Redo (Ctrl+Y)" disabled>&#8631;</button>
+  <button id="btnArrange" title="Re-place every imported component by group">Arrange</button>
+  <button id="btnCheck" title="Run the electrical rules check against the imported netlist">Check</button>
+  <button id="btnImport">Import</button>
+  <button id="btnExport" class="primary">Export</button>
+</header>
+
+<main>
+  <div id="canvasWrap">
+    <div class="breadcrumb" id="sheetChip"></div>
+
+    <!-- Schematic tool strip: floats over the sheet, centred, with a gap under
+         the header. Select / wire / label / power / part / text, Altium-style. -->
+    <div id="toolbar" role="toolbar" aria-label="Schematic tools"></div>
+
+    <!-- Collapse/expand handle, centred on the divider between sheet and dock. -->
+    <button id="dockHandle" title="Hide the panel dock">
+      <svg viewBox="0 0 12 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="2.2,4 5.2,20 2.2,36"/>
+        <polyline points="5.4,8 7.9,20 5.4,32"/>
+        <polyline points="8.6,12 10.6,20 8.6,28"/>
+      </svg>
+    </button>
+
+    <svg id="board" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowNet" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+          <path d="M0 0.6 L7.4 4 L0 7.4 Z" fill="var(--ink-soft)"/>
+        </marker>
+      </defs>
+      <!-- Pan-capture surface. The ONLY grid is the adaptive one in #gridG,
+           drawn in screen space and kept aligned to the world lattice. -->
+      <rect id="bg" x="-100000" y="-100000" width="200000" height="200000" fill="var(--paper)"/>
+      <g id="gridG"></g>
+      <g id="viewport">
+        <g id="roomsG"></g>
+        <g id="wiresG"></g>
+        <g id="partsG"></g>
+        <g id="overlayG"></g>
+      </g>
+    </svg>
+
+    <!-- Empty sheet: the two actions that make sense while nothing is loaded. -->
+    <div id="emptyState" hidden>
+      <div class="es-actions">
+        <div class="es-choice">
+          <button id="emptyImport" title="Import a circuit netlist or a saved session">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <line x1="24" y1="12" x2="24" y2="36"/>
+              <line x1="12" y1="24" x2="36" y2="24"/>
+            </svg>
+          </button>
+          <p class="es-cap">Import netlist</p>
+        </div>
+        <div class="es-choice">
+          <button id="emptyBlank" title="Start an empty sheet and place parts by hand">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 8 h14 l8 8 v24 h-22 Z"/>
+              <polyline points="28,8 28,16 36,16"/>
+            </svg>
+          </button>
+          <p class="es-cap">Blank sheet</p>
+        </div>
+      </div>
+      <p class="es-title">No circuit loaded</p>
+      <p class="es-hint">Click <b>+</b> to import a <b>circuit_data.json</b> netlist (or a saved session) — or start from a blank sheet and drag parts in from the <b>Components</b> panel.</p>
+    </div>
+
+    <!-- View controls, bottom-right of the sheet: zoom in / out / fit. -->
+    <div id="viewTools">
+      <button id="btnZoomIn" title="Zoom in">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <circle cx="10.5" cy="10.5" r="6.5"/>
+          <line x1="15.4" y1="15.4" x2="20.5" y2="20.5"/>
+          <line x1="7.5" y1="10.5" x2="13.5" y2="10.5"/>
+          <line x1="10.5" y1="7.5" x2="10.5" y2="13.5"/>
+        </svg>
+      </button>
+      <button id="btnZoomOut" title="Zoom out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <circle cx="10.5" cy="10.5" r="6.5"/>
+          <line x1="15.4" y1="15.4" x2="20.5" y2="20.5"/>
+          <line x1="7.5" y1="10.5" x2="13.5" y2="10.5"/>
+        </svg>
+      </button>
+      <button id="btnZoomFit" title="Fit the sheet to the view (F)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3,8 3,3 8,3"/>
+          <polyline points="16,3 21,3 21,8"/>
+          <polyline points="21,16 21,21 16,21"/>
+          <polyline points="8,21 3,21 3,16"/>
+          <rect x="7.5" y="7.5" width="9" height="9" rx="1"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel dock: one panel at a time fills it, the tab strip at the bottom
+       switches between the enabled ones (Altium's docked panel group). -->
+  <aside id="dock">
+    <div id="dockResize" title="Drag to resize the dock"></div>
+    <button id="dockPin" class="pinned" title="Unpin — the dock hides itself to maximize the sheet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 3 h6 l-1 6 3 3 H7 l3 -3 Z" fill="currentColor" fill-opacity=".25"/>
+        <line x1="12" y1="12" x2="12" y2="20"/>
+      </svg>
+    </button>
+    <div class="head">
+      <span class="eyebrow" id="dockEyebrow">Panel</span>
+      <h2 id="dockTitle">Project</h2>
+    </div>
+    <div class="body" id="dockBody"></div>
+    <div class="dtabs" id="dockTabs"></div>
+  </aside>
+</main>
+
+<footer id="statusBar">
+  <span id="statusChips"></span>
+  <div class="spacer"></div>
+  <div id="panelsWrap">
+    <div id="panelsMenu" hidden></div>
+    <button id="btnPanels" title="Choose which panels are available in the dock">Panels &#9652;</button>
+  </div>
+</footer>
+
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="mhead"><h3 id="modalTitle"></h3><div class="spacer"></div><button id="modalClose" style="flex:0 0 auto;padding:5px 7px">✕</button></div>
+    <div class="mbody" id="modalBody"></div>
+    <div class="mfoot" id="modalFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="symbols.js"></script>
+<script src="netlist.js"></script>
+<script src="db.js"></script>
+<script src="panels.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

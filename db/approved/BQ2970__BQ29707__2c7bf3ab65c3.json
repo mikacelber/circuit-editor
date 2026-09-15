@@ -1,0 +1,4682 @@
+{
+  "gpn": "BQ2970",
+  "part_numbers": [
+    "BQ29707"
+  ],
+  "doc_sha256": "2c7bf3ab65c349195032120bb563df2e8c8eab92f46a4c168c2f863703352b13",
+  "source_route": "ti_html",
+  "source_url": "https://www.ti.com/lit/ds/symlink/bq2970.pdf",
+  "manufacturer": "ti",
+  "facts": {
+    "identity": {
+      "part_numbers": [
+        "BQ29707"
+      ],
+      "package": "DSE (6-PIN WSON)",
+      "pin_count": 6,
+      "has_thermal_pad": false,
+      "thermal_pad_connect_to": null,
+      "datasheet_rev": "SLUSBU9I",
+      "description": "Cost-effective single-cell Li-Ion/Li-polymer battery protection IC with factory-programmed overcharge, over-discharge, charge/discharge overcurrent and short-circuit protection driving two external low-side NMOS FETs, 8 V operating BAT input and BAT - 25 V V- tolerance",
+      "variant_differences": "OVP 4.280 V / 1 s, UVP 2.800 V / 96 ms, OCC -0.090 V / 6 ms, OCD 0.090 V / 16 ms, SCD 0.3 V / 250 µs",
+      "operating_temperature": {
+        "min": -40,
+        "max": 85,
+        "units": "°C",
+        "note": "ambient"
+      },
+      "rohs": null,
+      "qualifications": []
+    },
+    "pinout": [
+      {
+        "pin": 1,
+        "name": "NC",
+        "type": "NC",
+        "function": "No connection (electrically open).",
+        "unused_handling": null,
+        "source_section": "5 Pin Configuration and Functions"
+      },
+      {
+        "pin": 2,
+        "name": "COUT",
+        "type": "O",
+        "function": "Gate drive output for the external charge FET, driven from internal circuitry connected to the BAT supply; goes from high to low when a fault is detected to turn the charge FET off. Referenced to V-.",
+        "unused_handling": null,
+        "source_section": "5 Pin Configuration and Functions"
+      },
+      {
+        "pin": 3,
+        "name": "DOUT",
+        "type": "O",
+        "function": "Gate drive output for the external discharge FET, driven from internal circuitry connected to the BAT supply; goes from high to low when a fault is detected to turn the discharge FET off. Referenced to VSS.",
+        "unused_handling": null,
+        "source_section": "5 Pin Configuration and Functions"
+      },
+      {
+        "pin": 4,
+        "name": "VSS",
+        "type": "GND",
+        "function": "Ground pin; cell negative reference for the internal cell voltage measurement and the differential overcurrent sensing against V-.",
+        "unused_handling": null,
+        "source_section": "5 Pin Configuration and Functions"
+      },
+      {
+        "pin": 5,
+        "name": "BAT",
+        "type": "PWR",
+        "function": "VDD pin: device supply input connected to the positive terminal of the battery pack.",
+        "unused_handling": null,
+        "source_section": "5 Pin Configuration and Functions"
+      },
+      {
+        "pin": 6,
+        "name": "V-",
+        "type": "IO",
+        "function": "Input pin for charger negative voltage; sense node that, together with VSS, forms the differential measurement for charge/discharge overcurrent and load short-circuit detection. Internally pulled up to BAT through R(V-D) (100–550 kΩ) in the over-discharge state and sunk to VSS by the constant current I(V-S) in the discharge overcurrent state.",
+        "unused_handling": null,
+        "source_section": "5 Pin Configuration and Functions"
+      }
+    ],
+    "supplies": [
+      {
+        "name": "BAT",
+        "min": 1.5,
+        "typ": 3.6,
+        "max": 8,
+        "units": "V",
+        "notes": "Device supply from the cell positive terminal. Device operating range BAT – VSS = 1.5 V to 8 V, BAT – V- = 1.5 V to 28 V. Recommended maximum operation is 8 V on the BAT input pin. Current consumption in NORMAL mode 4 µA typ / 5.5 µA max at BAT = 3.8 V, V- = 0 V; power-down mode consumption 0.1 µA max at BAT = V- = 1.5 V. Typical values in the DC table are stated at TA = 25 °C and BAT = 3.6 V; min/max over TA = -40 °C to 85 °C and BAT = 3 V to 4.2 V. Over-discharge (power-down) state is released when a charger is connected and the delta between V- and BAT exceeds 1.3 V."
+      },
+      {
+        "name": "V-",
+        "min": "BAT - 25",
+        "typ": null,
+        "max": "BAT",
+        "units": "V",
+        "notes": "Charger-negative sense input (Pack-). Recommended range BAT - 25 V to BAT; absolute maximum BAT - 28 V to BAT + 0.3 V. Internally pulled up to BAT through R(V-D) = 100–550 kΩ in the over-discharge state; sunk to VSS by I(V-S) = 8–24 µA in the discharge overcurrent state. Neither R(V-D) nor I(V-S) is connected in the charge overcurrent state, and I(V-S) is inactive in power-down/over-discharge."
+      }
+    ],
+    "external_components": [
+      {
+        "type": "C",
+        "value": "0.1 µF",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": null,
+        "key_specs": "Forms an RC filter with the 330 Ω series resistor on BAT; required for noise and to let the device operate through sharp negative transients",
+        "from_pin_name": "BAT",
+        "to_pin_name": "VSS",
+        "purpose": "Input supply filter capacitor on the BAT pin",
+        "mandatory": true,
+        "placement_note": "The input RC filter on the BAT pin should be close to the terminal of the IC",
+        "source_section": "5.1.1 Supply Input: BAT",
+        "application": null
+      },
+      {
+        "type": "R",
+        "value": "330 Ω",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": null,
+        "key_specs": "Series element of the BAT RC filter; also limits the current during a reverse connection on the system",
+        "from_pin_name": "BAT",
+        "to_pin_name": "VBAT",
+        "purpose": "Series filter/protection resistor between the cell positive terminal and the BAT pin",
+        "mandatory": true,
+        "placement_note": "The input RC filter on the BAT pin should be close to the terminal of the IC",
+        "source_section": "9.2.2 Detailed Design Procedure",
+        "application": null
+      },
+      {
+        "type": "R",
+        "value": "2.2 kΩ",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": null,
+        "key_specs": "Stated as the condition for the V(short) load-short detection spec (V(BAT) = 3.8 V and R(PackN) = 2.2 kΩ)",
+        "from_pin_name": "V-",
+        "to_pin_name": "PACK_NEG",
+        "purpose": "Series sense resistor between the V- input and the Pack- terminal of the system",
+        "mandatory": true,
+        "placement_note": null,
+        "source_section": "5.1.3 Voltage Sense Node: V–",
+        "application": null
+      },
+      {
+        "type": "R",
+        "value": "5 MΩ",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": null,
+        "key_specs": "High impedance; the typical application schematic notes the 5 MΩ external gate-source resistor is optional, while the design procedure recommends placing one across the gate-source of each external FET",
+        "from_pin_name": "DOUT",
+        "to_pin_name": "VSS",
+        "purpose": "Gate-source bleed resistor for the discharge FET, to deplete the gate capacitance when the FET is turned off",
+        "mandatory": false,
+        "placement_note": null,
+        "source_section": "5.1.4 Discharge FET Gate Drive Output: DOUT",
+        "application": null
+      },
+      {
+        "type": "R",
+        "value": "5 MΩ",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": null,
+        "key_specs": "High impedance; the typical application schematic notes the 5 MΩ external gate-source resistor is optional, while the design procedure recommends placing one across the gate-source of each external FET",
+        "from_pin_name": "COUT",
+        "to_pin_name": "PACK_NEG",
+        "purpose": "Gate-source bleed resistor for the charge FET, to deplete the gate capacitance when the FET is turned off",
+        "mandatory": false,
+        "placement_note": null,
+        "source_section": "5.1.5 Charge FET Gate Drive Output: COUT",
+        "application": null
+      },
+      {
+        "type": "FET",
+        "value": "NMOS FET",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": "50 A",
+        "key_specs": "Low-side NMOS, logic level: Vdss, RDS(on) and Vgs to be designed according with the circuit requirements, Imax defined to survive the short-circuit condition for max delay timer. The combined CHG + DSG on-resistance must be designed according with the OCD threshold to trips just above maximum discharge current. RDS(on) needs to satify the OCC threshold for the maximum charge current during operation. Total RDS(on) must include worst-case temperature derating and the available gate drive Vgs.",
+        "from_pin_name": "COUT",
+        "to_pin_name": "PACK_NEG",
+        "purpose": "External low-side charge-control NMOS FET in the pack negative path",
+        "mandatory": true,
+        "placement_note": "Adequate thermal heat spreader for worst-case power dissipation; the connection between the two external power FETs must be very close so no additional drop appears in the fault sensing path",
+        "source_section": "9.2.2 Detailed Design Procedure",
+        "application": null
+      },
+      {
+        "type": "FET",
+        "value": "NMOS FET",
+        "tolerance": null,
+        "tempco": null,
+        "voltage_rating_min": null,
+        "current_rating_min": "50 A",
+        "key_specs": "Low-side NMOS, logic level: Vdss, RDS(on) and Vgs to be designed according with the circuit requirements, Imax defined to survive the short-circuit condition for max delay timer. The combined CHG + DSG on-resistance must be designed according with the OCD threshold to trips just above maximum discharge current.",
+        "from_pin_name": "DOUT",
+        "to_pin_name": "PACK_NEG",
+        "purpose": "External low-side discharge-control NMOS FET in the pack negative path",
+        "mandatory": true,
+        "placement_note": "Adequate thermal heat spreader for worst-case power dissipation; the connection between the two external power FETs must be very close so no additional drop appears in the fault sensing path",
+        "source_section": "9.2.2 Detailed Design Procedure",
+        "application": null
+      }
+    ],
+    "programming_equations": [
+      {
+        "sets": "total combined on-resistance of the two series external FETs from the discharge overcurrent threshold and the maximum allowed discharge current",
+        "pin_name": "V-",
+        "formula": "R_DS_total = V_OCD / I_DSG_max",
+        "constants": [],
+        "variables": [
+          {
+            "name": "R_DS_total",
+            "role": "output",
+            "meaning": "combined on-resistance of the charge and discharge FETs in series that the design may tolerate",
+            "units": "Ω"
+          },
+          {
+            "name": "V_OCD",
+            "role": "input",
+            "meaning": "discharging overcurrent detection voltage of the selected device option",
+            "units": "V"
+          },
+          {
+            "name": "I_DSG_max",
+            "role": "input",
+            "meaning": "maximum operating discharge current the pack must sustain without tripping",
+            "units": "A"
+          }
+        ],
+        "valid_range": "V_OCD is factory configured from 0.090 V to 0.200 V in 5 mV steps",
+        "worked_example": {
+          "input": null,
+          "input_units": null,
+          "inputs": {
+            "V_OCD": 0.1,
+            "I_DSG_max": 7
+          },
+          "expected_output": 0.0143,
+          "output_units": "Ω"
+        },
+        "source_section": "9.2.2 Detailed Design Procedure"
+      },
+      {
+        "sets": "charge overcurrent detection threshold to select, from the FET on-resistance and the maximum charge current",
+        "pin_name": "V-",
+        "formula": "V_OCC = R_DS_total × I_CHG_max",
+        "constants": [],
+        "variables": [
+          {
+            "name": "V_OCC",
+            "role": "output",
+            "meaning": "charging overcurrent detection voltage the selected device option must provide",
+            "units": "V"
+          },
+          {
+            "name": "R_DS_total",
+            "role": "input",
+            "meaning": "combined on-resistance of the charge and discharge FETs in series",
+            "units": "Ω"
+          },
+          {
+            "name": "I_CHG_max",
+            "role": "input",
+            "meaning": "maximum charge current for the battery pack",
+            "units": "A"
+          }
+        ],
+        "valid_range": "V_OCC is factory configured from -0.045 V to -0.155 V in 5 mV steps (magnitude 45 mV to 155 mV)",
+        "worked_example": {
+          "input": null,
+          "input_units": null,
+          "inputs": {
+            "R_DS_total": 0.0143,
+            "I_CHG_max": 4.5
+          },
+          "expected_output": 0.06435,
+          "output_units": "V"
+        },
+        "source_section": "9.2.2 Detailed Design Procedure"
+      },
+      {
+        "sets": "peak short-circuit current the external FETs must survive during the short-circuit detection delay",
+        "pin_name": null,
+        "formula": "I_SC = V_PACK / (R_CELL + 2 × R_DS_ON + R_TRACE)",
+        "constants": [],
+        "variables": [
+          {
+            "name": "I_SC",
+            "role": "output",
+            "meaning": "short-circuit current the FETs must tolerate for the duration of the short-circuit detection delay",
+            "units": "A"
+          },
+          {
+            "name": "V_PACK",
+            "role": "input",
+            "meaning": "pack voltage",
+            "units": "V"
+          },
+          {
+            "name": "R_CELL",
+            "role": "input",
+            "meaning": "internal resistance of the cell",
+            "units": "Ω"
+          },
+          {
+            "name": "R_DS_ON",
+            "role": "input",
+            "meaning": "on-resistance of one external FET",
+            "units": "Ω"
+          },
+          {
+            "name": "R_TRACE",
+            "role": "input",
+            "meaning": "trace resistance of the pack current path",
+            "units": "Ω"
+          }
+        ],
+        "valid_range": "FET must sustain this current for 350 µs (maximum short-circuit delay timer); the design example requires Imax > 50 A",
+        "worked_example": null,
+        "source_section": "9.2.2 Detailed Design Procedure"
+      }
+    ],
+    "electrical_characteristics": [
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "V(OVP) Overcharge detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 4.28,
+        "max": null,
+        "units": "V",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "t(OVPD) Overcharge detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 1,
+        "max": null,
+        "units": "s",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "V(UVP) Over-discharge detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 2.8,
+        "max": null,
+        "units": "V",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "t(UVPD) Over-discharge detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 96,
+        "max": null,
+        "units": "ms",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "V(OCC) Charging overcurrent detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": -0.09,
+        "max": null,
+        "units": "V",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "t(OCCD) Charging overcurrent detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 6,
+        "max": null,
+        "units": "ms",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "V(OCD) Discharging overcurrent detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 0.09,
+        "max": null,
+        "units": "V",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "t(OCDD) Discharging overcurrent detection voltage time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 16,
+        "max": null,
+        "units": "ms",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "V(SCC) Short Circuit detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 0.3,
+        "max": null,
+        "units": "V",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "t(SCCD) Short Circuit detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 250,
+        "max": null,
+        "units": "µs",
+        "part_number": "BQ29707",
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "OVP recovery delay",
+        "conditions": "Recovery timer starts as soon as the fault is triggered; the device only starts to check for a recovery condition when the recovery timer expires",
+        "case": null,
+        "min": null,
+        "typ": 12,
+        "max": null,
+        "units": "ms",
+        "part_number": null,
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Device Comparison Table (BQ29707 configuration)",
+        "parameter": "UVP/OCC/OCD recovery delay",
+        "conditions": "Recovery timer starts as soon as the fault is triggered; the device only starts to check for a recovery condition when the recovery timer expires",
+        "case": null,
+        "min": null,
+        "typ": 8,
+        "max": null,
+        "units": "ms",
+        "part_number": null,
+        "table": "Device Comparison Table"
+      },
+      {
+        "group": "Current consumption",
+        "parameter": "V(BAT) Device operating range",
+        "conditions": "BAT – VSS",
+        "case": null,
+        "min": 1.5,
+        "typ": null,
+        "max": 8,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Current consumption",
+        "parameter": "V(BAT) Device operating range",
+        "conditions": "BAT – V–",
+        "case": null,
+        "min": 1.5,
+        "typ": null,
+        "max": 28,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Current consumption",
+        "parameter": "I(NORMAL) Current consumption in NORMAL mode",
+        "conditions": "BAT = 3.8V, V– = 0V",
+        "case": null,
+        "min": null,
+        "typ": 4,
+        "max": 5.5,
+        "units": "µA",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Current consumption",
+        "parameter": "I(Power down) Current consumption in power down mode",
+        "conditions": "BAT = V– = 1.5V",
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": 0.1,
+        "units": "µA",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "FET Output, DOUT and COUT",
+        "parameter": "V(OL) Charge FET low output",
+        "conditions": "IOL = 30µA, BAT = 3.8V",
+        "case": null,
+        "min": null,
+        "typ": 0.4,
+        "max": 0.5,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "FET Output, DOUT and COUT",
+        "parameter": "V(OH) Charge FET high output",
+        "conditions": "IOH = –30µA, BAT = 3.8V",
+        "case": null,
+        "min": 3.4,
+        "typ": 3.7,
+        "max": null,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "FET Output, DOUT and COUT",
+        "parameter": "V(OL) Discharge FET low output",
+        "conditions": "IOL = 30µA, BAT = 2V",
+        "case": null,
+        "min": null,
+        "typ": 0.2,
+        "max": 0.5,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "FET Output, DOUT and COUT",
+        "parameter": "V(OH) Discharge FET high output",
+        "conditions": "IOH = –30µA, BAT = 3.8V",
+        "case": null,
+        "min": 3.4,
+        "typ": 3.7,
+        "max": null,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Pullup Internal Resistance on V–",
+        "parameter": "R(V–D) Resistance between V– and VBAT",
+        "conditions": "V(BAT) = 1.8V, V– = 0V",
+        "case": null,
+        "min": 100,
+        "typ": 300,
+        "max": 550,
+        "units": "kΩ",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Current sink on V–",
+        "parameter": "I(V–S) Current sink on V– to VSS",
+        "conditions": "V(BAT) = 3.8V",
+        "case": null,
+        "min": 8,
+        "typ": null,
+        "max": 24,
+        "units": "µA",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Load short detection on V–",
+        "parameter": "V(short) Short detection voltage",
+        "conditions": "V(BAT) = 3.8V and R(PackN) = 2.2kΩ",
+        "case": null,
+        "min": null,
+        "typ": "VBAT – 1V",
+        "max": null,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "0V battery charge function",
+        "parameter": "V(0CHG) 0V battery charging start voltage",
+        "conditions": "0V battery charging function allowed",
+        "case": null,
+        "min": 1.7,
+        "typ": null,
+        "max": null,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "0V battery charge inhibit function",
+        "parameter": "V(0INH) 0V battery charging inhibit voltage threshold",
+        "conditions": "0V battery charging function disallowed",
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": 0.75,
+        "units": "V",
+        "table": "DC Characteristics"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OVP) Overcharge detection voltage threshold",
+        "conditions": "Factory Device Configuration: 3.85V to 4.60V in 50mV steps",
+        "case": "TA = 25°C",
+        "min": -10,
+        "typ": null,
+        "max": 10,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OVP) Overcharge detection voltage threshold",
+        "conditions": "Factory Device Configuration: 3.85V to 4.60V in 50mV steps",
+        "case": "TA = 0°C to 60°C",
+        "min": -20,
+        "typ": null,
+        "max": 20,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OVP–Hys) Overcharge release hysteresis voltage threshold",
+        "conditions": "100mV and (VSS – V–) > OCC (min) for release, TA = 25°C",
+        "case": null,
+        "min": -20,
+        "typ": null,
+        "max": 20,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(UVP) Over-discharge detection voltage threshold",
+        "conditions": "Factory Device Configuration: 2.00V to 2.80V in 50mV steps, TA = 25°C",
+        "case": null,
+        "min": -50,
+        "typ": null,
+        "max": 50,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(UVP+Hys) Over-discharge release hysteresis voltage threshold",
+        "conditions": "100mV and (BAT – V–) > 1V for release, TA = 25°C",
+        "case": null,
+        "min": -50,
+        "typ": null,
+        "max": 50,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OCD) Discharging overcurrent detection voltage threshold",
+        "conditions": "Factory Device Configuration: 90mV to 200mV in 5mV steps",
+        "case": "TA = 25°C",
+        "min": -10,
+        "typ": null,
+        "max": 10,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OCD) Discharging overcurrent detection voltage threshold",
+        "conditions": "Factory Device Configuration: 90mV to 200mV in 5mV steps",
+        "case": "TA = –40°C to 85°C",
+        "min": -15,
+        "typ": null,
+        "max": 15,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "Release of V(OCD) Release of discharging overcurrent detection voltage threshold",
+        "conditions": "Release when BAT – V– > 1V",
+        "case": null,
+        "min": null,
+        "typ": 1,
+        "max": null,
+        "units": "V",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OCC) Charging overcurrent detection voltage threshold",
+        "conditions": "Factory Device Configuration: –45mV to –155mV in 5mV steps",
+        "case": "TA = 25°C",
+        "min": -10,
+        "typ": null,
+        "max": 10,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(OCC) Charging overcurrent detection voltage threshold",
+        "conditions": "Factory Device Configuration: –45mV to –155mV in 5mV steps",
+        "case": "TA = –40°C to 85°C",
+        "min": -15,
+        "typ": null,
+        "max": 15,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "Release of V(OCC) Release of overcurrent detection voltage threshold",
+        "conditions": "Release when VSS – V– ≥ OCC (min)",
+        "case": null,
+        "min": null,
+        "typ": 40,
+        "max": null,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(SCC) Short Circuit detection voltage threshold",
+        "conditions": "Factory Device Configuration: 300mV, 400mV, 500mV, 600mV",
+        "case": "TA = 25°C",
+        "min": -100,
+        "typ": null,
+        "max": 100,
+        "units": "mV",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Thresholds",
+        "parameter": "V(SCCR) Release of Short Circuit detection voltage threshold",
+        "conditions": "Release when BAT – V– ≥ 1V",
+        "case": null,
+        "min": null,
+        "typ": 1,
+        "max": null,
+        "units": "V",
+        "table": "Programmable Fault Detection Thresholds"
+      },
+      {
+        "group": "Programmable Fault Detection Timer Ranges",
+        "parameter": "t(OVPD) Overcharge detection delay time",
+        "conditions": "Factory Device Configuration: 0.25s, 1s, 1.25s, 4.5s",
+        "case": null,
+        "min": "–20%",
+        "typ": null,
+        "max": "20%",
+        "units": "s",
+        "table": "Programmable Fault Detection Timer Ranges"
+      },
+      {
+        "group": "Programmable Fault Detection Timer Ranges",
+        "parameter": "t(UVPD) Over-discharge detection delay time",
+        "conditions": "Factory Device Configuration: 20ms, 96ms, 125ms, 144ms",
+        "case": null,
+        "min": "–20%",
+        "typ": null,
+        "max": "20%",
+        "units": "ms",
+        "table": "Programmable Fault Detection Timer Ranges"
+      },
+      {
+        "group": "Programmable Fault Detection Timer Ranges",
+        "parameter": "t(OCDD) Discharging overcurrent detection delay time",
+        "conditions": "Factory Device Configuration: 8ms, 16ms, 20ms, 48ms",
+        "case": null,
+        "min": "–20%",
+        "typ": null,
+        "max": "20%",
+        "units": "ms",
+        "table": "Programmable Fault Detection Timer Ranges"
+      },
+      {
+        "group": "Programmable Fault Detection Timer Ranges",
+        "parameter": "t(OCCD) Charging overcurrent detection delay time",
+        "conditions": "Factory Device Configuration: 4ms, 6ms, 8ms, 16ms",
+        "case": null,
+        "min": "–20%",
+        "typ": null,
+        "max": "20%",
+        "units": "ms",
+        "table": "Programmable Fault Detection Timer Ranges"
+      },
+      {
+        "group": "Programmable Fault Detection Timer Ranges",
+        "parameter": "t(SCCD) Short Circuit detection delay time",
+        "conditions": "250µs (fixed)",
+        "case": null,
+        "min": "–50%",
+        "typ": null,
+        "max": "50%",
+        "units": "µs",
+        "table": "Programmable Fault Detection Timer Ranges"
+      },
+      {
+        "group": null,
+        "parameter": "V(OVP) Overcharge detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "3.85V to 4.60V in 50mV steps",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "V(UVP) Over-discharge detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "2.00V to 2.80V in 50mV steps",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "V(OCD) Discharging overcurrent detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "90mV to 200mV in 5mV steps",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "V(OCC) Charging overcurrent detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "–45mV to –155mV in 5mV steps",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "V(SCC) Short Circuit detection voltage",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "300mV, 400mV, 500mV, 600mV",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "t(OVPD) Overcharge detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "0.25s, 1.00s, 1.25s, 4.50s",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "t(UVPD) Over-discharge detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "20ms, 96ms, 125ms, 144ms",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "t(OCDD) Discharging overcurrent detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "8ms, 16ms, 20ms, 48ms",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "t(OCCD) Charging overcurrent detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "4ms, 6ms, 8ms, 16ms",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": null,
+        "parameter": "t(SCCD) Short Circuit detection delay time",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": null,
+        "max": null,
+        "units": null,
+        "factory_device_configuration": "250µs (fixed)",
+        "table": "Overview: Factory Programmable Options"
+      },
+      {
+        "group": "Delay Circuit",
+        "parameter": "Internal oscillator frequency for the detection delay timers",
+        "conditions": null,
+        "case": null,
+        "min": null,
+        "typ": 10,
+        "max": null,
+        "units": "kHz",
+        "table": "Delay Circuit"
+      }
+    ],
+    "limits": {
+      "abs_max": [
+        {
+          "group": "Supply control and input",
+          "parameter": "Input voltage: BAT",
+          "min": -0.3,
+          "typ": null,
+          "max": 12,
+          "units": "V"
+        },
+        {
+          "group": "Supply control and input",
+          "parameter": "V– pin (pack–)",
+          "min": "BAT – 28",
+          "typ": null,
+          "max": "BAT + 0.3",
+          "units": "V"
+        },
+        {
+          "group": "FET drive and protection",
+          "parameter": "DOUT (Discharge FET Output), GDSG (Discharge FET Gate Drive)",
+          "min": "VSS – 0.3",
+          "typ": null,
+          "max": "BAT + 0.3",
+          "units": "V"
+        },
+        {
+          "group": "FET drive and protection",
+          "parameter": "COUT (Charge FET Output), GCHG (Charge FET Gate Drive)",
+          "min": "BAT – 28",
+          "typ": null,
+          "max": "BAT + 0.3",
+          "units": "V"
+        },
+        {
+          "group": "FET drive and protection",
+          "parameter": "Operating temperature: T(FUNC)",
+          "min": -40,
+          "typ": null,
+          "max": 85,
+          "units": "°C"
+        },
+        {
+          "group": null,
+          "parameter": "Storage temperature, T(stg)",
+          "min": -55,
+          "typ": null,
+          "max": 150,
+          "units": "°C"
+        },
+        {
+          "group": null,
+          "parameter": "V(ESD) Electrostatic Discharge, human body model (HBM), per ANSI/ESDA/JEDEC JS–001, all pins",
+          "min": -2000,
+          "typ": null,
+          "max": 2000,
+          "units": "V"
+        },
+        {
+          "group": null,
+          "parameter": "V(ESD) Electrostatic Discharge, charged device model (CDM), per JEDEC specification JESD22-C101, all pins",
+          "min": -500,
+          "typ": null,
+          "max": 500,
+          "units": "V"
+        }
+      ],
+      "recommended": [
+        {
+          "group": "Supply control and input",
+          "parameter": "Positive input voltage: BAT",
+          "min": -0.3,
+          "typ": null,
+          "max": 8,
+          "units": "V"
+        },
+        {
+          "group": "Supply control and input",
+          "parameter": "Negative input voltage: V–",
+          "min": "BAT – 25",
+          "typ": null,
+          "max": "BAT",
+          "units": "V"
+        },
+        {
+          "group": "FET drive and protection",
+          "parameter": "Discharge FET control: DOUT",
+          "min": "VSS",
+          "typ": null,
+          "max": "BAT",
+          "units": "V"
+        },
+        {
+          "group": "FET drive and protection",
+          "parameter": "Charge FET control: COUT",
+          "min": "BAT – 25",
+          "typ": null,
+          "max": "BAT",
+          "units": "V"
+        },
+        {
+          "group": "Temperature Ratings",
+          "parameter": "Operating temperature: T(Amb)",
+          "min": -40,
+          "typ": null,
+          "max": 85,
+          "units": "°C"
+        },
+        {
+          "group": "Temperature Ratings",
+          "parameter": "Storage temperature: T(S)",
+          "min": -55,
+          "typ": null,
+          "max": 150,
+          "units": "°C"
+        },
+        {
+          "group": "Temperature Ratings",
+          "parameter": "Lead temperature (soldering 10s)",
+          "min": null,
+          "typ": null,
+          "max": 300,
+          "units": "°C"
+        },
+        {
+          "group": "Temperature Ratings",
+          "parameter": "Thermal resistance junction to ambient, θJA",
+          "min": null,
+          "typ": null,
+          "max": 250,
+          "units": "°C/W"
+        },
+        {
+          "group": null,
+          "parameter": "BAT pin filter capacitor to ground",
+          "min": null,
+          "typ": 0.1,
+          "max": null,
+          "units": "µF"
+        },
+        {
+          "group": null,
+          "parameter": "Series resistor between the cell positive terminal and BAT",
+          "min": null,
+          "typ": 330,
+          "max": null,
+          "units": "Ω"
+        },
+        {
+          "group": null,
+          "parameter": "Series resistor between V– and the Pack– terminal",
+          "min": null,
+          "typ": 2.2,
+          "max": null,
+          "units": "kΩ"
+        },
+        {
+          "group": null,
+          "parameter": "Gate-source bleed resistor on COUT and on DOUT",
+          "min": null,
+          "typ": 5,
+          "max": null,
+          "units": "MΩ"
+        }
+      ],
+      "thermal": [
+        {
+          "group": "DSE (WSON)",
+          "parameter": "RθJA, High K — junction-to-ambient thermal resistance",
+          "min": null,
+          "typ": 190.5,
+          "max": null,
+          "units": "°C/W"
+        },
+        {
+          "group": "DSE (WSON)",
+          "parameter": "RθJC(top) — junction-to-case (top) thermal resistance",
+          "min": null,
+          "typ": 94.9,
+          "max": null,
+          "units": "°C/W"
+        },
+        {
+          "group": "DSE (WSON)",
+          "parameter": "RθJB — junction-to-board thermal resistance",
+          "min": null,
+          "typ": 149.3,
+          "max": null,
+          "units": "°C/W"
+        },
+        {
+          "group": "DSE (WSON)",
+          "parameter": "ψJT — junction-to-top characterization parameter",
+          "min": null,
+          "typ": 6.4,
+          "max": null,
+          "units": "°C/W"
+        },
+        {
+          "group": "DSE (WSON)",
+          "parameter": "ψJB — junction-to-board characterization parameter",
+          "min": null,
+          "typ": 152.8,
+          "max": null,
+          "units": "°C/W"
+        },
+        {
+          "group": "DSE (WSON)",
+          "parameter": "RθJC(bottom) — junction-to-case (bottom) thermal resistance",
+          "min": null,
+          "typ": null,
+          "max": null,
+          "units": "°C/W"
+        }
+      ]
+    },
+    "designer_notes": [
+      "BQ29707 configuration as printed in the Device Comparison Table: OVP 4.280 V with 1 s delay, UVP 2.800 V with 96 ms delay, OCC -0.090 V with 6 ms delay, OCD 0.090 V with 16 ms delay, SCD 0.3 V with 250 µs delay. All thresholds and delays are factory programmed and cannot be changed in the application.",
+      "Recovery delays are fixed: OVP recovery delay = 12 ms, UVP/OCC/OCD recovery delay = 8 ms. The recovery timer starts as soon as the fault is triggered, and the device only begins checking for a recovery condition once that timer expires — it is not a delay between recovery condition and FET turn-on.",
+      "The device drives two low-side NMOS FETs in the pack negative path. COUT is referenced to V- and DOUT to VSS; 'H' on either output must exceed the external logic-level FET threshold to be regarded as ON.",
+      "Pin 1 is a no-connect (electrically open).",
+      "When the battery is connected for the first time the discharging circuit may not be enabled; in that case short V- to VSS, or connect a charger between the Pack+ and Pack- terminals.",
+      "Sizing rule from the design example: total on-resistance across the two series FETs = OCD threshold / maximum discharge current (100 mV / 7 A = 14.3 mΩ). That same resistance at the 4.5 A maximum charge current gives 65 mV, so a 70 mV OCC option is acceptable. Include worst-case RDS(on) derating over temperature and the available Vgs in the budget.",
+      "The FETs must survive the short-circuit current for the maximum 350 µs delay; the only limiting element is pack voltage divided by (cell resistance + 2 × FET RDS(on) + trace resistance), which drove the Imax > 50 A requirement in the example.",
+      "An RC filter on BAT (330 Ω series, 0.1 µF to ground) is required for noise immunity and to keep the device operating through sharp negative transients; the resistor also limits current if the system is connected in reverse.",
+      "TI recommends a high-impedance 5 MΩ resistor across the gate-source of each external FET to bleed the gate-source capacitance; the typical application schematic marks this external gate-source resistor as optional.",
+      "In the over-discharge (power-down) state V- is internally pulled to BAT through R(V-D); the V- to BAT difference is then 1.3 V or lower and supply current drops to the power-down level. The power-down state releases when a charger brings the V- to BAT delta above 1.3 V.",
+      "Over-discharge release depends on the charger voltage seen at V-: below -0.7 V the device releases as soon as the cell exceeds V(UVP); above -0.7 V it releases only when the cell exceeds V(UVP) + hysteresis.",
+      "In the discharge overcurrent state, V- and VSS are joined by the constant current sink I(V-S) and R(V-D) is disconnected; with a load attached V- sits at BAT potential and with the load removed it goes to VSS (BAT/2). Recovery occurs when the load impedance rises enough for V- to return to BAT - 1 V or lower, or when a charger is connected.",
+      "In the charge overcurrent state neither R(V-D) nor I(V-S) is connected; recovery requires removing the charger so V- returns to the charge overcurrent detection voltage or higher. Charge overcurrent detection does not work in the over-discharge state.",
+      "If the cell is overcharged above V(OVP) and the voltage does not fall back below V(OVP) under a heavy load, discharge overcurrent and load short-circuit detection do not function until the cell voltage drops below V(OVP).",
+      "If a charger is connected after an overcharge detection, the overcharge status does not release even when the cell falls below the release threshold; it releases when the V- voltage exceeds the OCD threshold after the charger is removed.",
+      "Zero-voltage charging is allowed when the charger applies at least V(0CHG) = 1.7 V; the 0 V charge feature has higher priority than charge overcurrent detection, so charging is forced and OCC is disabled while the cell is below the over-discharge threshold. Below V(0INH) = 0.75 V the charge FET gate is held at Pack- to inhibit charging; the inhibit function is present in all BQ297xx configurations. Some cell vendors do not recommend charging a depleted cell — consult the battery supplier.",
+      "The detection delay timers run from an internal 10 kHz oscillator. A discharge overcurrent below the short-circuit threshold trips after t(OCDD); above the short-circuit threshold DOUT is pulled low after the much shorter t(SCCD).",
+      "Layout: give the external power FETs sufficient thermal spreading for worst-case power delivery, keep the connection between the two power FETs very short so no extra drop appears in the fault sense path, and place the BAT RC filter close to the IC terminal.",
+      "The design example this data comes from assumes a 4.5 V to 7 V input voltage range, 7 A maximum discharge current and 4.5 A maximum charge current."
+    ],
+    "extraction": {
+      "missing_fields": [
+        "Tolerance, dielectric/tempco, voltage rating and current rating of the 0.1 µF BAT filter capacitor",
+        "Tolerance and power rating of the 330 Ω BAT series resistor, the 2.2 kΩ V- resistor and the 5 MΩ gate-source resistors",
+        "Qg, gate charge, package and thermal rating of the recommended external FETs beyond Vdss, RDS(on) and Imax",
+        "Any external TVS, diode, fuse, PTC or ferrite bead — the document specifies none",
+        "Junction-to-case (bottom) thermal resistance (printed as N/A)",
+        "Output source and sink current values for COUT and DOUT (only the test conditions I(OH) = -30 µA and I(OL) = 30 µA are given; the I(COUT)/I(DOUT) test procedures are described but no specification values appear)",
+        "Power-on-reset voltage threshold (only a Typical Characteristics figure is referenced)",
+        "Internal oscillator frequency tolerance (only the 10 kHz nominal and a figure with a 1.255 kHz setting are shown)",
+        "Input bias/leakage current and input capacitance of the BAT and V- inputs",
+        "RoHS compliance statement and qualification programs (AEC-Q100 etc.)",
+        "Explicit connection node of the 5 MΩ COUT gate-source resistor beyond the stated 'COUT to Pack-'",
+        "Numeric worked example for the short-circuit current equation (only the Imax > 50 A requirement is stated, without the pack voltage, cell resistance and trace resistance values used)",
+        "Startup/inrush supply current and any supply current at a stated temperature other than the DC table conditions"
+      ]
+    },
+    "figures": [
+      {
+        "figure_id": "Simplified Schematic",
+        "title": "Simplified Schematic",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-11B0CE26-DE52-4108-921F-537F090D9EC8-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Front page curve",
+        "title": "OCD Detection Accuracy Versus Temperature",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D3B17AC8-84F5-46C7-A8C0-1927F9BBC94B-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Discharge overcurrent threshold deviation versus temperature, to set the margin between the OCD trip point and the maximum operating discharge current when sizing the total FET RDS(on)",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "OCD Detection Accuracy (mV)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": -4,
+          "y_max": 0
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                -3.7766475233920787
+              ],
+              [
+                -38.107044987386026,
+                -3.763662288436031
+              ],
+              [
+                -35.13592197888513,
+                -3.748443908310413
+              ],
+              [
+                -32.164798970384226,
+                -3.7332255281847946
+              ],
+              [
+                -29.19367596188333,
+                -3.7210508240843003
+              ],
+              [
+                -26.22255295338243,
+                -3.7043106059461204
+              ],
+              [
+                -23.251429944881533,
+                -3.6906140638330642
+              ],
+              [
+                -20.329825653188976,
+                -3.676308786514983
+              ],
+              [
+                -17.309183927879733,
+                -3.6601773035818272
+              ],
+              [
+                -14.338060919378833,
+                -3.646480761468771
+              ],
+              [
+                -11.366937910877933,
+                -3.631262381343153
+              ],
+              [
+                -8.395814902377033,
+                -3.616044001217535
+              ],
+              [
+                -5.42469189387613,
+                -3.6008256210919165
+              ],
+              [
+                -2.4535688853752333,
+                -3.5840854029537366
+              ],
+              [
+                0.6661102735507143,
+                -3.566736449610532
+              ],
+              [
+                3.4886771316265595,
+                -3.5490831286648152
+              ],
+              [
+                6.459800140127463,
+                -3.5308210725140734
+              ],
+              [
+                9.430923148628366,
+                -3.52016820642614
+              ],
+              [
+                12.402046157129263,
+                -3.4836440941246565
+              ],
+              [
+                15.37316916563016,
+                -3.466903875986477
+              ],
+              [
+                18.096698590089318,
+                -3.4480330846307106
+              ],
+              [
+                21.315415182631966,
+                -3.427336087659869
+              ],
+              [
+                24.28653819113285,
+                -3.4090740315091272
+              ],
+              [
+                27.25766119963376,
+                -3.3923338133709477
+              ],
+              [
+                30.228784208134655,
+                -3.375593595232768
+              ],
+              [
+                33.19990721663555,
+                -3.3588533770945874
+              ],
+              [
+                36.17103022513645,
+                -3.34363499696897
+              ],
+              [
+                38.99359708321229,
+                -3.3293297196508886
+              ],
+              [
+                42.11327624213824,
+                -3.3131982367177333
+              ],
+              [
+                45.08439925063914,
+                -3.2995016946046767
+              ],
+              [
+                48.05552225914005,
+                -3.284283314479059
+              ],
+              [
+                51.026645267640944,
+                -3.2675430963408783
+              ],
+              [
+                53.99776827614184,
+                -3.253846554227822
+              ],
+              [
+                56.96889128464275,
+                -3.2355844980770803
+              ],
+              [
+                59.989533009952,
+                -3.2197573827464376
+              ],
+              [
+                62.911137301644544,
+                -3.2036258998132823
+              ],
+              [
+                65.88226031014544,
+                -3.1868856816751023
+              ],
+              [
+                68.85338331864634,
+                -3.1716673015494843
+              ],
+              [
+                71.82450632714725,
+                -3.1549270834113043
+              ],
+              [
+                74.79562933564814,
+                -3.1351431892480006
+              ],
+              [
+                77.76675234414904,
+                -3.116881133097259
+              ],
+              [
+                80.88643150307499,
+                -3.0900967840761706
+              ],
+              [
+                83.70899836115085,
+                -3.063616802657595
+              ],
+              [
+                86.68012136965174,
+                -3.033180042406359
+              ],
+              [
+                89.65124437815265,
+                -2.9814375499792574
+              ],
+              [
+                92.62236738665354,
+                -2.9464352756903356
+              ],
+              [
+                95.59349039515445,
+                -2.9053456493511662
+              ],
+              [
+                98.31701981961359,
+                -2.865473493422047
+              ],
+              [
+                101.53573641215624,
+                -2.815557206610019
+              ],
+              [
+                104.50685942065715,
+                -2.768380228220603
+              ],
+              [
+                107.47798242915803,
+                -2.721203249831186
+              ],
+              [
+                109.7063246855337,
+                -2.687722813554826
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.17729389083273,
+            225.02479565352058,
+            -40
+          ],
+          "x2": [
+            392.28744357271165,
+            225.02479565352058,
+            120
+          ],
+          "y1": [
+            68.89432574163762,
+            225.02479565352058,
+            -4
+          ],
+          "y2": [
+            68.61140939913403,
+            5.991409326016619,
+            0
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-1",
+        "title": "1.5V IBAT Versus Temperature",
+        "conditions": "VBAT = 1.5V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-682613AD-6F7B-4F05-80A7-2F2D9AC35A71-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Supply current drawn from the cell versus temperature at a depleted 1.5 V cell, for the pack standby/self-discharge current budget",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "Current Consumption (μA)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 0,
+          "y_max": 0.05
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                0.04281536336338855
+              ],
+              [
+                -38.648215877142825,
+                0.04200711884394466
+              ],
+              [
+                -36.66722496457715,
+                0.04058396634117109
+              ],
+              [
+                -34.68623405201148,
+                0.039075424688231115
+              ],
+              [
+                -32.705243139445805,
+                0.03759534608534661
+              ],
+              [
+                -30.724252226880132,
+                0.03608680443240663
+              ],
+              [
+                -28.99088517838517,
+                0.03473322827421311
+              ],
+              [
+                -27.505141993960915,
+                0.033601031394228806
+              ],
+              [
+                -25.771774945465953,
+                0.03221582962486254
+              ],
+              [
+                -23.790784032900277,
+                0.03077844559706124
+              ],
+              [
+                -21.809793120334607,
+                0.029184514793954848
+              ],
+              [
+                -19.74626091974536,
+                0.0275668647824689
+              ],
+              [
+                -17.84781129520326,
+                0.026210126063158104
+              ],
+              [
+                -16.114444246708295,
+                0.024840737099378202
+              ],
+              [
+                -14.381077198213333,
+                0.023591525458054746
+              ],
+              [
+                -12.40008628564766,
+                0.022196836005336652
+              ],
+              [
+                -10.419095373081987,
+                0.0208590726527295
+              ],
+              [
+                -8.43810446051631,
+                0.019464383200011412
+              ],
+              [
+                -6.457113547950641,
+                0.018240472047626143
+              ],
+              [
+                -4.228498771314257,
+                0.01692547913506337
+              ],
+              [
+                -1.7522601306071692,
+                0.015589613319126583
+              ],
+              [
+                1.4668501023120513,
+                0.014151280522990101
+              ],
+              [
+                4.438336471160568,
+                0.013316364388029614
+              ],
+              [
+                7.40982284000907,
+                0.012841980220438424
+              ],
+              [
+                10.381309208857573,
+                0.012709152653512896
+              ],
+              [
+                13.35279557770609,
+                0.012841980220438424
+              ],
+              [
+                16.3242819465546,
+                0.013145586087696788
+              ],
+              [
+                19.246243542588964,
+                0.013509913128406818
+              ],
+              [
+                22.26725468425162,
+                0.013885625389139039
+              ],
+              [
+                25.238741053100128,
+                0.0141892312563974
+              ],
+              [
+                28.210227421948645,
+                0.014473861756952115
+              ],
+              [
+                31.181713790797147,
+                0.01472054152409953
+              ],
+              [
+                34.15320015964565,
+                0.015251851791801661
+              ],
+              [
+                37.124686528494166,
+                0.015650334492578258
+              ],
+              [
+                40.14569767015681,
+                0.0161057432934658
+              ],
+              [
+                43.067659266191185,
+                0.016561152094353337
+              ],
+              [
+                46.03914563503969,
+                0.017016560895240878
+              ],
+              [
+                49.010632003888205,
+                0.01747196969612842
+              ],
+              [
+                51.98211837273672,
+                0.017870452396905018
+              ],
+              [
+                54.953604741585224,
+                0.018249959730977965
+              ],
+              [
+                57.925091110433726,
+                0.018515614864829038
+              ],
+              [
+                61.391825207423665,
+                0.018724343898569154
+              ],
+              [
+                64.36331157627217,
+                0.018724343898569154
+              ],
+              [
+                67.33479794512067,
+                0.018553565598236326
+              ],
+              [
+                70.30628431396919,
+                0.018268935097681616
+              ],
+              [
+                73.27777068281769,
+                0.01792737849701596
+              ],
+              [
+                76.2492570516662,
+                0.017604797263053956
+              ],
+              [
+                79.07216910207228,
+                0.017380887935950908
+              ],
+              [
+                82.19222978936322,
+                0.017320166762499242
+              ],
+              [
+                85.16371615821173,
+                0.01745299432942477
+              ],
+              [
+                88.13520252706024,
+                0.01785147703020137
+              ],
+              [
+                91.10668889590875,
+                0.018306885831088908
+              ],
+              [
+                94.07817526475725,
+                0.018933072932309277
+              ],
+              [
+                97.04966163360575,
+                0.019578235400233294
+              ],
+              [
+                100.0706727752684,
+                0.02038658602180868
+              ],
+              [
+                102.99263437130276,
+                0.021115240103228742
+              ],
+              [
+                105.96412074015129,
+                0.021855279404670996
+              ],
+              [
+                108.93560710899979,
+                0.02251941723929866
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            266
+          ],
+          "x1": [
+            69.27048899763722,
+            224.23092685990048,
+            -40
+          ],
+          "x2": [
+            392.3411280098608,
+            223.6561112117922,
+            120
+          ],
+          "y1": [
+            68.98307716240318,
+            224.23092685990048,
+            0
+          ],
+          "y2": [
+            69.27048899763722,
+            4.6479943273906,
+            0.05
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-2",
+        "title": "3.9V IBAT Versus Temperature",
+        "conditions": "VBAT = 3.9V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-DB94030B-B0C1-4234-B81D-BA7281A12E6E-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "NORMAL-mode supply current versus temperature at a nominal cell voltage, for the pack quiescent current budget",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "Current Consumption (μA)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 0,
+          "y_max": 6
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -37.733985892503284,
+                3.9392067474928916
+              ],
+              [
+                -34.77303654857522,
+                3.948346112090377
+              ],
+              [
+                -31.81208720464715,
+                3.966624841285349
+              ],
+              [
+                -28.851137860719085,
+                3.9734793647334623
+              ],
+              [
+                -25.890188516791014,
+                3.980333888181577
+              ],
+              [
+                -22.92923917286295,
+                3.9917580939284347
+              ],
+              [
+                -20.017638984667013,
+                4.02557374293913
+              ],
+              [
+                -17.007340485006814,
+                4.0443094403639765
+              ],
+              [
+                -14.046391141078747,
+                4.055733646110833
+              ],
+              [
+                -11.08544179715068,
+                4.058018487260204
+              ],
+              [
+                -8.124492453222611,
+                4.076297216455176
+              ],
+              [
+                -5.163543109294544,
+                4.0877214222020335
+              ],
+              [
+                -2.2025937653664727,
+                4.106000151397003
+              ],
+              [
+                0.9064030457579975,
+                4.118795261833484
+              ],
+              [
+                3.7193049224896555,
+                4.135703086338832
+              ],
+              [
+                6.680254266417727,
+                4.149412133235061
+              ],
+              [
+                9.641203610345798,
+                4.167690862430032
+              ],
+              [
+                12.602152954273862,
+                4.188254432774374
+              ],
+              [
+                15.563102298201926,
+                4.204248320819975
+              ],
+              [
+                18.277305863469316,
+                4.220242208865574
+              ],
+              [
+                21.48500098605807,
+                4.243090620359288
+              ],
+              [
+                24.445950329986132,
+                4.2590845084048885
+              ],
+              [
+                27.406899673914197,
+                4.277363237599859
+              ],
+              [
+                30.36784901784226,
+                4.297926807944202
+              ],
+              [
+                33.328798361770325,
+                4.309351013691059
+              ],
+              [
+                36.28974770569839,
+                4.329914584035402
+              ],
+              [
+                39.10264958243006,
+                4.349107249690121
+              ],
+              [
+                42.21164639355453,
+                4.364187201275973
+              ],
+              [
+                45.17259573748261,
+                4.384750771620316
+              ],
+              [
+                48.133545081410674,
+                4.405314341964658
+              ],
+              [
+                51.09449442533874,
+                4.419023388860886
+              ],
+              [
+                54.055443769266816,
+                4.439586959205229
+              ],
+              [
+                57.01639311319488,
+                4.460150529549572
+              ],
+              [
+                60.02669161285509,
+                4.475230481135423
+              ],
+              [
+                62.93829180105101,
+                4.494423146790143
+              ],
+              [
+                65.89924114497906,
+                4.5149867171344855
+              ],
+              [
+                68.86019048890714,
+                4.528695764030714
+              ],
+              [
+                71.8211398328352,
+                4.549259334375057
+              ],
+              [
+                74.78208917676326,
+                4.572107745868771
+              ],
+              [
+                77.74303852069133,
+                4.58810163391437
+              ],
+              [
+                80.85203533181583,
+                4.606837331339216
+              ],
+              [
+                83.66493720854747,
+                4.629228774603055
+              ],
+              [
+                86.62588655247554,
+                4.65207718609677
+              ],
+              [
+                89.58683589640361,
+                4.672640756441112
+              ],
+              [
+                92.54778524033168,
+                4.695489167934827
+              ],
+              [
+                95.50873458425974,
+                4.718337579428541
+              ],
+              [
+                98.22293814952712,
+                4.738444181543009
+              ],
+              [
+                101.43063327211587,
+                4.764034402415969
+              ],
+              [
+                104.39158261604393,
+                4.786882813909682
+              ],
+              [
+                107.352531959972,
+                4.809731225403397
+              ],
+              [
+                109.57324396791807,
+                4.823440272299624
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            68.408200862044,
+            225.78447662994435,
+            -40
+          ],
+          "x2": [
+            392.62853984509485,
+            224.92179488519474,
+            120
+          ],
+          "y1": [
+            69.55790083287125,
+            224.92179488519474,
+            0
+          ],
+          "y2": [
+            69.27048899763722,
+            6.088201076033042,
+            6
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-3",
+        "title": "Internal Oscillator Frequency Versus Temperature",
+        "conditions": "FOSC, Setting = 1.255kHz",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-1788F998-2AC3-4D0F-8F5E-786F5F575E6F-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-4",
+        "title": "0V Charging Allowed Versus Temperature",
+        "conditions": "VBAT, Setting = 0V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-5BE74DA5-608F-43C8-8320-C0552D9B8FA7-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Zero-volt charging start voltage V(0CHG) versus temperature, to check the minimum charger voltage that will restart a depleted pack over the operating temperature range",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "V(-) - BAT Voltage (V)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": -1.46,
+          "y_max": -1.32
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                -1.3418233307171121
+              ],
+              [
+                -38.290746142233075,
+                -1.3436607812757901
+              ],
+              [
+                -35.3113075355423,
+                -1.3462164448103677
+              ],
+              [
+                -32.33186892885153,
+                -1.3487721083449453
+              ],
+              [
+                -29.35243032216075,
+                -1.3513810148698264
+              ],
+              [
+                -26.372991715469972,
+                -1.354096407375315
+              ],
+              [
+                -23.393553108779198,
+                -1.3566520709098926
+              ],
+              [
+                -20.463771812199933,
+                -1.3591651400522273
+              ],
+              [
+                -17.43467589539765,
+                -1.3619231269499588
+              ],
+              [
+                -14.455237288706869,
+                -1.36453203347484
+              ],
+              [
+                -11.475798682016098,
+                -1.3670876970094177
+              ],
+              [
+                -8.49636007532532,
+                -1.369643360543995
+              ],
+              [
+                -5.516921468634543,
+                -1.3721990240785726
+              ],
+              [
+                -2.537482861943772,
+                -1.3747546876131502
+              ],
+              [
+                0.5909276750815522,
+                -1.3772464595593634
+              ],
+              [
+                3.421394351437783,
+                -1.3796530427210905
+              ],
+              [
+                6.400832958128561,
+                -1.3821554632653643
+              ],
+              [
+                9.380271564819331,
+                -1.3845513978290307
+              ],
+              [
+                12.359710171510102,
+                -1.3869473323926973
+              ],
+              [
+                15.33914877820088,
+                -1.3891835379854527
+              ],
+              [
+                18.0703008343341,
+                -1.3913026089995397
+              ],
+              [
+                21.298025991582435,
+                -1.3936027061806595
+              ],
+              [
+                24.2774645982732,
+                -1.3956259398122002
+              ],
+              [
+                27.256903204963976,
+                -1.3977024164340444
+              ],
+              [
+                30.236341811654754,
+                -1.3995659210946738
+              ],
+              [
+                33.21578041834553,
+                -1.4018021266874292
+              ],
+              [
+                36.19521902503631,
+                -1.4036656313480587
+              ],
+              [
+                39.02568570139253,
+                -1.405486541616445
+              ],
+              [
+                42.154096238417864,
+                -1.4074458836596213
+              ],
+              [
+                45.13353484510864,
+                -1.409256145329947
+              ],
+              [
+                48.112973451799405,
+                -1.4111196499905765
+              ],
+              [
+                51.09241205849018,
+                -1.4129299116609022
+              ],
+              [
+                54.07185066518096,
+                -1.414740173331228
+              ],
+              [
+                57.05128927187174,
+                -1.4164439490209464
+              ],
+              [
+                60.08038518867403,
+                -1.4182648592893328
+              ],
+              [
+                63.01016648525328,
+                -1.4197982574100794
+              ],
+              [
+                65.98960509194406,
+                -1.4215552760901013
+              ],
+              [
+                68.96904369863483,
+                -1.423046079818605
+              ],
+              [
+                71.9484823053256,
+                -1.4245901265374123
+              ],
+              [
+                74.92792091201638,
+                -1.425867958304701
+              ],
+              [
+                77.90735951870717,
+                -1.427305519042901
+              ],
+              [
+                81.03577005573248,
+                -1.428615296604372
+              ],
+              [
+                83.86623673208872,
+                -1.429754696596871
+              ],
+              [
+                86.8456753387795,
+                -1.4308195564029451
+              ],
+              [
+                89.82511394547026,
+                -1.4317779302284115
+              ],
+              [
+                92.80455255216106,
+                -1.432736304053878
+              ],
+              [
+                95.78399115885182,
+                -1.4337479208696484
+              ],
+              [
+                98.51514321498502,
+                -1.434621105910629
+              ],
+              [
+                101.74286837223337,
+                -1.4355581825399741
+              ],
+              [
+                104.72230697892414,
+                -1.4364100703848333
+              ],
+              [
+                107.7017455856149,
+                -1.4372619582296926
+              ],
+              [
+                109.936324540633,
+                -1.437687902152122
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.55790083287125,
+            225.2093510789517,
+            -40
+          ],
+          "x2": [
+            391.7662517095016,
+            225.4969204361874,
+            120
+          ],
+          "y1": [
+            69.27048899763722,
+            224.9218080486735,
+            -1.46
+          ],
+          "y2": [
+            69.27048899763722,
+            5.800631718797329,
+            -1.32
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-5",
+        "title": "0V Charging Disallowed Versus Temperature",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-AC967FE0-63FD-4CA3-86A1-65C08C334974-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Zero-volt charge inhibit threshold V(0INH) versus temperature, to check the cell voltage below which charging is blocked over the operating temperature range",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "BAT - VSS Voltage (V)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 0.4,
+          "y_max": 0.75
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                0.7046874955940996
+              ],
+              [
+                -38.14802515591372,
+                0.70229789896185
+              ],
+              [
+                -35.168586549222944,
+                0.698841640087796
+              ],
+              [
+                -32.189147942532166,
+                0.6964488454826818
+              ],
+              [
+                -29.209709335841392,
+                0.6937901848103327
+              ],
+              [
+                -26.230270729150615,
+                0.6909985911043661
+              ],
+              [
+                -23.25083212245984,
+                0.688339930432017
+              ],
+              [
+                -20.321050825880576,
+                0.6858939626134557
+              ],
+              [
+                -17.29195490907829,
+                0.6830226090873186
+              ],
+              [
+                -14.312516302387515,
+                0.680231015381352
+              ],
+              [
+                -11.33307769569674,
+                0.6775723547090029
+              ],
+              [
+                -8.353639089005963,
+                0.6749136940366537
+              ],
+              [
+                -5.374200482315189,
+                0.6721221003306871
+              ],
+              [
+                -2.394761875624411,
+                0.6693305066247205
+              ],
+              [
+                0.7336486614009061,
+                0.66643256649186
+              ],
+              [
+                3.564115337757137,
+                0.6636143861791699
+              ],
+              [
+                6.543553944447915,
+                0.6608227924732033
+              ],
+              [
+                9.522992551138685,
+                0.6578982657336192
+              ],
+              [
+                12.50243115782947,
+                0.6548408059604176
+              ],
+              [
+                15.48186976452024,
+                0.652049212254451
+              ],
+              [
+                18.213021820653452,
+                0.6487258864140146
+              ],
+              [
+                21.440746977901796,
+                0.6458013596744306
+              ],
+              [
+                24.42018558459256,
+                0.642743899901229
+              ],
+              [
+                27.399624191283337,
+                0.6396864401280274
+              ],
+              [
+                30.379062797974115,
+                0.6368948464220608
+              ],
+              [
+                33.35850140466489,
+                0.6339703196824769
+              ],
+              [
+                36.33794001135567,
+                0.6309128599092753
+              ],
+              [
+                39.168406687711894,
+                0.6283073724503732
+              ],
+              [
+                42.296817224737225,
+                0.6251967394637247
+              ],
+              [
+                45.276255831428,
+                0.6222722127241407
+              ],
+              [
+                48.25569443811878,
+                0.6193476859845565
+              ],
+              [
+                51.235133044809544,
+                0.6164231592449725
+              ],
+              [
+                54.21457165150032,
+                0.6133656994717709
+              ],
+              [
+                57.1940102581911,
+                0.6105741057658043
+              ],
+              [
+                60.223106174993404,
+                0.6075698192060498
+              ],
+              [
+                63.152887471572654,
+                0.6045921192530187
+              ],
+              [
+                66.13232607826342,
+                0.602332257681522
+              ],
+              [
+                69.1117646849542,
+                0.5983442666729983
+              ],
+              [
+                72.09120329164497,
+                0.5958185390342666
+              ],
+              [
+                75.07064189833574,
+                0.5930269453283
+              ],
+              [
+                78.05008050502653,
+                0.5899694855550985
+              ],
+              [
+                81.17849104205185,
+                0.5866727463213856
+              ],
+              [
+                84.00895771840808,
+                0.5838545660086953
+              ],
+              [
+                86.98839632509886,
+                0.580531240168259
+              ],
+              [
+                89.96783493178961,
+                0.5772079143278226
+              ],
+              [
+                92.94727353848037,
+                0.5738845884873861
+              ],
+              [
+                95.92671214517117,
+                0.5705612626469497
+              ],
+              [
+                98.65786420130436,
+                0.5673708698401307
+              ],
+              [
+                101.88558935855272,
+                0.5639146109660769
+              ],
+              [
+                104.86502796524348,
+                0.5605912851256404
+              ],
+              [
+                107.84446657193428,
+                0.5570020932179691
+              ],
+              [
+                110.07904552695234,
+                0.5548751646800898
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.27048899763722,
+            224.92179488519474,
+            -40
+          ],
+          "x2": [
+            391.4788398742676,
+            224.63425185491658,
+            120
+          ],
+          "y1": [
+            69.8453652979964,
+            224.92179488519474,
+            0.4
+          ],
+          "y2": [
+            69.8453652979964,
+            5.513075525040388,
+            0.75
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-6",
+        "title": "OVP Detection Accuracy Versus Temperature",
+        "conditions": "OVP, Setting = 4.275V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-A0E93C4A-0088-4758-87A6-CAD3AD1EBB10-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-7",
+        "title": "OVP Detection Delay Time Versus Temperature",
+        "conditions": "tOVPD, Setting = 1.25s",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D3131155-E63E-44C7-80E6-E155455D2636-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-8",
+        "title": "UVP Detection Accuracy Versus Temperature",
+        "conditions": "UVP, Setting = 2.800V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-683ADE09-BFEE-4E6C-984C-803EBF76FE13-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-9",
+        "title": "UVP Detection Delay Time Versus Temperature",
+        "conditions": "tUVPD, Setting = 144ms",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-734FBE08-6EED-4F88-AD0F-F86A11981D5F-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-10",
+        "title": "OCC Detection Accuracy Versus Temperature",
+        "conditions": "VOCC, Setting = –100mV",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-8A5EB4C7-E177-4441-8046-7173CF851A4E-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Charge overcurrent threshold deviation versus temperature, to set the margin between the OCC trip point and the maximum charge current when choosing the total FET RDS(on) and the OCC option",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "OCC Detection Accuracy (mV)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": -1.8,
+          "y_max": 0
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                -1.6601132250207615
+              ],
+              [
+                -37.87015672988329,
+                -1.6466180522790117
+              ],
+              [
+                -34.90131152103808,
+                -1.6356652079014127
+              ],
+              [
+                -31.932466312192872,
+                -1.624027810750214
+              ],
+              [
+                -28.963621103347666,
+                -1.6158131774670148
+              ],
+              [
+                -25.994775894502457,
+                -1.5993839109006165
+              ],
+              [
+                -23.02593068565725,
+                -1.5911692776174173
+              ],
+              [
+                -20.106566230292792,
+                -1.5804902543492583
+              ],
+              [
+                -17.08824026796683,
+                -1.5685790360886198
+              ],
+              [
+                -14.119395059121622,
+                -1.5583107444846207
+              ],
+              [
+                -11.150549850276413,
+                -1.546673347333422
+              ],
+              [
+                -8.181704641431207,
+                -1.5357205029558232
+              ],
+              [
+                -5.212859432586001,
+                -1.5233985530310243
+              ],
+              [
+                -2.244014223740791,
+                -1.5124457086534253
+              ],
+              [
+                0.8732732455466845,
+                -1.499165384845587
+              ],
+              [
+                3.693676193949628,
+                -1.4864327032566282
+              ],
+              [
+                6.66252140279483,
+                -1.4727416477846298
+              ],
+              [
+                9.631366611640047,
+                -1.457681486765431
+              ],
+              [
+                12.600211820485256,
+                -1.4426213257462326
+              ],
+              [
+                15.569057029330466,
+                -1.4275611647270343
+              ],
+              [
+                18.2904984707719,
+                -1.4153761253569557
+              ],
+              [
+                21.506747447020878,
+                -1.3988099482358374
+              ],
+              [
+                24.475592655866095,
+                -1.3871725510846384
+              ],
+              [
+                27.444437864711304,
+                -1.3775888122542395
+              ],
+              [
+                30.413283073556514,
+                -1.3693741789710403
+              ],
+              [
+                33.38212828240172,
+                -1.3597904401406415
+              ],
+              [
+                36.35097349124693,
+                -1.3515758068574422
+              ],
+              [
+                39.171376439649876,
+                -1.3439088157931232
+              ],
+              [
+                42.28866390893735,
+                -1.3351465402910438
+              ],
+              [
+                45.25750911778255,
+                -1.326931907007845
+              ],
+              [
+                48.22635432662777,
+                -1.3194018264982454
+              ],
+              [
+                51.195199535472966,
+                -1.3118717459886464
+              ],
+              [
+                54.164044744318176,
+                -1.3029725599318471
+              ],
+              [
+                57.132889953163385,
+                -1.2940733738750483
+              ],
+              [
+                60.15121591548936,
+                -1.285584919482409
+              ],
+              [
+                63.070580370853804,
+                -1.27695955453505
+              ],
+              [
+                66.03942557969901,
+                -1.2687449212518507
+              ],
+              [
+                69.00827078854422,
+                -1.2612148407422517
+              ],
+              [
+                71.97711599738943,
+                -1.2536847602326522
+              ],
+              [
+                74.94596120623464,
+                -1.2441010214022534
+              ],
+              [
+                77.91480641507985,
+                -1.2317790714774546
+              ],
+              [
+                81.03209388436733,
+                -1.2149390732468963
+              ],
+              [
+                83.85249683277026,
+                -1.1900213522878587
+              ],
+              [
+                86.82134204161548,
+                -1.1640083468910616
+              ],
+              [
+                89.79018725046069,
+                -1.131149813758265
+              ],
+              [
+                92.7590324593059,
+                -1.092814858436669
+              ],
+              [
+                95.72787766815108,
+                -1.0496880336998733
+              ],
+              [
+                98.44931910959252,
+                -1.0079303145102778
+              ],
+              [
+                101.66556808584153,
+                -0.9586425148110828
+              ],
+              [
+                104.63441329468674,
+                -0.9134620317534874
+              ],
+              [
+                107.60325850353195,
+                -0.8682815486958921
+              ],
+              [
+                109.82989241016585,
+                -0.8367921211102954
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            68.69561269727804,
+            224.92179488519474,
+            -40
+          ],
+          "x2": [
+            392.0536635447357,
+            225.49693359966616,
+            120
+          ],
+          "y1": [
+            69.27048899763722,
+            224.92179488519474,
+            -1.8
+          ],
+          "y2": [
+            68.69561269727804,
+            5.800631718797329,
+            0
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-11",
+        "title": "OCC Detection Delay Time Versus Temperature",
+        "conditions": "tOCCD, Setting = 8ms",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-219AC28E-10D7-4604-8C4C-39A9DAD4E24E-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-12",
+        "title": "OCD Detection Accuracy Versus Temperature",
+        "conditions": "VOCD, Setting = 100mV",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D3B17AC8-84F5-46C7-A8C0-1927F9BBC94B-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Discharge overcurrent threshold deviation versus temperature, to set the margin between the OCD trip point and the maximum discharge current when sizing the total FET RDS(on)",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "OCD Detection Accuracy (mV)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": -4,
+          "y_max": 0
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                -3.7737238999831995
+              ],
+              [
+                -38.15296814900141,
+                -3.755779225203228
+              ],
+              [
+                -35.1814817801529,
+                -3.7406067652901758
+              ],
+              [
+                -32.20999541130439,
+                -3.725434305377123
+              ],
+              [
+                -29.23850904245588,
+                -3.7132963374466814
+              ],
+              [
+                -26.26702267360737,
+                -3.696606631542324
+              ],
+              [
+                -23.295536304758862,
+                -3.682951417620577
+              ],
+              [
+                -20.37357470872449,
+                -3.6686893053023075
+              ],
+              [
+                -17.352563567061843,
+                -3.652606497794472
+              ],
+              [
+                -14.381077198213333,
+                -3.6389512838727245
+              ],
+              [
+                -11.409590829364824,
+                -3.6237788239596727
+              ],
+              [
+                -8.43810446051631,
+                -3.60860636404662
+              ],
+              [
+                -5.466618091667804,
+                -3.5934339041335672
+              ],
+              [
+                -2.495131722819295,
+                -3.57674419822921
+              ],
+              [
+                0.6249289644716427,
+                -3.5594475939283305
+              ],
+              [
+                3.4478410148777243,
+                -3.5418475404291896
+              ],
+              [
+                6.419327383726234,
+                -3.523640588533527
+              ],
+              [
+                9.390813752574743,
+                -3.51301986659439
+              ],
+              [
+                12.362300121423253,
+                -3.4766059628030646
+              ],
+              [
+                15.333786490271763,
+                -3.459916256898707
+              ],
+              [
+                18.05764899504956,
+                -3.441102406606522
+              ],
+              [
+                21.276759227968782,
+                -3.4204678611247705
+              ],
+              [
+                24.248245596817284,
+                -3.4022609092291076
+              ],
+              [
+                27.2197319656658,
+                -3.3855712033247505
+              ],
+              [
+                30.191218334514303,
+                -3.368881497420393
+              ],
+              [
+                33.16270470336282,
+                -3.352191791516035
+              ],
+              [
+                36.13419107221132,
+                -3.337019331602983
+              ],
+              [
+                38.9571031226174,
+                -3.3227572192847137
+              ],
+              [
+                42.07716380990834,
+                -3.3066744117768776
+              ],
+              [
+                45.04865017875686,
+                -3.2930191978551306
+              ],
+              [
+                48.02013654760536,
+                -3.2778467379420784
+              ],
+              [
+                50.99162291645386,
+                -3.261157032037721
+              ],
+              [
+                53.963109285302394,
+                -3.2475018181159734
+              ],
+              [
+                56.9345956541509,
+                -3.229294866220311
+              ],
+              [
+                59.955606795813566,
+                -3.2135155079107367
+              ],
+              [
+                62.877568391847916,
+                -3.1974327004029006
+              ],
+              [
+                65.84905476069642,
+                -3.1807429944985435
+              ],
+              [
+                68.82054112954494,
+                -3.1655705345854908
+              ],
+              [
+                71.79202749839345,
+                -3.1488808286811336
+              ],
+              [
+                74.76351386724195,
+                -3.129156630794165
+              ],
+              [
+                77.73500023609046,
+                -3.1109496788985025
+              ],
+              [
+                80.85506092338139,
+                -3.08424614945153
+              ],
+              [
+                83.67797297378749,
+                -3.057846069202819
+              ],
+              [
+                86.64945934263599,
+                -3.0275011493767146
+              ],
+              [
+                89.62094571148447,
+                -2.9759147856723365
+              ],
+              [
+                92.592432080333,
+                -2.941018127872316
+              ],
+              [
+                95.5639184491815,
+                -2.9000524861070747
+              ],
+              [
+                98.2877809539593,
+                -2.8603006411348773
+              ],
+              [
+                101.50689118687853,
+                -2.8105349726200655
+              ],
+              [
+                104.47837755572704,
+                -2.7635003468896038
+              ],
+              [
+                107.44986392457554,
+                -2.7164657211591408
+              ],
+              [
+                109.67847870121193,
+                -2.6830863093504256
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.27048899763722,
+            225.20936424243047,
+            -40
+          ],
+          "x2": [
+            392.3411280098608,
+            224.92179488519474,
+            120
+          ],
+          "y1": [
+            69.27048899763722,
+            225.49693359966616,
+            -4
+          ],
+          "y2": [
+            68.98307716240318,
+            5.800631718797329,
+            0
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-13",
+        "title": "OCD Detection Delay Time Versus Temperature",
+        "conditions": "tUVPD, Setting = 20ms",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-7DDFC641-833A-4741-B8EE-9B67496DE505-low.png",
+        "kind": "parametric_curve",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 6-14",
+        "title": "SCC Detection Accuracy Versus Temperature",
+        "conditions": "VSCC, Setting = 500mV",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-13F3554C-9771-4C35-9813-D84E289FE8C6-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Short-circuit detection threshold deviation versus temperature, to bound the worst-case trip voltage across the FETs and hence the peak short-circuit current the FETs must survive",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "SCC Detection Accuracy (mV)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 0,
+          "y_max": 4.5
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                2.801286776596561
+              ],
+              [
+                -38.149675656634315,
+                2.8348043654500703
+              ],
+              [
+                -35.172892358995405,
+                2.8842398108285705
+              ],
+              [
+                -32.196109061356495,
+                2.933675256207071
+              ],
+              [
+                -29.219325763717578,
+                2.9797013605249854
+              ],
+              [
+                -26.242542466078664,
+                3.0359554880246584
+              ],
+              [
+                -23.265759168439754,
+                3.0853909334031595
+              ],
+              [
+                -20.338588925761485,
+                3.131757971827132
+              ],
+              [
+                -17.312192573161926,
+                3.1825571536298676
+              ],
+              [
+                -14.335409275523013,
+                3.2319925990083678
+              ],
+              [
+                -11.358625977884099,
+                3.2814280443868684
+              ],
+              [
+                -8.381842680245185,
+                3.33086348976537
+              ],
+              [
+                -5.405059382606275,
+                3.378594264613577
+              ],
+              [
+                -2.428276084967365,
+                3.428029709992078
+              ],
+              [
+                0.6973463775535009,
+                3.477465155370578
+              ],
+              [
+                3.5252905103104695,
+                3.535423953400545
+              ],
+              [
+                6.50207380794938,
+                3.583154728248752
+              ],
+              [
+                9.47885710558829,
+                3.6377041852181327
+              ],
+              [
+                12.4556404032272,
+                3.692253642187512
+              ],
+              [
+                15.43242370086611,
+                3.743393758096306
+              ],
+              [
+                18.16114172370179,
+                3.782260246186989
+              ],
+              [
+                21.385990296143945,
+                3.825217943550376
+              ],
+              [
+                24.362773593782862,
+                3.8610160246865317
+              ],
+              [
+                27.339556891421765,
+                3.8865860826409286
+              ],
+              [
+                30.316340189060682,
+                3.910451470065032
+              ],
+              [
+                33.2931234866996,
+                3.934316857489136
+              ],
+              [
+                36.2699067843385,
+                3.9530682333223606
+              ],
+              [
+                39.09785091709547,
+                3.968410268094998
+              ],
+              [
+                42.22347337961634,
+                3.9803429618070503
+              ],
+              [
+                45.200256677255254,
+                3.9922756555191024
+              ],
+              [
+                48.17703997489416,
+                4.0229597250643785
+              ],
+              [
+                51.153823272533074,
+                4.036597089306724
+              ],
+              [
+                54.13060657017199,
+                4.0417111008976025
+              ],
+              [
+                57.107389867810895,
+                4.057053135670241
+              ],
+              [
+                60.13378622041047,
+                4.068644895276234
+              ],
+              [
+                63.06095646308873,
+                4.082623193624638
+              ],
+              [
+                66.03773976072765,
+                4.0979652283972765
+              ],
+              [
+                69.01452305836655,
+                4.109897922109328
+              ],
+              [
+                71.99130635600547,
+                4.125239956881966
+              ],
+              [
+                74.96808965364438,
+                4.137172650594018
+              ],
+              [
+                77.94487295128329,
+                4.1422866621848975
+              ],
+              [
+                81.07049541380417,
+                4.1422866621848975
+              ],
+              [
+                83.89843954656112,
+                4.140581991654604
+              ],
+              [
+                86.87522284420004,
+                4.12183061582138
+              ],
+              [
+                89.85200614183893,
+                4.101374569457862
+              ],
+              [
+                92.82878943947784,
+                4.074099840973172
+              ],
+              [
+                95.80557273711676,
+                4.043415771427895
+              ],
+              [
+                98.53429075995243,
+                4.009322360822034
+              ],
+              [
+                101.7591393323946,
+                3.9667055975647054
+              ],
+              [
+                104.73592263003349,
+                3.930907516428549
+              ],
+              [
+                107.7127059276724,
+                3.895109435292394
+              ],
+              [
+                109.94529340090159,
+                3.872948718398584
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.27048899763722,
+            224.92179488519474,
+            -40
+          ],
+          "x2": [
+            391.7662517095016,
+            225.20936424243047,
+            120
+          ],
+          "y1": [
+            69.55790083287125,
+            225.49693359966616,
+            0
+          ],
+          "y2": [
+            68.69561269727804,
+            5.513075525040388,
+            4.5
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-15",
+        "title": "Power On Reset Versus Temperature",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D01E5956-2C1B-42B4-91F1-E83F7D7A3E6B-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "Power-on reset voltage versus temperature, to check the minimum cell voltage at which the protector starts driving the FET gates (no POR value is given in the tables)",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "Power On Reset Threshold (V)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 1.1,
+          "y_max": 1.24
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                1.1090546897078002
+              ],
+              [
+                -38.14802515591372,
+                1.1100794302748485
+              ],
+              [
+                -35.168586549222944,
+                1.1118920709200164
+              ],
+              [
+                -32.189147942532166,
+                1.1137047115651844
+              ],
+              [
+                -29.209709335841392,
+                1.1154640392502004
+              ],
+              [
+                -26.230270729150615,
+                1.1172766798953684
+              ],
+              [
+                -23.25083212245984,
+                1.1188760686999284
+              ],
+              [
+                -20.321050825880576,
+                1.1209339489617955
+              ],
+              [
+                -17.29195490907829,
+                1.1226079759105683
+              ],
+              [
+                -14.312516302387515,
+                1.1244206165557362
+              ],
+              [
+                -11.33307769569674,
+                1.1262332572009042
+              ],
+              [
+                -8.353639089005963,
+                1.1279925848859202
+              ],
+              [
+                -5.374200482315189,
+                1.1298585384912403
+              ],
+              [
+                -2.394761875624411,
+                1.1317778050567122
+              ],
+              [
+                0.7336486614009061,
+                1.1337290593982754
+              ],
+              [
+                3.564115337757137,
+                1.135616338187656
+              ],
+              [
+                6.543553944447915,
+                1.1375356047531282
+              ],
+              [
+                9.522992551138685,
+                1.139561497238904
+              ],
+              [
+                12.50243115782947,
+                1.141640702684832
+              ],
+              [
+                15.48186976452024,
+                1.143773221090912
+              ],
+              [
+                18.213021820653452,
+                1.1457564632085664
+              ],
+              [
+                21.440746977901796,
+                1.14798494494292
+              ],
+              [
+                24.42018558459256,
+                1.150224089269304
+              ],
+              [
+                27.399624191283337,
+                1.152356607675384
+              ],
+              [
+                30.379062797974115,
+                1.154435813121312
+              ],
+              [
+                33.35850140466489,
+                1.156621644487544
+              ],
+              [
+                36.33794001135567,
+                1.1587008499334719
+              ],
+              [
+                39.168406687711894,
+                1.1607907179714303
+              ],
+              [
+                42.296817224737225,
+                1.163125825626088
+              ],
+              [
+                45.276255831428,
+                1.1652583440321678
+              ],
+              [
+                48.25569443811878,
+                1.1673908624382479
+              ],
+              [
+                51.235133044809544,
+                1.1696300067646317
+              ],
+              [
+                54.21457165150032,
+                1.1718691510910157
+              ],
+              [
+                57.1940102581911,
+                1.1741082954173998
+              ],
+              [
+                60.223106174993404,
+                1.1763367771517532
+              ],
+              [
+                63.152887471572654,
+                1.1785865840701677
+              ],
+              [
+                66.13232607826342,
+                1.1810922931973116
+              ],
+              [
+                69.1117646849542,
+                1.1832781245635435
+              ],
+              [
+                72.09120329164497,
+                1.1856772077703837
+              ],
+              [
+                75.07064189833574,
+                1.1881296039373754
+              ],
+              [
+                78.05008050502653,
+                1.1906353130645195
+              ],
+              [
+                81.17849104205185,
+                1.1932263229279068
+              ],
+              [
+                84.00895771840808,
+                1.1958066701992633
+              ],
+              [
+                86.98839632509886,
+                1.1983656922865593
+              ],
+              [
+                89.96783493178961,
+                1.2014045310152235
+              ],
+              [
+                92.94727353848037,
+                1.2040701790228234
+              ],
+              [
+                95.92671214517117,
+                1.2069490788710313
+              ],
+              [
+                98.65786420130436,
+                1.209476113182236
+              ],
+              [
+                101.88558935855272,
+                1.2127601915275992
+              ],
+              [
+                104.86502796524348,
+                1.2155857784156552
+              ],
+              [
+                107.84446657193428,
+                1.2185179912240152
+              ],
+              [
+                110.07904552695234,
+                1.2206149676566604
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.27048899763722,
+            224.92179488519474,
+            -40
+          ],
+          "x2": [
+            391.4788398742676,
+            224.92179488519474,
+            120
+          ],
+          "y1": [
+            69.55790083287125,
+            224.92179488519474,
+            1.1
+          ],
+          "y2": [
+            69.55790083287125,
+            6.088201076033042,
+            1.24
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-16",
+        "title": "COUT Versus Temperature with Ioh = –30µA",
+        "conditions": "VBAT, Setting = 3.9V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D652C582-9510-4127-880B-A09AF397AB2C-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "COUT high-level gate drive voltage versus temperature at IOH = -30 µA, to verify the available Vgs for the charge FET against its RDS(on) at that gate drive",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "VOH (V)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 3.765,
+          "y_max": 3.795
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                3.7894428444132413
+              ],
+              [
+                -38.15296814900141,
+                3.7892530142093173
+              ],
+              [
+                -35.1814817801529,
+                3.7888869586356066
+              ],
+              [
+                -32.20999541130439,
+                3.7885666600086103
+              ],
+              [
+                -29.23850904245588,
+                3.788234922144935
+              ],
+              [
+                -26.26702267360737,
+                3.78790318428126
+              ],
+              [
+                -23.295536304758862,
+                3.7875714464175854
+              ],
+              [
+                -20.37357470872449,
+                3.7872442842485814
+              ],
+              [
+                -17.352563567061843,
+                3.7868965314535568
+              ],
+              [
+                -14.381077198213333,
+                3.7865533543532033
+              ],
+              [
+                -11.409590829364824,
+                3.7862330557262065
+              ],
+              [
+                -8.43810446051631,
+                3.785889878625853
+              ],
+              [
+                -5.466618091667804,
+                3.7855467015254995
+              ],
+              [
+                -2.495131722819295,
+                3.785226402898503
+              ],
+              [
+                0.6249289644716427,
+                3.784828317462093
+              ],
+              [
+                3.4478410148777243,
+                3.7844942917510824
+              ],
+              [
+                6.419327383726234,
+                3.7841396754140506
+              ],
+              [
+                9.390813752574743,
+                3.78377361984034
+              ],
+              [
+                12.362300121423253,
+                3.7833961250299515
+              ],
+              [
+                15.333786490271763,
+                3.783007190982884
+              ],
+              [
+                18.05764899504956,
+                3.7826731652718735
+              ],
+              [
+                21.276759227968782,
+                3.7822522013621063
+              ],
+              [
+                24.248245596817284,
+                3.7818747065517178
+              ],
+              [
+                27.2197319656658,
+                3.7814857725046505
+              ],
+              [
+                30.191218334514303,
+                3.7811082776942615
+              ],
+              [
+                33.16270470336282,
+                3.7807307828838725
+              ],
+              [
+                36.13419107221132,
+                3.7803418488368052
+              ],
+              [
+                38.9571031226174,
+                3.7800101109731306
+              ],
+              [
+                42.07716380990834,
+                3.779563980742671
+              ],
+              [
+                45.04865017875686,
+                3.7791979251689605
+              ],
+              [
+                48.02013654760536,
+                3.778808991121893
+              ],
+              [
+                50.99162291645386,
+                3.778420057074826
+              ],
+              [
+                53.963109285302394,
+                3.7780311230277586
+              ],
+              [
+                56.9345956541509,
+                3.7776421889806913
+              ],
+              [
+                59.955606795813566,
+                3.7772372400022745
+              ],
+              [
+                62.877568391847916,
+                3.776864320886557
+              ],
+              [
+                65.84905476069642,
+                3.77647538683949
+              ],
+              [
+                68.82054112954494,
+                3.7760635743190654
+              ],
+              [
+                71.79202749839345,
+                3.775686079508677
+              ],
+              [
+                74.76351386724195,
+                3.7752742669882524
+              ],
+              [
+                77.73500023609046,
+                3.7748624544678284
+              ],
+              [
+                80.85506092338139,
+                3.7744231877793757
+              ],
+              [
+                83.67797297378749,
+                3.77403882942698
+              ],
+              [
+                86.64945934263599,
+                3.773615577669877
+              ],
+              [
+                89.62094571148447,
+                3.7731694474394177
+              ],
+              [
+                92.592432080333,
+                3.7727347564456366
+              ],
+              [
+                95.5639184491815,
+                3.772288626215177
+              ],
+              [
+                98.2877809539593,
+                3.771869950152746
+              ],
+              [
+                101.50689118687853,
+                3.771396365754258
+              ],
+              [
+                104.47837755572704,
+                3.7709502355237987
+              ],
+              [
+                107.44986392457554,
+                3.7705155445300176
+              ],
+              [
+                109.67847870121193,
+                3.770218124376378
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            69.27048899763722,
+            224.63425185491658,
+            -40
+          ],
+          "x2": [
+            392.3411280098608,
+            225.49693359966616,
+            120
+          ],
+          "y1": [
+            68.69561269727804,
+            224.34668249768086,
+            3.765
+          ],
+          "y2": [
+            69.55790083287125,
+            5.800631718797329,
+            3.795
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 6-17",
+        "title": "DOUT Versus Temperature with Ioh = –30µA",
+        "conditions": "VBAT, Setting = 3.9V",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-9EB8CAC0-77A5-4C0D-BA97-D2EB45FE9520-low.png",
+        "kind": "parametric_curve",
+        "relevance": "design_critical",
+        "use": "DOUT high-level gate drive voltage versus temperature at IOH = -30 µA, to verify the available Vgs for the discharge FET against its RDS(on) at that gate drive",
+        "axes": {
+          "x_label": "Temperature (degC)",
+          "y_label": "VOH (V)",
+          "x_min": -40,
+          "x_max": 120,
+          "y_min": 3.7135,
+          "y_max": 3.716
+        },
+        "applies_to": "family",
+        "series": [
+          {
+            "label": null,
+            "points": [
+              [
+                -40,
+                3.715813465055788
+              ],
+              [
+                -38.01062776648169,
+                3.7158172683181445
+              ],
+              [
+                -35.03914091356248,
+                3.71581822033529
+              ],
+              [
+                -32.06765406064328,
+                3.7158267884896
+              ],
+              [
+                -29.09616720772407,
+                3.715829644541037
+              ],
+              [
+                -26.12468035480486,
+                3.7158382126953473
+              ],
+              [
+                -23.153193501885653,
+                3.7158420207639296
+              ],
+              [
+                -20.23123142984843,
+                3.7158490656908065
+              ],
+              [
+                -17.21021979604724,
+                3.7158524929525307
+              ],
+              [
+                -14.238732943128035,
+                3.7158572530382585
+              ],
+              [
+                -11.267246090208829,
+                3.7158639171582775
+              ],
+              [
+                -8.29575923728962,
+                3.7158639171582775
+              ],
+              [
+                -5.324272384370417,
+                3.7158639171582775
+              ],
+              [
+                -2.352785531451204,
+                3.715861061106841
+              ],
+              [
+                0.7672756641139671,
+                3.7158536353731053
+              ],
+              [
+                3.590188174387208,
+                3.715842972781075
+              ],
+              [
+                6.561675027306407,
+                3.7158305965581824
+              ],
+              [
+                9.53316188022562,
+                3.7158125082324167
+              ],
+              [
+                12.504648733144833,
+                3.7157906118380684
+              ],
+              [
+                15.476135586064032,
+                3.7157601472894104
+              ],
+              [
+                18.19999853457331,
+                3.7157325387921887
+              ],
+              [
+                21.41910929190245,
+                3.7156925540720747
+              ],
+              [
+                24.390596144821657,
+                3.715656377420543
+              ],
+              [
+                27.36208299774087,
+                3.7156154406832833
+              ],
+              [
+                30.333569850660083,
+                3.7155773599974604
+              ],
+              [
+                33.30505670357928,
+                3.715536423260201
+              ],
+              [
+                36.276543556498495,
+                3.715491678454359
+              ],
+              [
+                39.09945606677172,
+                3.715449218489667
+              ],
+              [
+                42.21951726233691,
+                3.7154040928769665
+              ],
+              [
+                45.19100411525612,
+                3.7153555400025424
+              ],
+              [
+                48.162490968175305,
+                3.715309843179555
+              ],
+              [
+                51.13397782109452,
+                3.7152603382879854
+              ],
+              [
+                54.10546467401373,
+                3.715208929362124
+              ],
+              [
+                57.07695152693293,
+                3.7151594244705546
+              ],
+              [
+                60.09796316073414,
+                3.7151042074761116
+              ],
+              [
+                63.01992523277136,
+                3.7150499424988137
+              ],
+              [
+                65.99141208569054,
+                3.7149940908262735
+              ],
+              [
+                68.96289893860975,
+                3.7149337964070543
+              ],
+              [
+                71.93438579152897,
+                3.714870011258301
+              ],
+              [
+                74.65824874003823,
+                3.7148128902295667
+              ],
+              [
+                77.38211168854752,
+                3.7147443449950854
+              ],
+              [
+                80.10597463705679,
+                3.714678655812041
+              ],
+              [
+                82.82983758556605,
+                3.7146129666289966
+              ],
+              [
+                85.55370053407532,
+                3.714542136553366
+              ],
+              [
+                87.78231567376474,
+                3.7144792082200437
+              ],
+              [
+                90.01093081345414,
+                3.7144187551313
+              ],
+              [
+                92.48716985755348,
+                3.7143479250556695
+              ],
+              [
+                94.96340890165283,
+                3.7142713828771656
+              ],
+              [
+                97.19202404134222,
+                3.7142045512735464
+              ],
+              [
+                98.92539137221175,
+                3.71415219033054
+              ],
+              [
+                101.4016304163111,
+                3.7140748865383193
+              ],
+              [
+                103.87786946041044,
+                3.713997582746099
+              ],
+              [
+                106.10648460009986,
+                3.7139303703356217
+              ],
+              [
+                108.33509973978926,
+                3.7138601114702787
+              ],
+              [
+                110.06846707065878,
+                3.7138189843295897
+              ]
+            ]
+          }
+        ],
+        "points": null,
+        "digitizer": {
+          "image": [
+            407,
+            267
+          ],
+          "x1": [
+            68.98307716240318,
+            224.92179488519474,
+            -40
+          ],
+          "x2": [
+            392.0536635447357,
+            225.20936424243047,
+            120
+          ],
+          "y1": [
+            68.98307716240318,
+            224.92179488519474,
+            3.7135
+          ],
+          "y2": [
+            69.55790083287125,
+            6.088201076033042,
+            3.716
+          ],
+          "datasets": [
+            {
+              "mode": "fg",
+              "color": [
+                0,
+                0,
+                0
+              ],
+              "bgColor": [
+                255,
+                255,
+                255
+              ],
+              "distance": 120,
+              "brush": 20,
+              "step": [
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "figure_id": "Figure 7-1",
+        "title": "Overcharge Detection, Over-Discharge Detection",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D1322BE6-F6D1-429F-AF77-73B66C413CFA-low.gif",
+        "kind": "other",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 7-2",
+        "title": "Discharge Overcurrent Detection",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-9E5FFBDF-9306-473D-B902-D27186A2B91A-low.gif",
+        "kind": "other",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 7-3",
+        "title": "Test Circuit 1",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-1471AD85-BD6F-45B6-8914-C58B38086703-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 7-4",
+        "title": "Test Circuit 2",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-6981C448-F5F1-4BFC-9F3B-B6386860AEE6-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 7-5",
+        "title": "Test Circuit 3",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-19CA7792-DCDC-41D5-B272-97295758195F-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 7-6",
+        "title": "Test Circuit 4",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-6980F751-9CDE-41D4-9AB3-F235CEFE8844-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 7-7",
+        "title": "Test Circuit 5",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-1189C616-9955-429C-877B-D7401B5D2AFB-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Functional Block Diagram",
+        "title": "Functional Block Diagram",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-D5D7B96F-4FF8-4B3C-9820-E04BE0A4B7D4-low.gif",
+        "kind": "block_diagram",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 8-1",
+        "title": "Delay Circuit",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-BD7CBA7D-D9CA-47F8-BD7A-F9EC981693AF-low.gif",
+        "kind": "block_diagram",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-1",
+        "title": "Typical Application Schematic, BQ2970",
+        "conditions": "The 5-MΩ resistor for an external gate-source is optional",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-11B0CE26-DE52-4108-921F-537F090D9EC8-low.gif",
+        "kind": "schematic",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-2",
+        "title": "UVP Recovery",
+        "conditions": "Orange line (Channel 1) = power-up ramp on BAT pin; turquoise line (Channel 2) = DOUT gate drive output; DOUT goes from low to high when UVP recovery = UVP set threshold +100 mV",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-BAE332A8-F7BE-4390-9560-7FFA1CA8BC7C-low.png",
+        "kind": "scope_trace",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-3",
+        "title": "UVP Set Condition",
+        "conditions": "Orange line (Channel 1) = power-down ramp on BAT pin; turquoise line (Channel 2) = DOUT gate drive output; DOUT goes from high to low when UVP threshold = UVP set threshold + set delay time",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-906439F4-F618-48F9-BA34-80EBA80ECCB4-low.png",
+        "kind": "scope_trace",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-4",
+        "title": "Initial Power Up, DOUT",
+        "conditions": "Orange line (Channel 1) = power-up ramp on BAT pin; turquoise line (Channel 2) = DOUT gate drive output",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-81B1E060-7D70-4F0A-852B-CF899C79AF1F-low.png",
+        "kind": "scope_trace",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-5",
+        "title": "Initial Power Up, COUT",
+        "conditions": "Orange line (Channel 1) = power-up ramp on BAT pin; turquoise line (Channel 2) = COUT gate drive output",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-9FEA44DA-7EF7-429F-949C-BCD1A10E598B-low.png",
+        "kind": "scope_trace",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-6",
+        "title": "OVP Set Condition",
+        "conditions": "Orange line (Channel 1) = power-up ramp on BAT pin; turquoise line (Channel 2) = COUT gate drive output; COUT goes from high to low when OVP threshold = OVP set threshold + set delay time",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-7437D88E-14BF-43E6-8423-C3D53A59D4EB-low.png",
+        "kind": "scope_trace",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-7",
+        "title": "OVP Recovery Condition",
+        "conditions": "Orange line (Channel 1) = decreasing voltage on BAT pin; turquoise line (Channel 2) = COUT gate drive output; COUT goes from low to high when OVP recovery = OVP set threshold -100 mV",
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-777CEDF3-0E82-4BCA-8114-40F3C7BA4D22-low.png",
+        "kind": "scope_trace",
+        "relevance": "informative",
+        "use": null
+      },
+      {
+        "figure_id": "Figure 9-8",
+        "title": "BQ2970 Board Layout",
+        "conditions": null,
+        "image_url": "https://www.ti.com/ods/images/SLUSBU9I/GUID-F2ED5FC1-B1EB-435A-A617-15EC1F453BC8-low.gif",
+        "kind": "other",
+        "relevance": "informative",
+        "use": null
+      }
+    ],
+    "table_layout": {
+      "electrical_characteristics.DC Characteristics": [
+        "parameter",
+        {
+          "field": "conditions",
+          "label": "TEST CONDITIONS"
+        },
+        "min",
+        "typ",
+        "max",
+        {
+          "field": "units",
+          "label": "UNIT"
+        }
+      ],
+      "electrical_characteristics.Device Comparison Table": [
+        {
+          "field": "part_number",
+          "label": "PART NUMBER"
+        },
+        "parameter",
+        {
+          "field": "conditions",
+          "label": "TEST CONDITIONS"
+        },
+        "typ",
+        {
+          "field": "units",
+          "label": "UNIT"
+        }
+      ],
+      "electrical_characteristics.Programmable Fault Detection Thresholds": [
+        "parameter",
+        {
+          "field": "conditions",
+          "label": "CONDITION"
+        },
+        {
+          "field": "case",
+          "label": "CONDITION"
+        },
+        "min",
+        "typ",
+        "max",
+        {
+          "field": "units",
+          "label": "UNIT"
+        }
+      ],
+      "electrical_characteristics.Programmable Fault Detection Timer Ranges": [
+        "parameter",
+        {
+          "field": "conditions",
+          "label": "CONDITION"
+        },
+        "min",
+        "typ",
+        "max",
+        {
+          "field": "units",
+          "label": "UNIT"
+        }
+      ],
+      "electrical_characteristics.Delay Circuit": [
+        "parameter",
+        {
+          "field": "conditions",
+          "label": "TEST CONDITIONS"
+        },
+        "min",
+        "typ",
+        "max",
+        {
+          "field": "units",
+          "label": "UNIT"
+        }
+      ]
+    }
+  },
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "warnings": [
+      "[PAS] external_components[0] (Input supply filter capacitor on the BAT pin): capacitor without voltage_rating_min",
+      "[ELC] electrical_characteristics[43] (V(OVP) Overcharge detection voltage): no min/typ/max value",
+      "[ELC] electrical_characteristics[44] (V(UVP) Over-discharge detection voltage): no min/typ/max value",
+      "[ELC] electrical_characteristics[45] (V(OCD) Discharging overcurrent detection voltage): no min/typ/max value",
+      "[ELC] electrical_characteristics[46] (V(OCC) Charging overcurrent detection voltage): no min/typ/max value",
+      "[ELC] electrical_characteristics[47] (V(SCC) Short Circuit detection voltage): no min/typ/max value",
+      "[ELC] electrical_characteristics[48] (t(OVPD) Overcharge detection delay time): no min/typ/max value",
+      "[ELC] electrical_characteristics[49] (t(UVPD) Over-discharge detection delay time): no min/typ/max value",
+      "[ELC] electrical_characteristics[50] (t(OCDD) Discharging overcurrent detection delay time): no min/typ/max value",
+      "[ELC] electrical_characteristics[51] (t(OCCD) Charging overcurrent detection delay time): no min/typ/max value",
+      "[ELC] electrical_characteristics[52] (t(SCCD) Short Circuit detection delay time): no min/typ/max value",
+      "[EXT] not specified in the datasheet: Tolerance, dielectric/tempco, voltage rating and current rating of the 0.1 µF BAT filter capacitor",
+      "[EXT] not specified in the datasheet: Tolerance and power rating of the 330 Ω BAT series resistor, the 2.2 kΩ V- resistor and the 5 MΩ gate-source resistors",
+      "[EXT] not specified in the datasheet: Qg, gate charge, package and thermal rating of the recommended external FETs beyond Vdss, RDS(on) and Imax",
+      "[EXT] not specified in the datasheet: Any external TVS, diode, fuse, PTC or ferrite bead — the document specifies none",
+      "[EXT] not specified in the datasheet: Junction-to-case (bottom) thermal resistance (printed as N/A)",
+      "[EXT] not specified in the datasheet: Output source and sink current values for COUT and DOUT (only the test conditions I(OH) = -30 µA and I(OL) = 30 µA are given; the I(COUT)/I(DOUT) test procedures are described but no specification values appear)",
+      "[EXT] not specified in the datasheet: Power-on-reset voltage threshold (only a Typical Characteristics figure is referenced)",
+      "[EXT] not specified in the datasheet: Internal oscillator frequency tolerance (only the 10 kHz nominal and a figure with a 1.255 kHz setting are shown)",
+      "[EXT] not specified in the datasheet: Input bias/leakage current and input capacitance of the BAT and V- inputs",
+      "[EXT] not specified in the datasheet: RoHS compliance statement and qualification programs (AEC-Q100 etc.)",
+      "[EXT] not specified in the datasheet: Explicit connection node of the 5 MΩ COUT gate-source resistor beyond the stated 'COUT to Pack-'",
+      "[EXT] not specified in the datasheet: Numeric worked example for the short-circuit current equation (only the Imax > 50 A requirement is stated, without the pack voltage, cell resistance and trace resistance values used)",
+      "[EXT] not specified in the datasheet: Startup/inrush supply current and any supply current at a stated temperature other than the DC table conditions"
+    ],
+    "coverage": {
+      "checks_passed": 8,
+      "checks_applicable": 8,
+      "marker": "8/8"
+    }
+  },
+  "created_at": "2026-09-06T19:10:03Z",
+  "status": "approved",
+  "approved_at": "2026-09-11T21:03:05Z",
+  "sections_approved": {
+    "pinout": "2026-09-08T20:33:52Z",
+    "limits": "2026-09-08T20:37:00Z",
+    "electrical_characteristics": "2026-09-11T21:03:05Z",
+    "supplies": "2026-09-08T21:21:11Z",
+    "external_components": "2026-09-08T22:10:45Z",
+    "programming_equations": "2026-09-08T22:11:22Z",
+    "figures": "2026-09-08T22:31:50Z"
+  },
+  "returns_to_approved": false,
+  "sheet_version": "0.1.5"
+}

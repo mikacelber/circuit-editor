@@ -1,0 +1,14 @@
+{
+  "name": "circuit-editor",
+  "version": "0.1.0",
+  "description": "Schematic capture for netlist-driven circuit design: import a circuit_data.json netlist, place symbols, draw wires, and check the drawing back against the netlist and the component database.",
+  "private": true,
+  "scripts": {
+    "serve": "python3 -m http.server 8123",
+    "test": "node test_circuit.js",
+    "db:index": "node tools/build-db-index.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

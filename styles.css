@@ -267,7 +267,15 @@ button.chip:hover{background:var(--btn-hover)}
 #roomsG .roomlbl{font-family:var(--mono);font-size:11px;fill:var(--ink-soft);letter-spacing:.06em}
 #wiresG .wire{fill:none;stroke:var(--wire);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #wiresG .wire.hit{stroke:transparent;stroke-width:10}
+#wiresG .wire.hit.segh{cursor:ns-resize}
+#wiresG .wire.hit.segv{cursor:ew-resize}
 #wiresG .wire.on{stroke:var(--probe)}
+#wiresG .wireg:hover .wire:not(.hit){stroke:var(--copper)}
+#wiresG .wireg.on:hover .wire:not(.hit){stroke:var(--probe)}
+/* bend and end handles of the selected wire: drag to reshape */
+#wiresG .vtx{fill:var(--panel);stroke:var(--probe);stroke-width:1.6;cursor:move}
+#wiresG .vtx.end{fill:var(--probe)}
+#wiresG .vtx:hover{stroke-width:2.4}
 #wiresG .junction{fill:var(--wire)}
 #partsG .sym{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #partsG .symfill{fill:var(--ink);stroke:none}
@@ -279,7 +287,8 @@ button.chip:hover{background:var(--btn-hover)}
 #partsG .value{font-family:var(--mono);font-size:9px;fill:var(--ink-soft)}
 #partsG .netstub{font-family:var(--mono);font-size:7.5px;fill:var(--ink-soft)}
 #partsG .icbody{fill:var(--paper);stroke:var(--ink);stroke-width:1.8}
-#partsG .hit{fill:transparent;stroke:none}
+#partsG .hit{fill:transparent;stroke:none;cursor:move}
+#partsG .picked{fill:var(--ok)}
 #partsG .part.selon .sym,#partsG .part.selon .icbody{stroke:var(--probe)}
 #partsG .part.selon .ref{fill:var(--probe-deep)}
 #partsG .part.on .sym,#partsG .part.on .icbody{stroke:var(--probe)}
@@ -308,3 +317,30 @@ pre.out{font-family:var(--mono);font-size:11px;background:var(--field-bg);border
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:860px){aside#dock{width:280px}.brand h1{max-width:30vw}}
+
+/* ---------- part search — DigiKey + Mouser (Properties panel) ---------- */
+.dksearch{border:1.5px dashed var(--line);border-radius:3px;padding:10px;margin-bottom:8px}
+.dksearch .row{align-items:flex-end}
+.dksearch .row input{min-width:0}
+.dkresults{max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.dkrow{display:grid;grid-template-columns:auto auto 1fr;grid-template-areas:"pn src man" "desc desc desc" "stock stock price";
+  gap:1px 10px;text-align:left;width:100%;padding:6px 9px;border:1.5px solid var(--line);border-radius:3px;
+  background:var(--field-bg);cursor:pointer;transition:border-color .12s,background .12s}
+.dkrow:hover{border-color:var(--copper)}
+.dkrow.on{border-color:var(--probe);background:var(--btn-hover)}
+.dkrow .dkpn,.dkchosen .dkpn{grid-area:pn;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink)}
+.dkrow .dksrc,.dkchosen .dksrc{grid-area:src;justify-self:start;align-self:center;font-family:var(--mono);
+  font-size:8.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:3px;padding:0 4px;line-height:1.6}
+.dkrow .dkman,.dkchosen .dkman{grid-area:man;font-family:var(--mono);font-size:10px;color:var(--ink-soft);text-align:right;align-self:center}
+.dkrow .dkdesc,.dkchosen .dkdesc{grid-area:desc;font-size:11px;color:var(--ink-soft);line-height:1.35}
+.dkrow .dkstock,.dkchosen .dkstock{grid-area:stock;font-family:var(--mono);font-size:10.5px;color:var(--ok)}
+.dkchosen .dkstock.nostock{color:var(--warn);font-weight:600}
+.dkrow .dkprice,.dkchosen .dkprice{grid-area:price;font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--ink);text-align:right}
+.dkchosen{position:relative;display:grid;grid-template-columns:auto auto 1fr;grid-template-areas:"pn src man" "desc desc desc" "stock stock price" "link link link";
+  gap:2px 10px;border:1.5px solid var(--ok);border-radius:3px;background:var(--field-bg);padding:7px 9px 7px 26px;margin:0 0 10px}
+.dkchosen a.dkdesc{grid-area:link;color:var(--ink);text-decoration-color:var(--copper)}
+.dkchosen .x{position:absolute;top:4px;left:4px;width:17px;height:17px;padding:0;line-height:1;
+  font-size:10px;border:1px solid var(--line);border-radius:3px;background:var(--panel);color:var(--ink-soft)}
+.dkchosen .x:hover{border-color:var(--hv);color:var(--hv);background:var(--danger-hover)}
+#dock .body p.icwarn,.icwarn{color:var(--warn);font-family:var(--mono);font-size:11px;line-height:1.5;margin:-2px 0 10px}

@@ -45,10 +45,17 @@ function renderDock(){
   el('dockTitle').textContent = pane.title;
   const body = el('dockBody');
   const keepScroll = body.dataset.pane === pane.id ? body.scrollTop : 0;
+  // a field being typed in survives the re-render: same id, same caret
+  const ae = document.activeElement;
+  const focus = ae && body.contains(ae) && ae.id ? { id:ae.id, s:ae.selectionStart, e:ae.selectionEnd } : null;
   body.dataset.pane = pane.id;
   body.innerHTML = '';
   pane.render(body);
   body.scrollTop = keepScroll;
+  if (focus){
+    const f = el(focus.id);
+    if (f){ f.focus(); try { if (focus.s != null) f.setSelectionRange(focus.s, focus.e); } catch(e){} }
+  }
   renderDockTabs();
 }
 function renderDockTabs(){
@@ -104,6 +111,11 @@ function paneProject(body){
     <div class="kv"><label>Counts</label><div class="val">
       ${stats.placed} parts placed · ${stats.components} in netlist · ${stats.nets} nets · ${stats.wires} wires</div></div>
     <div class="kv"><label>Netlist realised</label><div class="val">${stats.donePct}% of nets fully wired (${stats.done}/${stats.nets})</div></div>
+    <div class="sechead">Bill of materials</div>
+    <div class="kv"><label>Parts picked on DigiKey / Mouser</label><div class="val">${stats.picked} of ${stats.placed}
+      ${stats.picked ? ' · unit cost so far ' + dkFmtPrice(stats.bom, stats.cur) : ''}
+      ${stats.nostock ? ` · <span style="color:var(--warn)">${stats.nostock} with no stock</span>` : ''}</div></div>
+    <div class="btnrow" style="margin-top:4px"><button id="pjSearchCfg">Part search settings</button></div>
     <div class="sechead">Verification checklist</div>
     <div id="pjChecks"></div>
     <div class="row" style="margin-top:6px"><input type="text" id="pjNewCheck" placeholder="Add a check…"><button id="pjAddCheck" style="flex:0 0 auto">Add</button></div>
@@ -128,6 +140,7 @@ function paneProject(body){
     const v = el('pjNewCheck').value.trim(); if (!v) return;
     commit(); (S.project.checklist = S.project.checklist || []).push({ text:v, done:false }); renderDock();
   };
+  el('pjSearchCfg').onclick = openSearchSettings;
   el('pjTheme').onchange = e => {
     document.documentElement.dataset.theme = e.target.checked ? 'dark' : 'light';
     try { localStorage.setItem('ui_theme', document.documentElement.dataset.theme); } catch(err){}
@@ -138,11 +151,17 @@ function paneProject(body){
 function projectStats(){
   const nets = (S.netlist && S.netlist.nets) || [];
   const done = S.lastCheck ? [...S.lastCheck.netState.values()].filter(v => v.state === 'done').length : 0;
+  const comps = S.parts.filter(p => !(SYMBOLS[p.kind] && SYMBOLS[p.kind].port));
+  const picked = comps.filter(p => p.pick);
+  const cur = searchOptions().currency;
   return {
-    placed: S.parts.filter(p => !(SYMBOLS[p.kind] && SYMBOLS[p.kind].port)).length,
+    placed: comps.length,
     components: (S.netlist && S.netlist.components.length) || 0,
     nets: nets.length, wires: S.wires.length, done,
     donePct: nets.length ? Math.round(100 * done / nets.length) : 0,
+    picked: picked.length, cur,
+    bom: picked.reduce((a, p) => a + (p.pick.price != null ? +p.pick.price : 0), 0),
+    nostock: picked.filter(p => !p.pick.stock).length,
   };
 }
 
@@ -225,29 +244,22 @@ function paneNets(body){
 }
 
 /* ================================================================
-   PROPERTIES — whatever is selected, editable
+   PROPERTIES — whatever is selected, editable; and the way a symbol
+   becomes a physical part (DigiKey / Mouser search, as in the
+   architecture editor)
    ================================================================ */
 function paneProperties(body){
   const sel = S.sel;
-  if (!sel){ body.innerHTML = '<p>Nothing selected. Click a part, a wire or a net label on the sheet.</p>'; return; }
-  if (sel.type === 'wire'){
-    const w = S.wires.find(x => x.id === sel.id);
-    if (!w){ body.innerHTML = '<p>That wire is gone.</p>'; return; }
-    const len = w.pts.reduce((a, p, i) => i ? a + Math.abs(p.x - w.pts[i-1].x) + Math.abs(p.y - w.pts[i-1].y) : 0, 0);
-    body.innerHTML = h`<div class="kv"><label>Object</label><div class="val">Wire</div></div>
-      <div class="kv"><label>Vertices</label><div class="val">${w.pts.length}</div></div>
-      <div class="kv"><label>Length</label><div class="val">${Math.round(len)} units</div></div>
-      <div class="btnrow"><button class="danger" id="wDel">Delete wire</button></div>`;
-    el('wDel').onclick = () => { commit(); S.wires = S.wires.filter(x => x.id !== w.id); S.sel = null; render(); renderDock(); };
-    return;
-  }
+  if (!sel){ body.innerHTML = '<p>Nothing selected. Click a part or a wire on the sheet — Shift+click adds to the selection, Shift+drag draws a marquee.</p>'; return; }
+  if (sel.type === 'wire') return paneWire(body, sel.id);
   const part = S.parts.find(p => p.id === sel.id);
   if (!part){ body.innerHTML = '<p>That object is gone.</p>'; return; }
+  const many = S.selIds.size > 1;
   const def = SYMBOLS[part.kind];
   const isPort = !!def.port;
   const rec = part.partNumber ? DB.match(part.partNumber) : null;
   const pinRows = partPins(part).map(pin => {
-    const net = S.lastCheck ? S.lastCheck.pinNet.get(part.id + '|' + pin.name) : null;
+    const net = S.pinNets.get(part.id + '|' + pin.name);
     const g = S.lastCheck ? S.lastCheck.conn.groupOf.get(part.id + '|' + pin.name) : null;
     const wired = g && (S.lastCheck.conn.members.get(g) || []).length > 1;
     return `<tr><td class="mono">${esc(pin.name)}</td><td class="mono">${esc(net || '—')}</td>
@@ -255,18 +267,20 @@ function paneProperties(body){
   }).join('');
 
   body.innerHTML = h`
+    ${many ? `<p class="hint" style="margin-top:0"><b>${S.selIds.size} parts selected</b> — rotate, mirror, duplicate, nudge and delete act on all of them; the fields below edit ${esc(part.ref || 'the primary one')}.</p>` : ''}
     <div class="kv"><label>Symbol</label><div class="val">${esc(def.label)}${part.fromNetlist ? ' · from netlist' : ''}</div></div>
     ${isPort ? h`<div class="kv"><label>${def.port === 'label' ? 'Net label' : def.port === 'note' ? 'Text' : 'Net name'}</label>
-        <input type="text" data-pp="${def.port === 'note' ? 'text' : 'net'}" value="${esc(def.port === 'note' ? (part.text || '') : (part.net || def.net || ''))}"></div>`
-      : h`<div class="row"><div class="kv"><label>Reference</label><input type="text" data-pp="ref" value="${esc(part.ref || '')}"></div>
-          <div class="kv"><label>Value</label><input type="text" data-pp="value" value="${esc(part.value || '')}"></div></div>
-        <div class="kv"><label>Part number</label><input type="text" data-pp="partNumber" value="${esc(part.partNumber || '')}"></div>
-        <div class="row"><div class="kv"><label>Group</label><input type="text" data-pp="group" value="${esc(part.group || '')}"></div>
-          <div class="kv"><label>Role</label><input type="text" data-pp="role" value="${esc(part.role || '')}"></div></div>`}
+        <input type="text" id="ppNet" data-pp="${def.port === 'note' ? 'text' : 'net'}" value="${esc(def.port === 'note' ? (part.text || '') : (part.net || def.net || ''))}"></div>`
+      : h`<div class="row"><div class="kv"><label>Reference</label><input type="text" id="ppRef" data-pp="ref" value="${esc(part.ref || '')}"></div>
+          <div class="kv"><label>Value</label><input type="text" id="ppVal" data-pp="value" value="${esc(part.value || '')}"></div></div>
+        <div class="kv"><label>Part number</label><input type="text" id="ppPn" data-pp="partNumber" value="${esc(part.partNumber || '')}"></div>
+        <div class="row"><div class="kv"><label>Group</label><input type="text" id="ppGroup" data-pp="group" value="${esc(part.group || '')}"></div>
+          <div class="kv"><label>Role</label><input type="text" id="ppRole" data-pp="role" value="${esc(part.role || '')}"></div></div>`}
     <div class="btnrow">
       <button id="ppRot">Rotate 90°</button><button id="ppMir">Mirror</button>
       <button class="danger" id="ppDel">Delete</button>
     </div>
+    ${isPort ? '' : partPickMarkup(part)}
     ${isPort ? '' : h`
       <div class="sechead">Pins (${partPins(part).length})</div>
       <table class="facttbl"><thead><tr><th>Pin</th><th>Imported net</th><th>State</th></tr></thead><tbody>${pinRows}</tbody></table>`}
@@ -283,10 +297,143 @@ function paneProperties(body){
     if (inp.dataset.pp === 'ref') part.ref = inp.value.toUpperCase();
     render(); renderDock();
   });
-  el('ppRot').onclick = () => { commit(); part.rot = ((part.rot || 0) + 90) % 360; render(); renderDock(); };
-  el('ppMir').onclick = () => { commit(); part.mir = part.mir ? 0 : 1; render(); renderDock(); };
-  el('ppDel').onclick = () => { commit(); deletePart(part.id); renderDock(); };
+  el('ppRot').onclick = rotateSel;
+  el('ppMir').onclick = mirrorSel;
+  el('ppDel').onclick = deleteSel;
+  if (!isPort) wirePartPick(part);
   if (rec) el('ppDb').onclick = () => { S.ui.dbSel = rec.path || rec.gpn; setPanel('database'); };
+}
+
+/* The wire: which imported nets it carries, what it touches, and its shape. */
+function paneWire(body, wid){
+  const w = S.wires.find(x => x.id === wid);
+  if (!w){ body.innerHTML = '<p>That wire is gone.</p>'; return; }
+  const len = w.pts.reduce((a, p, i) => i ? a + Math.abs(p.x - w.pts[i-1].x) + Math.abs(p.y - w.pts[i-1].y) : 0, 0);
+  const conn = S.lastCheck && S.lastCheck.conn;
+  const g = conn && conn.wireGroup.get(w.id);
+  const pins = g ? (conn.members.get(g) || []) : [];
+  const nets = [...new Set(pins.map(pk => S.pinNets.get(pk)).filter(Boolean))];
+  const touch = pins.map(pk => { const part = S.parts.find(p => p.id === pk.split('|')[0]); return part ? (part.ref || SYMBOLS[part.kind].label) + '-' + pk.split('|')[1] : null; }).filter(Boolean);
+  body.innerHTML = h`<div class="kv"><label>Object</label><div class="val">Wire · ${w.pts.length - 1} segment${w.pts.length === 2 ? '' : 's'} · ${Math.round(len)} units</div></div>
+    <div class="kv"><label>Net</label><div class="val">${nets.length ? nets.map(n => `<span class="chip">${esc(n)}</span>`).join(' ') : '<span style="color:var(--ink-soft)">not attached to any imported net</span>'}
+      ${nets.length > 1 ? '<p class="icwarn">⚠ this conductor joins pins of different nets — a short</p>' : ''}</div></div>
+    <div class="kv"><label>Touches</label><div class="val" style="font-family:var(--mono);font-size:11px">${esc(touch.join('  ') || '—')}</div></div>
+    <p class="hint">Drag a segment to slide it, drag a bend or an end to move it — the wire stays orthogonal and keeps its pins. Corners that stop being corners are removed on release.</p>
+    <div class="btnrow"><button class="danger" id="wDel">Delete wire</button></div>`;
+  el('wDel').onclick = deleteSel;
+}
+
+/* ---- part pick: search DigiKey + Mouser and pin the winner to the symbol ---- */
+function partPickMarkup(part){
+  const st = S.ui.pick[part.id] || {};
+  const pk = part.pick;
+  return h`
+    <div class="sechead">Physical part</div>
+    ${pk ? h`<div class="dkchosen"><button class="x" id="pkClear" title="Drop this pick">✕</button>
+        <span class="dkpn">${esc(pk.pn)}</span><span class="dksrc">${esc(pk.src || 'DigiKey')}</span><span class="dkman">${esc(pk.man || '')}</span>
+        <span class="dkdesc">${esc(pk.desc || '')}</span>
+        <span class="dkstock ${pk.stock ? '' : 'nostock'}">${pk.stock ? dkFmtStock(pk.stock) + ' in stock' : 'no stock'}</span>
+        <span class="dkprice">${dkFmtPrice(pk.price, pk.currency)}</span>
+        ${pk.datasheet ? `<a class="dkdesc" href="${esc(pk.datasheet)}" target="_blank" rel="noreferrer">datasheet ↗</a>` : ''}</div>`
+      : `<p class="icwarn">⚠ No physical part picked yet — search DigiKey / Mouser and choose package, price and stock.</p>`}
+    <div class="dksearch">
+      <div class="kv"><label>Search DigiKey + Mouser</label>
+        <div class="row"><input type="text" id="pkQuery" autocomplete="off" value="${esc(st.query != null ? st.query : partQueryFor(part))}">
+        <button id="pkGo" style="flex:0 0 auto">Search</button></div></div>
+      <div id="pkStatus" class="hint" style="margin:4px 0">${esc(st.status || '')}</div>
+      <div id="pkResults" class="dkresults"></div>
+      <p class="hint" style="margin-bottom:0">Results from both houses are merged, highest stock first. Picking one fills the part number and pins price, stock and datasheet to this symbol.
+        <button class="linklike" id="pkCfg">Part search settings</button></p>
+    </div>`;
+}
+function wirePartPick(part){
+  const st = S.ui.pick[part.id] || (S.ui.pick[part.id] = {});
+  const renderRows = () => {
+    const box = el('pkResults'); if (!box) return;
+    const rows = st.rows || [];
+    box.innerHTML = rows.map((r, i) => h`
+      <button type="button" class="dkrow ${part.pick && part.pick.pn === r.pn && part.pick.src === r.src ? 'on' : ''}" data-i="${i}">
+        <span class="dkpn">${esc(r.pn)}</span><span class="dksrc">${esc(r.src)}</span><span class="dkman">${esc(r.man)}</span>
+        <span class="dkdesc">${esc(r.desc)}</span>
+        <span class="dkstock">${dkFmtStock(r.stock)} in stock</span><span class="dkprice">${dkFmtPrice(r.price, r.currency)}</span></button>`).join('');
+    box.querySelectorAll('.dkrow').forEach(b => b.onclick = () => pickPart(part, rows[+b.dataset.i]));
+  };
+  renderRows();
+  const run = async () => {
+    const q = el('pkQuery').value.trim();
+    st.query = q;
+    if (!q){ st.status = 'Type a part number or a value to search.'; el('pkStatus').textContent = st.status; return; }
+    st.status = 'Searching…'; st.rows = []; el('pkStatus').textContent = st.status; renderRows();
+    try {
+      const { rows, notes } = await partSearch(q);
+      st.rows = rows;
+      st.status = (rows.length ? rows.length + ' part' + (rows.length === 1 ? '' : 's') + ' — highest stock first' : 'No parts found.') +
+        (notes.length ? ' · ' + notes.join(' · ') : '');
+    } catch (e){ st.status = String(e.message || e); }
+    if (S.sel && S.sel.id === part.id){ el('pkStatus').textContent = st.status; renderRows(); }
+  };
+  el('pkGo').onclick = run;
+  el('pkQuery').addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); run(); } });
+  el('pkQuery').oninput = () => { st.query = el('pkQuery').value; };
+  el('pkCfg').onclick = openSearchSettings;
+  if (el('pkClear')) el('pkClear').onclick = () => { commit(); delete part.pick; render(); renderDock(); };
+}
+function pickPart(part, r){
+  commit();
+  part.pick = { ...r };
+  part.partNumber = r.pn;
+  if (!part.props) part.props = {};
+  if (r.man) part.props.manufacturer = r.man;
+  render(); renderDock();
+  toast(part.ref + ' → ' + r.pn + ' · ' + dkFmtPrice(r.price, r.currency) + ' · ' + r.src);
+  // a Mouser pick has no datasheet — borrow DigiKey's in the background
+  if (!r.datasheet) resolveDatasheetFor(r).then(url => {
+    if (!url || part.pick !== undefined && part.pick.pn !== r.pn) return;
+    part.pick.datasheet = url; if (S.sel && S.sel.id === part.id) renderDock();
+  });
+}
+
+/* The distributor keys and options, as a modal: one home for them, reached
+   from Properties and from Project. */
+function openSearchSettings(){
+  const so = searchOptions(), dk = dkConfig(), ms = msConfig();
+  openModal('Part search settings', h`
+    <div class="kv"><label>Distributors searched</label>
+      <div class="row" style="gap:18px;padding:4px 0 2px">
+        <label class="switch"><input type="checkbox" id="psUseDk" ${so.digikey ? 'checked' : ''}><span class="knob"></span><span class="swlabel">DigiKey</span></label>
+        <label class="switch"><input type="checkbox" id="psUseMs" ${so.mouser ? 'checked' : ''}><span class="knob"></span><span class="swlabel">Mouser</span></label>
+      </div></div>
+    <div class="kv"><label>Search currency</label>
+      <select id="psCur"><option value="USD" ${so.currency === 'USD' ? 'selected' : ''}>US dollars ($)</option><option value="EUR" ${so.currency === 'EUR' ? 'selected' : ''}>Euros (€)</option></select></div>
+    <div class="row">
+      <div class="kv"><label>DigiKey Client ID</label><input type="text" id="dkId" value="${esc(dk.id)}" autocomplete="off"></div>
+      <div class="kv"><label>DigiKey Client Secret</label><input type="text" id="dkSecret" value="${esc(dk.secret)}" autocomplete="off"></div>
+    </div>
+    <div class="kv"><label>CORS proxy prefix (optional)</label><input type="text" id="dkProxy" value="${esc(dk.proxy)}" placeholder="https://your-proxy/?url=" autocomplete="off"></div>
+    <div class="row">
+      <div class="kv"><label>Mouser API key — USD (www.mouser.com)</label><input type="text" id="msKeyUsd" value="${esc(ms.usd)}" autocomplete="off"></div>
+      <div class="kv"><label>Mouser API key — EUR (eu.mouser.com)</label><input type="text" id="msKeyEur" value="${esc(ms.eur)}" autocomplete="off"></div>
+    </div>
+    <div class="btnrow" style="margin-top:0"><button id="dkLoadFile">Load from credential/ files</button></div>
+    <p class="hint">DigiKey: free credentials at developer.digikey.com (a "Product Information v4" app, client-credentials flow); it follows the currency chosen above.
+      Mouser pegs prices to the key's account, so there is one key per currency. Keys and options live only in this browser (localStorage), never in the session or any export.
+      DigiKey does not always allow cross-origin browser calls — a CORS proxy prefix fixes that.</p>`,
+    `<button id="psCancel">Cancel</button><button class="primary" id="psOk">Save</button>`);
+  el('psCancel').onclick = closeModal;
+  el('dkLoadFile').onclick = async () => {
+    const got = [], errs = [];
+    try { const c = await dkLoadCredentialFile(); el('dkId').value = c.id; el('dkSecret').value = c.secret; if (c.proxy) el('dkProxy').value = c.proxy; got.push('DigiKey'); }
+    catch (err){ errs.push(String(err.message || err)); }
+    try { const m = await msLoadCredentialFile(); if (m.usd) el('msKeyUsd').value = m.usd; if (m.eur) el('msKeyEur').value = m.eur; got.push('Mouser'); }
+    catch (err){ errs.push(String(err.message || err)); }
+    toast(got.length ? got.join(' + ') + ' credentials loaded from file' : errs.join(' · '));
+  };
+  el('psOk').onclick = () => {
+    dkSaveConfig(el('dkId').value.trim(), el('dkSecret').value.trim(), el('dkProxy').value.trim());
+    msSaveConfig(el('msKeyUsd').value.trim(), el('msKeyEur').value.trim());
+    saveSearchOptions({ digikey:el('psUseDk').checked, mouser:el('psUseMs').checked, currency:el('psCur').value });
+    closeModal(); render(); toast('Part search settings saved');
+  };
 }
 
 /* ================================================================
@@ -437,7 +584,7 @@ function dockScheduleHide(){
 }
 function dockOnRender(){
   if (dock.pinned) return;
-  const k = S.sel ? S.sel.type + ':' + S.sel.id : null;
+  const k = S.sel ? S.sel.type + ':' + S.sel.id + ':' + S.selIds.size : null;
   if (k){ clearTimeout(dock.hideT); dock.hideT = null; if (k !== dock.selKey) dockShow(); }
   else dockScheduleHide();
   dock.selKey = k;

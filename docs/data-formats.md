@@ -69,7 +69,9 @@ time it is opened.
   "project": { "title": "…", "checklist": [{ "text": "…", "done": false }] },
   "parts":  [{ "id": "p_1_ab", "kind": "res", "ref": "R1", "x": 120, "y": 340,
                "rot": 0, "mir": 0, "value": "1.21 kΩ", "partNumber": "",
-               "group": "…", "role": "…", "props": {}, "pinNames": ["1","2"] }],
+               "group": "…", "role": "…", "props": {}, "pinNames": ["1","2"],
+               "pick": { "pn": "…", "src": "DigiKey", "man": "…", "desc": "…",
+                         "price": 0.43, "currency": "USD", "stock": 1200, "datasheet": "…" } }],
   "wires":  [{ "id": "w_2_cd", "pts": [{ "x": 120, "y": 340 }, { "x": 220, "y": 340 }] }],
   "rooms":  [{ "group": "…", "x": 60, "y": 60, "w": 700, "h": 420, "count": 10 }],
   "netlist": { "components": [], "nets": [], "source": "circuit_data.json" },
@@ -79,6 +81,9 @@ time it is opened.
 Importing a file with `parts` and `wires` restores a session; anything else is
 read as a netlist. The same object is autosaved to `localStorage` after every
 change and restored on the next visit.
+
+`pick` is present only once a physical part has been chosen in Properties; it
+is what the BOM export reads. Distributor keys are never written here.
 
 Coordinates are world units on a 10-unit lattice — every pin of every symbol
 lands on it, at any rotation.

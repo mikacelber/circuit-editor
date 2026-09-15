@@ -21,10 +21,11 @@ window.Element.prototype.setPointerCapture = () => {};
 window.Element.prototype.releasePointerCapture = () => {};
 /* The browser loads the five scripts into ONE global lexical scope; a single
    eval reproduces that, and the epilogue hands the test what it needs. */
-window.eval(['symbols.js', 'netlist.js', 'db.js', 'panels.js', 'app.js']
+window.eval(['symbols.js', 'netlist.js', 'db.js', 'parts.js', 'panels.js', 'app.js']
   .map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + `
   window.__T = { SYMBOLS, PANELS, defOf, partPins, partBounds, kindForComponent, pinNameFor,
-    connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB };`);
+    connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB,
+    dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor };`);
 const T = window.__CE, W = window.__T, S = T.S;
 const raw = JSON.parse(fs.readFileSync('sample/circuit_data.json', 'utf8'));
 
@@ -127,6 +128,66 @@ check('a netlist MOSFET becomes a MOSFET, a relay a relay',
 check('the arrangement is deterministic — the same netlist lands the same way',
   JSON.stringify(W.arrangeParts(W.partsFromNetlist(W.parseCircuitData(raw)))) ===
   JSON.stringify(W.arrangeParts(W.partsFromNetlist(W.parseCircuitData(raw)))));
+
+section('Reshaping wires');
+{
+  // a 3-vertex L between two pins: slide its horizontal leg down
+  const pts = [{x:0,y:0},{x:100,y:0},{x:100,y:80}];
+  const w = { id:'wl', pts };
+  const i = T.ensureSegBends(pts, 0);                 // segment 0 touches the start pin → a bend is inserted
+  check('a segment touching a pin gets a bend before it slides (' + pts.length + ' vertices)', pts.length === 4 && i === 1);
+  pts[1].y = 30; pts[2].y = 30;
+  check('sliding the leg leaves the pin end where it was and keeps every segment orthogonal',
+    pts[0].x === 0 && pts[0].y === 0 && pts.every((p, k) => !k || p.x === pts[k-1].x || p.y === pts[k-1].y));
+  const simp = T.simplifyWire([{x:0,y:0},{x:0,y:0},{x:50,y:0},{x:100,y:0},{x:100,y:80}]);
+  check('release removes zero-length segments and collinear bends (' + simp.length + ' vertices left)', simp.length === 3);
+  // moving a bend drags its neighbours along their own axis
+  const q = [{x:0,y:0},{x:0,y:50},{x:100,y:50},{x:100,y:100},{x:200,y:100}];
+  T.moveVertex(q, 2, 120, 70);
+  check('a moved bend keeps the wire orthogonal by sliding the neighbouring bends',
+    q[1].y === 70 && q[1].x === 0 && q[3].x === 120 && q[3].y === 100 &&
+    q.every((p, k) => !k || p.x === q[k-1].x || p.y === q[k-1].y));
+  // rubber band: a part moves, the wire held at one pin bends after it
+  const r9 = S.parts.find(p => p.ref === 'R1');
+  const pin = W.partPins(r9)[0];
+  S.wires.push({ id:'rb', pts:[{x:pin.x,y:pin.y},{x:pin.x-100,y:pin.y},{x:pin.x-100,y:pin.y-100}] });
+  const held = T.rubberBandStart([r9]);
+  r9.x += 40; r9.y += 60;
+  T.rubberBandApply(held, 40, 60); T.rubberBandEnd(held);
+  const rb = S.wires.find(w => w.id === 'rb');
+  const pin2 = W.partPins(r9)[0];
+  check('moving a part drags the wire end with its pin (' + rb.pts.length + ' vertices)',
+    rb.pts[0].x === pin2.x && rb.pts[0].y === pin2.y && rb.pts[rb.pts.length-1].x === pin.x-100);
+  check('…and the rubber-banded wire is still orthogonal', rb.pts.every((p, k) => !k || p.x === rb.pts[k-1].x || p.y === rb.pts[k-1].y));
+  r9.x -= 40; r9.y -= 60; S.wires = S.wires.filter(w => w.id !== 'rb');
+}
+
+section('Selection and BOM');
+{
+  const a = S.parts.find(p => p.ref === 'R1'), b = S.parts.find(p => p.ref === 'R2');
+  T.selectOnly('part', a.id); T.toggleSel(b.id);
+  check('Shift+click builds a multi-selection', S.selIds.size === 2 && S.selIds.has(a.id) && S.selIds.has(b.id));
+  const n0 = S.parts.length;
+  T.duplicateSel();
+  check('Ctrl+D duplicates the selection with fresh designators', S.parts.length === n0 + 2 &&
+    !S.parts.slice(-2).some(p => p.ref === 'R1' || p.ref === 'R2'));
+  S.parts.splice(-2, 2); T.clearSel();
+  const dk = W.dkNormalizeProducts({ Products:[{ ManufacturerProductNumber:'TPS7A2033PDBVR', Manufacturer:{ Name:'TI' },
+    Description:{ ProductDescription:'LDO' }, QuantityAvailable:1200, UnitPrice:0.43, DatasheetUrl:'https://x/ds.pdf' }] });
+  const ms = W.msNormalizeParts({ SearchResults:{ Parts:[{ ManufacturerPartNumber:'TPS7A2033PDBVR', Manufacturer:'Texas Instruments',
+    Description:'LDO', AvailabilityInStock:'8,000', PriceBreaks:[{ Quantity:1, Price:'0,39 €', Currency:'EUR' }] }] } }, 'EUR');
+  const merged = W.mergePartResults(dk, ms, 'USD');
+  check('DigiKey and Mouser rows pour into one list, highest stock first (' + merged.map(r => r.src).join(' > ') + ')',
+    merged.length === 2 && merged[0].src === 'Mouser' && merged[0].stock === 8000 && merged[0].price === 0.39);
+  check('prices are parsed both ways ("1.234,56 €" → ' + W.msParsePrice('1.234,56 €') + ', "$0.62" → ' + W.msParsePrice('$0.62') + ')',
+    W.msParsePrice('1.234,56 €') === 1234.56 && W.msParsePrice('$0.62') === 0.62 && W.dkFmtPrice(0.0043, 'USD') === '$0.004');
+  check('a generic part searches by value and kind (' + W.partQueryFor(a) + '), an IC by part number',
+    /1\.21 kΩ resistor/.test(W.partQueryFor(a)) && W.partQueryFor(u1) === 'BQ24075-Q1');
+  a.pick = { ...merged[0] }; const pn0 = a.partNumber; a.partNumber = merged[0].pn;
+  const csv = T.bomCSV();
+  check('the BOM export carries the picked part, its price and its house', /R1.*TPS7A2033PDBVR.*Texas Instruments.*Mouser.*0\.39.*EUR.*8000/.test(csv.split('\n').find(l => l.startsWith('"R1"'))));
+  delete a.pick; a.partNumber = pn0;
+}
 
 section('Panels');
 const ids = W.PANELS.map(p => p.id).join(',');

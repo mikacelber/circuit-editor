@@ -40,7 +40,7 @@ picker in the Database panel instead.
 |------|--------------|
 | **Top bar** | Logo, project title, undo/redo, Arrange, Check, Import, Export. |
 | **Sheet** | Adaptive grid drawn in screen space: it stays on the world lattice at every pan and zoom, and thins out as you zoom away. Wheel zooms about the pointer, drag pans, `F` fits, the bottom-right buttons do the same. |
-| **Tool strip** | Floats over the top-centre of the sheet: select, wire, net label, ground, power rail, text, then rotate / mirror / delete. |
+| **Tool strip** | Floats over the top-centre of the sheet: select, wire, net label, ground, power rail, text, then rotate / mirror / duplicate / delete. |
 | **Panel dock** | The right-hand panel group. Pin it, fold it away with the handle on the divider, or drag its left edge to resize. |
 | **Panels button** | Bottom-right corner: check a panel to give it a tab, uncheck it to take the tab away. |
 | **Status bar** | Parts, wires, nets imported, how much of the netlist is drawn, and the error/warning count (click it to open Messages). |
@@ -59,10 +59,16 @@ picker in the Database panel instead.
 - **Netlist** — every imported net, searchable and filtered by class, each with
   its nodes and its state (`wired`, `3/5`, nothing). Click one to trace it: the
   sheet dims everything else and the view jumps to it.
-- **Properties** — whatever is selected: reference, value, part number, group,
-  role, rotation and mirroring, the netlist attributes the component carried,
-  and a pin table saying which imported net each pin belongs to and whether it
-  is wired yet.
+- **Properties** — opens by itself when you click a part or a wire. For a
+  part: reference, value, part number, group, role, rotate / mirror / delete,
+  the netlist attributes it carried, a pin table saying which imported net each
+  pin belongs to and whether it is wired yet — and the **physical part**: a
+  DigiKey + Mouser search (pre-filled from the part number, or from the value
+  and kind for a generic passive) whose rows are merged highest-stock-first;
+  picking one pins part number, manufacturer, price, stock and datasheet to the
+  symbol, exactly as the architecture editor does for ICs. Keys and options
+  live in *Part search settings* (also reachable from Project). For a wire: the
+  net it carries, the pins it touches, and a warning if it joins two nets.
 - **Database** — the GPN datasheet extracts (see below): identity, pinout,
   supplies, the **required external components** checked one by one against the
   netlist, the figures and the designer notes. Assign a part number to the
@@ -91,7 +97,18 @@ picker in the Database panel instead.
    - components of the netlist not placed, parts on the sheet the netlist does
      not know, duplicate references.
 5. **Export** the session (everything), the *drawn* netlist in `circuit_data`
-   shape (diff it against the imported one), or the sheet as SVG.
+   shape (diff it against the imported one), the **BOM** as CSV (one line per
+   component with the part picked on DigiKey / Mouser, its price and stock), or
+   the sheet as SVG.
+
+### Reshaping wires
+
+Select a wire and it grows handles. Drag a **segment** to slide it sideways,
+drag a **bend** to move the corner, drag an **end** onto another pin. The wire
+never leaves orthogonal, and an end sitting on a pin never comes off it on its
+own — a new bend appears next to the pin instead, the way a schematic editor
+rubber-bands. Moving a part does the same to every wire held by its pins; bends
+that stop being bends are removed on release.
 
 ### How connectivity is decided
 
@@ -142,12 +159,16 @@ folder, or load the JSON files by hand when there is no server.
 |-----|---|
 | `S` `W` `L` `G` `P` `T` | select · wire · net label · ground · power rail · text |
 | `R` / `M` | rotate / mirror (the selection, or the symbol being placed) |
-| `F` | fit the sheet to the view |
-| `Esc` | cancel the current tool or placement |
+| `Shift`+click · `Shift`+drag · `Ctrl+A` | add to the selection · marquee · select everything |
+| arrows (`Shift` = ×4) | nudge the selection one grid step |
+| `Ctrl+D` | duplicate the selection with fresh designators |
+| `Space` | while drawing a wire: flip which leg of the bend comes first |
+| `F` / `Shift+F` | fit the sheet / fit the selection |
+| `Esc` | finish the wire being drawn (or cancel the tool / clear the selection) |
 | `Del` | delete the selection |
 | `Ctrl+Z` / `Ctrl+Y` | undo / redo |
 | `Ctrl+S` | download the session |
-| wheel · drag · double-click | zoom about the pointer · pan · finish a wire |
+| wheel · drag · right-click | zoom about the pointer · pan · finish a wire |
 
 ---
 
@@ -159,10 +180,12 @@ styles.css          design tokens and every piece of chrome
 symbols.js          the symbol library and its geometry
 netlist.js          import, placement, connectivity engine, rules check, export
 db.js               the GPN database and the required-external-parts report
+parts.js            DigiKey + Mouser part search (ported from the architecture editor)
 panels.js           the panel dock and the six panels
 app.js              state, view, grid, rendering, tools, import/export
 sample/             an example circuit_data.json
 db/                 the component database + its generated index
+credential/         digikey_credentials.json, mouser_credentials.json (one-click load)
 tools/              build-db-index.js
 test_circuit.js     headless test suite (jsdom)
 ```
@@ -177,9 +200,11 @@ npm test
 The suite loads the real `index.html` and the real scripts in a jsdom window and
 exercises the whole path: import, symbol geometry and rotation, the connectivity
 rules (crossing versus T, wire over a pin versus wire ending on it), the netlist
-check (realised, partial, short), the export round-trip and the panels.
+check (realised, partial, short), wire reshaping and rubber-banding,
+multi-selection, the distributor result normalisers, the BOM, the export
+round-trip and the panels.
 
 ## Not there yet
 
-Buses and bus entries, multi-sheet projects and hierarchical blocks, undo of
-view changes, PDF output, and writing values back into the imported netlist.
+Buses and bus entries, multi-sheet projects and hierarchical blocks, copy/paste
+across sessions, PDF output, and writing values back into the imported netlist.

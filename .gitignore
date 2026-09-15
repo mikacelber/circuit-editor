@@ -4,15 +4,3 @@ node_modules
 # local exports
 session.json
 sheet.svg
-
-__pycache__/
-*.pyc
-.pytest_cache/
-.venv/
-venv/
-.vscode/*
-
-# API keys: never committed. Copy .env.example to .env and fill it in.
-*.env
-
-*.code-workspace

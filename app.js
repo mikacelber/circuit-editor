@@ -237,12 +237,17 @@ function deleteSel(){
   S.parts = S.parts.filter(p => !S.selIds.has(p.id));
   clearSel(); rebuildPinNets(); render(); renderDock();
 }
+/* Rotate / mirror the selection. The wires held by the pins of those parts
+   follow the pins to wherever they land, bending as needed (the same rubber
+   band a move uses), so turning a part never breaks its connections. */
 function rotateSel(){
   if (S.place){ S.place.rot = ((S.place.rot || 0) + 90) % 360; renderOverlay(); return; }
   const parts = selectedParts();
   if (!parts.length) return;
   commit();
+  const held = rubberBandStart(parts);
   for (const p of parts) p.rot = ((p.rot || 0) + 90) % 360;
+  rubberBandApply(held); rubberBandEnd(held);
   render(); renderDock();
 }
 function mirrorSel(){
@@ -250,7 +255,9 @@ function mirrorSel(){
   const parts = selectedParts();
   if (!parts.length) return;
   commit();
+  const held = rubberBandStart(parts);
   for (const p of parts) p.mir = p.mir ? 0 : 1;
+  rubberBandApply(held); rubberBandEnd(held);
   render(); renderDock();
 }
 /* Ctrl+D: a copy of the selection one cell down-right, with fresh designators. */
@@ -277,7 +284,7 @@ function nudgeSel(dx, dy){
   commit();
   const rb = rubberBandStart(parts);
   for (const p of parts){ p.x += dx; p.y += dy; }
-  rubberBandApply(rb, dx, dy);
+  rubberBandApply(rb);
   rubberBandEnd(rb);
   render();
 }
@@ -324,13 +331,21 @@ function ensureBends(pts, i){
   if (i < pts.length - 1 && i + 1 === pts.length - 1) pts.push({ ...pts[pts.length - 1] });
   return i;
 }
-/* Neighbour N of the moved vertex V slides along its own next segment N→M. */
-function followNeighbour(pts, i, dir){
+/* Neighbour N of the moved vertex V slides along its own next segment N→M,
+   so V→N keeps its orientation. When N→M has no length yet (N is a bend
+   that was just inserted on top of an endpoint) the orientation V→N had
+   BEFORE the move decides which way N slides — the segment never turns
+   diagonal. */
+function followNeighbour(pts, i, dir, old){
   const n = i + dir, m = i + 2 * dir;
   if (n < 0 || n >= pts.length || m < 0 || m >= pts.length) return;
   const V = pts[i], N = pts[n], M = pts[m];
-  if (N.x === M.x && N.y === M.y) return;
-  if (axisOf(N, M) === 'h') N.x = V.x; else N.y = V.y;
+  let axis;                                      // axis of N→M, the one N slides along
+  if (N.x !== M.x || N.y !== M.y) axis = axisOf(N, M);
+  else if (old && old.y === N.y && old.x !== N.x) axis = 'v';      // V→N was horizontal: keep it so
+  else if (old && old.x === N.x && old.y !== N.y) axis = 'h';      // V→N was vertical: keep it so
+  else axis = Math.abs(V.x - N.x) >= Math.abs(V.y - N.y) ? 'v' : 'h';
+  if (axis === 'h') N.x = V.x; else N.y = V.y;
 }
 /* Same for a SEGMENT (vertices i and i+1 both move): an endpoint at either
    end stays behind as a fresh bend. Returns the new index of the segment. */
@@ -340,12 +355,27 @@ function ensureSegBends(pts, i){
   return i;
 }
 function moveVertex(pts, i, x, y){
+  const old = { x:pts[i].x, y:pts[i].y };
   pts[i].x = x; pts[i].y = y;
-  followNeighbour(pts, i, -1); followNeighbour(pts, i, +1);
+  followNeighbour(pts, i, -1, old); followNeighbour(pts, i, +1, old);
 }
-/* Drop-time cleanup: no zero-length segments, no collinear bends. */
+/* A wire is only ever horizontal and vertical. Whatever produced a diagonal
+   segment (an old session, a hand-edited file), it becomes an L here — the
+   horizontal leg first. */
+function orthogonalize(pts){
+  const out = [];
+  for (const p of pts){
+    const a = out[out.length - 1];
+    if (a && a.x !== p.x && a.y !== p.y) out.push({ x:p.x, y:a.y });
+    out.push({ x:p.x, y:p.y });
+  }
+  return out;
+}
+/* Drop-time cleanup: only orthogonal segments, no zero-length ones, no
+   collinear bends. */
 function simplifyWire(pts){
-  let out = pts.filter((p, i) => i === 0 || p.x !== pts[i-1].x || p.y !== pts[i-1].y);
+  const o = orthogonalize(pts);
+  let out = o.filter((p, i) => i === 0 || p.x !== o[i-1].x || p.y !== o[i-1].y);
   let changed = true;
   while (changed && out.length > 2){
     changed = false;
@@ -356,28 +386,50 @@ function simplifyWire(pts){
   }
   return out;
 }
-/* Wires whose vertices sit on the pins of the parts about to move: those
-   vertices travel with the parts (rubber band). A wire held at two or more
-   points just translates; one held at a single point bends. */
+/* ------------------------------------------------------------------
+   RUBBER BAND. Wires whose vertices sit on the pins of the parts about
+   to move, rotate or mirror: each such vertex remembers WHICH pin it is
+   on, and once the parts have changed, rubberBandApply() puts every
+   held vertex back on its pin. A wire whose held vertices all moved by
+   the same amount simply translates; otherwise each held vertex is
+   moved on its own and the wire bends next to it, staying orthogonal.
+   ------------------------------------------------------------------ */
 function rubberBandStart(parts){
-  const pinPts = new Set(parts.flatMap(p => partPins(p).map(q => q.x + ',' + q.y)));
+  const pinAt = new Map();
+  for (const part of parts) for (const pin of partPins(part)) pinAt.set(pin.x + ',' + pin.y, { part, pin:pin.local });
   const held = [];
   for (const wire of S.wires){
-    const idx = [];
-    wire.pts.forEach((pt, i) => { if (pinPts.has(pt.x + ',' + pt.y)) idx.push(i); });
-    if (!idx.length) continue;
-    if (idx.length >= 2) held.push({ wire, mode:'translate' });
-    else {
-      const i = ensureBends(wire.pts, idx[0]);
-      held.push({ wire, mode:'vertex', i });
-    }
+    const hits = [];
+    wire.pts.forEach((pt, i) => { const a = pinAt.get(pt.x + ',' + pt.y); if (a) hits.push({ i, part:a.part, pin:a.pin, bent:false }); });
+    if (hits.length) held.push({ wire, hits });
   }
   return held;
 }
-function rubberBandApply(held, dx, dy){
+function rubberBandApply(held){
   for (const h of held){
-    if (h.mode === 'translate') for (const p of h.wire.pts){ p.x += dx; p.y += dy; }
-    else moveVertex(h.wire.pts, h.i, h.wire.pts[h.i].x + dx, h.wire.pts[h.i].y + dy);
+    const pts = h.wire.pts;
+    const targets = h.hits.map(t => ({ t, ...pinWorld(t.part, t.pin) }));
+    const d = targets.map(({ t, x, y }) => ({ dx:x - pts[t.i].x, dy:y - pts[t.i].y }));
+    if (targets.length >= 2 && d.every(v => v.dx === d[0].dx && v.dy === d[0].dy)){
+      if (d[0].dx || d[0].dy) for (const p of pts){ p.x += d[0].dx; p.y += d[0].dy; }
+      continue;
+    }
+    for (const { t, x, y } of targets){
+      if (!t.bent){
+        // a bend appears next to the held vertex so the rest of the wire can
+        // stay where it is; the copies ensureBends() adds shift the other hits
+        const before = pts.length;
+        const ni = ensureBends(pts, t.i);
+        const spliced = ni !== t.i, pushed = pts.length - before > (spliced ? 1 : 0);
+        for (const u of h.hits){
+          if (u === t) continue;
+          if (spliced && u.i >= 1) u.i += 1;
+          if (pushed && u.i === before + (spliced ? 1 : 0) - 1) u.i += 1;
+        }
+        t.i = ni; t.bent = true;
+      }
+      moveVertex(pts, t.i, x, y);
+    }
   }
 }
 function rubberBandEnd(held){
@@ -429,17 +481,18 @@ function renderWires(){
     const d = w.pts.map((p, i) => (i ? 'L' : 'M') + p.x + ' ' + p.y).join(' ');
     const dim = tr && !tr.wires.has(w.id) ? ' dim' : '';
     const on = S.sel && S.sel.type === 'wire' && S.sel.id === w.id;
-    // one hit path per segment (its cursor says which way it slides) and one
-    // handle per bend, so the wire can be reshaped straight on the sheet
+    // one hit path per segment (its cursor says which way it slides), so the
+    // wire can be reshaped straight on the sheet; the two ENDS of the
+    // selected wire are grab targets too (unmarked — the cursor says so)
     const segs = w.pts.slice(1).map((p, i) => {
       const a = w.pts[i];
       return `<path class="wire hit ${axisOf(a, p) === 'h' ? 'segh' : 'segv'}" data-seg="${i}" d="M${a.x} ${a.y}L${p.x} ${p.y}"/>`;
     }).join('');
-    const vts = on ? w.pts.map((p, i) => `<circle class="vtx${i === 0 || i === w.pts.length - 1 ? ' end' : ''}" data-vtx="${i}" cx="${p.x}" cy="${p.y}" r="4"/>`).join('') : '';
-    // the visible stroke first, the per-segment hit strips OVER it, the bend
-    // handles last — whatever is on top is what a press lands on
-    return `<g class="wireg${dim}${on ? ' on' : ''}" data-wid="${w.id}"><path class="wire${on ? ' on' : ''}" d="${d}"/>${segs}${vts}</g>`;
-  }).join('') + (conn ? conn.junctions.map(j => `<circle class="junction" cx="${j.x}" cy="${j.y}" r="2.6"/>`).join('') : '');
+    const ends = on ? [0, w.pts.length - 1].map(i => `<circle class="vtx end" data-vtx="${i}" cx="${w.pts[i].x}" cy="${w.pts[i].y}" r="5"/>`).join('') : '';
+    // the visible stroke first, the per-segment hit strips OVER it, the end
+    // targets last — whatever is on top is what a press lands on
+    return `<g class="wireg${dim}${on ? ' on' : ''}" data-wid="${w.id}"><path class="wire${on ? ' on' : ''}" d="${d}"/>${segs}${ends}</g>`;
+  }).join('') + (conn ? conn.junctions.map(j => `<circle class="junction" cx="${j.x}" cy="${j.y}" r="2.4"/>`).join('') : '');
   wiresG.querySelectorAll('[data-wid]').forEach(g => g.addEventListener('pointerdown', ev => onWirePointerDown(ev, g.dataset.wid)));
 }
 function renderParts(){
@@ -455,17 +508,20 @@ function partSVG(part, tr, conn){
   const sel = S.selIds.has(part.id);
   const dim = tr && !tr.parts.has(part.id) ? ' dim' : '';
   const rot = part.rot || 0, mir = part.mir ? -1 : 1;
-  let inner = `<g transform="rotate(${rot}) scale(${mir},1)">${symbolBodySVG(def, {})}</g>`;
+  let inner = `<g transform="rotate(${rot}) scale(${mir},1)">${symbolBodySVG(def, { names:false })}</g>`;
 
-  // pins, ref/value and the imported net stub live OUTSIDE the rotation so
-  // the text always reads level, whichever way the symbol is turned
+  // pin names, pin markers, ref/value and the imported net stub live OUTSIDE
+  // the rotation so the text always reads level, whichever way the symbol is
+  // turned (names on a top/bottom edge run vertically, as in any CAD tool)
   let deco = '';
+  if (def.body && def.names) for (const pin of def.pins) deco += pinNameText(def, pin, rot, part.mir);
   for (const pin of (def.pins || [])){
     const p = rotPoint(pin.x, pin.y, rot, part.mir);
     const pk = part.id + '|' + pin.name;
     const g = conn && conn.groupOf.get(pk);
     const free = !g || (conn.members.get(g) || []).length < 2;
-    deco += `<circle class="pindot${conn && free ? ' free' : ''}" cx="${p.x}" cy="${p.y}" r="2"><title>${esc(part.ref || '')}-${esc(pin.name)}${S.pinNets.has(pk) ? ' · ' + esc(S.pinNets.get(pk)) : ''}</title></circle>`;
+    // a connected pin end is bare; an open one carries a small hollow ring
+    deco += `<circle class="pinend${conn && free ? ' free' : ''}" cx="${p.x}" cy="${p.y}" r="${conn && free ? 2 : 3}"><title>${esc(part.ref || '')}-${esc(pin.name)}${S.pinNets.has(pk) ? ' · ' + esc(S.pinNets.get(pk)) : ''}</title></circle>`;
     if (S.showStubs && S.pinNets.has(pk)){
       const dir = rotDir(pin.dir, rot, part.mir);
       const off = 5, ax = dir === 'l' ? 'end' : dir === 'r' ? 'start' : 'middle';
@@ -479,9 +535,9 @@ function partSVG(part, tr, conn){
     inner = `<text class="note" x="0" y="0">${esc(part.text || '')}</text>`;
     deco = '';
   } else if (sdef.port === 'label'){
-    const w = Math.max(30, String(part.net || 'NET').length * 6 + 14);
-    inner = `<path class="sym" d="M0 0H8M8 -7H${w}L${w + 6} 0L${w} 7H8Z"/>` +
-            `<text class="ref" x="13" y="3">${esc(part.net || 'NET')}</text>`;
+    // a net label is its text, sitting on the wire with its lower-left corner
+    // at the anchor — the way schematic tools draw one
+    inner = `<path class="sym" d="M0 0H6"/><text class="netlabel" x="2" y="-2">${esc(part.net || 'NET')}</text>`;
   } else if (sdef.port){
     deco += `<text class="value" x="${b.x + b.w / 2}" y="${b.y + b.h + 10}" text-anchor="middle">${esc(part.net || '')}</text>`;
   } else {
@@ -506,13 +562,6 @@ function localBounds(def, rot, mir){
   const cs = [[b.x,b.y],[b.x+b.w,b.y],[b.x,b.y+b.h],[b.x+b.w,b.y+b.h]].map(([x, y]) => rotPoint(x, y, rot, mir));
   const xs = cs.map(c => c.x), ys = cs.map(c => c.y);
   return { x:Math.min(...xs), y:Math.min(...ys), w:Math.max(...xs) - Math.min(...xs), h:Math.max(...ys) - Math.min(...ys) };
-}
-function rotDir(dir, rot, mir){
-  const order = ['r','b','l','t'];
-  let i = order.indexOf(dir);
-  if (i < 0) return dir;
-  if (mir && (dir === 'l' || dir === 'r')) i = order.indexOf(dir === 'l' ? 'r' : 'l');
-  return order[(i + Math.round(((rot % 360) + 360) % 360 / 90)) % 4];
 }
 function renderOverlay(){
   let s = '';
@@ -698,7 +747,7 @@ svg.addEventListener('pointermove', ev => {
     if (!ddx && !ddy) return;
     if (!drag.moved){ drag.moved = true; commit(); drag.held = rubberBandStart(selectedParts()); }
     for (const id of drag.ids){ const p = S.parts.find(x => x.id === id); if (p){ p.x += ddx; p.y += ddy; } }
-    rubberBandApply(drag.held, ddx, ddy);
+    rubberBandApply(drag.held);
     renderWires(); renderParts();
     return;
   }
@@ -884,7 +933,9 @@ function sessionJSON(){
 }
 function loadSession(d){
   S.project = { ...S.project, ...(d.project || {}) };
-  S.parts = d.parts || []; S.wires = d.wires || []; S.rooms = d.rooms || [];
+  S.parts = d.parts || []; S.rooms = d.rooms || [];
+  // whatever the file says, a wire on this sheet is orthogonal
+  S.wires = (d.wires || []).map(w => ({ ...w, pts:simplifyWire(w.pts || []) })).filter(w => w.pts.length > 1);
   S.netlist = d.netlist || null;
   if (d.view) S.view = d.view;
   if (d.showRooms != null) S.showRooms = d.showRooms;
@@ -943,15 +994,20 @@ function openExport(){
 function sheetSVG(){
   const b = sheetBounds() || { x:0, y:0, w:100, h:100 };
   const pad = 40;
+  // the printed sheet: the light schematic palette, whatever theme is on screen
   const css = `<style>
-    .sym{fill:none;stroke:#1B2A41;stroke-width:1.8}.symfill{fill:#1B2A41}.icbody{fill:#fff;stroke:#1B2A41;stroke-width:1.8}
-    .pinline{stroke:#4A5A72;stroke-width:1.6}.pindot{fill:none;stroke:#4A5A72;stroke-width:1.2}.picked{fill:#3D7A46}
-    .wire{fill:none;stroke:#1B2A41;stroke-width:2}.wire.hit,.vtx{display:none}.junction{fill:#1B2A41}
-    .ref{font:600 10px monospace;fill:#1B2A41}.value,.netstub,.pinname{font:9px monospace;fill:#4A5A72}
+    .sym{fill:none;stroke:#000080;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}.sym.thick{stroke-width:2.4}
+    .symbody{fill:#FFFFB2;stroke:#000080;stroke-width:1.4;stroke-linejoin:round}.symfill{fill:#000080;stroke:none}
+    .icbody{fill:#FFFFB2;stroke:#000080;stroke-width:1.4}.pinmark{fill:#000080;stroke:none}
+    .pinline{stroke:#000080;stroke-width:1.2}.pinend{fill:none;stroke:none}.pinend.free{stroke:#C43E1C;stroke-width:1.1}.picked{fill:#3D7A46}
+    .wire{fill:none;stroke:#000080;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter}.wire.hit,.vtx,.hit{display:none}.junction{fill:#800000}
+    .ref{font:600 10px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}.value{font:9px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}
+    .netlabel{font:600 9.5px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}
+    .netstub{font:7.5px 'IBM Plex Mono',monospace;fill:#4A5A72}.pinname{font:7px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}
     .room{fill:none;stroke:#DEDACC;stroke-width:1.5;stroke-dasharray:6 5}.roomlbl{font:11px monospace;fill:#4A5A72}
     .note{font:11px sans-serif;fill:#1B2A41}</style>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x - pad} ${b.y - pad} ${b.w + 2*pad} ${b.h + 2*pad}" width="${Math.round(b.w + 2*pad)}" height="${Math.round(b.h + 2*pad)}">
-    ${css}<rect x="${b.x - pad}" y="${b.y - pad}" width="${b.w + 2*pad}" height="${b.h + 2*pad}" fill="#F7F5F0"/>
+    ${css}<rect x="${b.x - pad}" y="${b.y - pad}" width="${b.w + 2*pad}" height="${b.h + 2*pad}" fill="#FFFFFF"/>
     ${roomsG.innerHTML}${partsG.innerHTML}${wiresG.innerHTML}</svg>`;
 }
 
@@ -1015,6 +1071,7 @@ if (typeof window !== 'undefined') window.__CE = {
   S, render, importAny, runCheck, setTool, startPlace, addPart, fitView, toWorld, snapView,
   connectivity, checkDesign, netlistFromSheet, partsFromNetlist, arrangeParts, parseCircuitData,
   setPanel, dock, renderDock, DB, finishWire, sheetBounds, selectOnly, toggleSel, clearSel,
-  moveVertex, ensureBends, ensureSegBends, simplifyWire, rubberBandStart, rubberBandApply, rubberBandEnd, duplicateSel, nudgeSel, bomCSV,
+  moveVertex, ensureBends, ensureSegBends, simplifyWire, orthogonalize, rubberBandStart, rubberBandApply, rubberBandEnd,
+  rotateSel, mirrorSel, duplicateSel, nudgeSel, bomCSV, loadSession, sheetSVG,
   get wireDraft(){ return wireDraft; }, set wireDraft(v){ wireDraft = v; },
 };

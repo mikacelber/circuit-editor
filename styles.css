@@ -15,7 +15,10 @@
   /* Net-class palette — colour tells the class apart, never the line weight. */
   --sig-hv:#C43E1C; --sig-power:#C46A12; --sig-control:#2A63C4; --sig-logic:#1B8E86;
   --sig-analog:#3D7A46; --sig-switching:#8A4FC4; --sig-ground:#5A6472; --sig-other:#767F8C;
-  --wire:#1B2A41; --pin:#4A5A72;
+  /* Symbol palette — the classic schematic-CAD look: dark-blue outlines and
+     text, pale-yellow bodies, dark-red junctions. */
+  --sym-stroke:#000080; --sym-fill:#FFFFB2; --sym-text:#000080;
+  --wire:#000080; --pin:#000080; --junction:#800000; --pin-open:#C43E1C;
   --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Consolas,monospace;
   --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
 }
@@ -29,7 +32,8 @@
   --overlay:rgba(0,0,0,.55);
   --sig-hv:#FF7A5C; --sig-power:#F2A23D; --sig-control:#5B9BFF; --sig-logic:#3ED6C7;
   --sig-analog:#5FBE6D; --sig-switching:#BE93F5; --sig-ground:#98A4B4; --sig-other:#8D99AC;
-  --wire:#E7ECF3; --pin:#8D99AC;
+  --sym-stroke:#A9C4F5; --sym-fill:#33362B; --sym-text:#D7E2F7;
+  --wire:#A9C4F5; --pin:#A9C4F5; --junction:#F28B82; --pin-open:#FF8A70;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -160,6 +164,11 @@ label.switch .knob::after{content:'';position:absolute;top:1.5px;left:2px;width:
 label.switch input:checked + .knob{background:var(--probe)}
 label.switch input:checked + .knob::after{left:17px}
 
+/* component parameters (Properties panel): two fields per row */
+.params{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
+.params .kv label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mono-ish{font-family:var(--mono);font-size:11.5px}
+
 /* net cards (Netlist panel) */
 .netcard{border:1.5px solid var(--line);border-left:4px solid var(--sig-other);border-radius:3px;padding:7px 9px;margin-bottom:6px;background:var(--field-bg);cursor:pointer}
 .netcard:hover{border-color:var(--copper)}
@@ -187,9 +196,13 @@ label.switch input:checked + .knob::after{left:17px}
   text-align:center;line-height:1.2}
 .libitem:hover{border-color:var(--copper);color:var(--ink)}
 .libitem.on{border-color:var(--probe);background:var(--btn-hover);color:var(--ink)}
-.libitem svg{width:46px;height:34px;overflow:visible;color:var(--ink)}
-.libitem .sym{stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.libitem .symfill{fill:currentColor;stroke:none}
+.libitem svg{width:46px;height:34px;overflow:visible;color:var(--sym-stroke)}
+.libitem .sym{stroke:currentColor;stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.libitem .sym.thick{stroke-width:2.6}
+.libitem .symbody,.libitem .icbody{fill:var(--sym-fill);stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+.libitem .symfill,.libitem .pinmark{fill:currentColor;stroke:none}
+.libitem .pinline{stroke:currentColor;stroke-width:1.3}
+.libitem .pinname{font-family:var(--sans);font-size:7px;fill:var(--sym-text)}
 
 /* generic list rows (unplaced parts, db parts, messages) */
 .lrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:6px 9px;margin-bottom:5px;
@@ -265,34 +278,38 @@ button.chip:hover{background:var(--btn-hover)}
 /* ---------- the sheet itself ---------- */
 #roomsG .room{fill:none;stroke:var(--line);stroke-width:1.5;stroke-dasharray:6 5}
 #roomsG .roomlbl{font-family:var(--mono);font-size:11px;fill:var(--ink-soft);letter-spacing:.06em}
-#wiresG .wire{fill:none;stroke:var(--wire);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#wiresG .wire{fill:none;stroke:var(--wire);stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter}
 #wiresG .wire.hit{stroke:transparent;stroke-width:10}
 #wiresG .wire.hit.segh{cursor:ns-resize}
 #wiresG .wire.hit.segv{cursor:ew-resize}
 #wiresG .wire.on{stroke:var(--probe)}
 #wiresG .wireg:hover .wire:not(.hit){stroke:var(--copper)}
 #wiresG .wireg.on:hover .wire:not(.hit){stroke:var(--probe)}
-/* bend and end handles of the selected wire: drag to reshape */
-#wiresG .vtx{fill:var(--panel);stroke:var(--probe);stroke-width:1.6;cursor:move}
-#wiresG .vtx.end{fill:var(--probe)}
-#wiresG .vtx:hover{stroke-width:2.4}
-#wiresG .junction{fill:var(--wire)}
-#partsG .sym{fill:none;stroke:var(--ink);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-#partsG .symfill{fill:var(--ink);stroke:none}
-#partsG .pinline{stroke:var(--pin);stroke-width:1.6;stroke-linecap:round}
-#partsG .pindot{fill:none;stroke:var(--pin);stroke-width:1.2}
-#partsG .pindot.free{stroke:var(--warn);fill:var(--warn);fill-opacity:.35}
-#partsG .pinname{font-family:var(--mono);font-size:7px;fill:var(--ink-soft)}
-#partsG .ref{font-family:var(--mono);font-size:10px;font-weight:600;fill:var(--ink)}
-#partsG .value{font-family:var(--mono);font-size:9px;fill:var(--ink-soft)}
+/* the two ends of the selected wire are grab targets — unmarked, a wire is
+   just its line — drag one onto another pin */
+#wiresG .vtx{fill:transparent;stroke:none;cursor:move}
+#wiresG .junction{fill:var(--junction)}
+/* symbols: thin dark-blue outlines, filled bodies, level text */
+#partsG .sym,#overlayG .sym{fill:none;stroke:var(--sym-stroke);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+#partsG .sym.thick,#overlayG .sym.thick{stroke-width:2.4}
+#partsG .symbody,#overlayG .symbody{fill:var(--sym-fill);stroke:var(--sym-stroke);stroke-width:1.4;stroke-linejoin:round}
+#partsG .symfill,#overlayG .symfill{fill:var(--sym-stroke);stroke:none}
+#partsG .pinline,#overlayG .pinline{stroke:var(--pin);stroke-width:1.2;stroke-linecap:butt}
+#partsG .pinmark,#overlayG .pinmark{fill:var(--sym-stroke);stroke:none}
+#partsG .icbody,#overlayG .icbody{fill:var(--sym-fill);stroke:var(--sym-stroke);stroke-width:1.4}
+#partsG .pinend{fill:transparent;stroke:none;pointer-events:all}
+#partsG .pinend.free{fill:none;stroke:var(--pin-open);stroke-width:1.1}
+#partsG .pinname,#overlayG .pinname{font-family:var(--sans);font-size:7px;fill:var(--sym-text)}
+#partsG .ref{font-family:var(--sans);font-size:10px;font-weight:600;fill:var(--sym-text)}
+#partsG .value{font-family:var(--sans);font-size:9px;fill:var(--sym-text)}
+#partsG .netlabel{font-family:var(--sans);font-size:9.5px;font-weight:600;fill:var(--sym-text)}
 #partsG .netstub{font-family:var(--mono);font-size:7.5px;fill:var(--ink-soft)}
-#partsG .icbody{fill:var(--paper);stroke:var(--ink);stroke-width:1.8}
 #partsG .hit{fill:transparent;stroke:none;cursor:move}
 #partsG .picked{fill:var(--ok)}
-#partsG .part.selon .sym,#partsG .part.selon .icbody{stroke:var(--probe)}
-#partsG .part.selon .ref{fill:var(--probe-deep)}
-#partsG .part.on .sym,#partsG .part.on .icbody{stroke:var(--probe)}
-#partsG .part:hover .sym,#partsG .part:hover .icbody{stroke:var(--copper)}
+#partsG .part.selon .sym,#partsG .part.selon .symbody,#partsG .part.selon .icbody,#partsG .part.selon .pinline{stroke:var(--probe)}
+#partsG .part.selon .symfill,#partsG .part.selon .pinmark{fill:var(--probe)}
+#partsG .part.selon .ref,#partsG .part.selon .netlabel{fill:var(--probe-deep)}
+#partsG .part:hover .sym,#partsG .part:hover .symbody,#partsG .part:hover .icbody,#partsG .part:hover .pinline{stroke:var(--copper)}
 #partsG .note{font-family:var(--sans);font-size:11px;fill:var(--ink)}
 #overlayG .preview{fill:none;stroke:var(--copper);stroke-width:2;stroke-dasharray:5 4;stroke-linecap:round}
 #overlayG .ghost{opacity:.6}

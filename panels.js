@@ -258,6 +258,12 @@ function paneProperties(body){
   const def = SYMBOLS[part.kind];
   const isPort = !!def.port;
   const rec = part.partNumber ? DB.match(part.partNumber) : null;
+  // the parameters this kind of component carries (resistance, tolerance…),
+  // each an editable field; whatever else the netlist said is listed after
+  const ctype = isPort ? null : componentType(part);
+  const fields = ctype ? COMPONENT_TYPES[ctype].fields : [];
+  const aliasKeys = new Set(fields.flatMap(f => FIELD_ALIASES[f] || []));
+  const otherProps = Object.entries(part.props || {}).filter(([k]) => !fields.includes(k) && !aliasKeys.has(k));
   const pinRows = partPins(part).map(pin => {
     const net = S.pinNets.get(part.id + '|' + pin.name);
     const g = S.lastCheck ? S.lastCheck.conn.groupOf.get(part.id + '|' + pin.name) : null;
@@ -268,7 +274,7 @@ function paneProperties(body){
 
   body.innerHTML = h`
     ${many ? `<p class="hint" style="margin-top:0"><b>${S.selIds.size} parts selected</b> — rotate, mirror, duplicate, nudge and delete act on all of them; the fields below edit ${esc(part.ref || 'the primary one')}.</p>` : ''}
-    <div class="kv"><label>Symbol</label><div class="val">${esc(def.label)}${part.fromNetlist ? ' · from netlist' : ''}</div></div>
+    <div class="kv"><label>Symbol</label><div class="val">${esc(def.label)}${ctype ? ' · <span class="mono-ish">' + esc(ctype) + '</span>' : ''}${part.fromNetlist ? ' · from netlist' : ''}</div></div>
     ${isPort ? h`<div class="kv"><label>${def.port === 'label' ? 'Net label' : def.port === 'note' ? 'Text' : 'Net name'}</label>
         <input type="text" id="ppNet" data-pp="${def.port === 'note' ? 'text' : 'net'}" value="${esc(def.port === 'note' ? (part.text || '') : (part.net || def.net || ''))}"></div>`
       : h`<div class="row"><div class="kv"><label>Reference</label><input type="text" id="ppRef" data-pp="ref" value="${esc(part.ref || '')}"></div>
@@ -280,13 +286,18 @@ function paneProperties(body){
       <button id="ppRot">Rotate 90°</button><button id="ppMir">Mirror</button>
       <button class="danger" id="ppDel">Delete</button>
     </div>
+    ${fields.length ? h`
+      <div class="sechead">Parameters · ${esc(ctype)}</div>
+      <div class="params">${fields.map(f => h`
+        <div class="kv"><label>${esc(f.replace(/_/g, ' '))}</label>
+          <input type="text" id="pf_${f}" data-pfield="${f}" value="${esc(propValue(part.props, f))}" placeholder="—"></div>`).join('')}</div>` : ''}
     ${isPort ? '' : partPickMarkup(part)}
     ${isPort ? '' : h`
       <div class="sechead">Pins (${partPins(part).length})</div>
       <table class="facttbl"><thead><tr><th>Pin</th><th>Imported net</th><th>State</th></tr></thead><tbody>${pinRows}</tbody></table>`}
-    ${Object.keys(part.props || {}).length ? h`
-      <div class="sechead">Netlist attributes</div>
-      <table class="facttbl"><tbody>${Object.entries(part.props).map(([k, v]) =>
+    ${otherProps.length ? h`
+      <div class="sechead">${fields.length ? 'Other netlist attributes' : 'Netlist attributes'}</div>
+      <table class="facttbl"><tbody>${otherProps.map(([k, v]) =>
         `<tr><td class="mono">${esc(k)}</td><td>${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('')}</tbody></table>` : ''}
     ${rec ? h`<div class="sechead">Datasheet</div>
       <p style="font-size:11.5px">Matched <b>${esc(rec.gpn || '')}</b> in the database.</p>
@@ -295,6 +306,17 @@ function paneProperties(body){
   body.querySelectorAll('[data-pp]').forEach(inp => inp.onchange = () => {
     commit(); part[inp.dataset.pp] = inp.value;
     if (inp.dataset.pp === 'ref') part.ref = inp.value.toUpperCase();
+    render(); renderDock();
+  });
+  body.querySelectorAll('[data-pfield]').forEach(inp => inp.onchange = () => {
+    const f = inp.dataset.pfield, v = inp.value.trim();
+    commit();
+    if (!part.props) part.props = {};
+    const old = propValue(part.props, f);
+    for (const a of FIELD_ALIASES[f] || []) delete part.props[a];       // the canonical spelling wins
+    if (v) part.props[f] = v; else delete part.props[f];
+    // the field the symbol shows as its value keeps the symbol in step
+    if (ctype && COMPONENT_TYPES[ctype].value === f && (!part.value || part.value === String(old))) part.value = v;
     render(); renderDock();
   });
   el('ppRot').onclick = rotateSel;
@@ -318,7 +340,7 @@ function paneWire(body, wid){
     <div class="kv"><label>Net</label><div class="val">${nets.length ? nets.map(n => `<span class="chip">${esc(n)}</span>`).join(' ') : '<span style="color:var(--ink-soft)">not attached to any imported net</span>'}
       ${nets.length > 1 ? '<p class="icwarn">⚠ this conductor joins pins of different nets — a short</p>' : ''}</div></div>
     <div class="kv"><label>Touches</label><div class="val" style="font-family:var(--mono);font-size:11px">${esc(touch.join('  ') || '—')}</div></div>
-    <p class="hint">Drag a segment to slide it, drag a bend or an end to move it — the wire stays orthogonal and keeps its pins. Corners that stop being corners are removed on release.</p>
+    <p class="hint">Drag a segment to slide it sideways, drag either end onto another pin — the wire stays horizontal and vertical and keeps its pins. Corners that stop being corners are removed on release.</p>
     <div class="btnrow"><button class="danger" id="wDel">Delete wire</button></div>`;
   el('wDel').onclick = deleteSel;
 }

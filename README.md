@@ -61,8 +61,13 @@ picker in the Database panel instead.
   sheet dims everything else and the view jumps to it.
 - **Properties** — opens by itself when you click a part or a wire. For a
   part: reference, value, part number, group, role, rotate / mirror / delete,
-  the netlist attributes it carried, a pin table saying which imported net each
-  pin belongs to and whether it is wired yet — and the **physical part**: a
+  the **parameters** of its component type (a resistor's resistance, tolerance
+  and power rating; a capacitor's capacitance, tolerance, voltage rating and
+  type; a MOSFET's V<sub>DS</sub>, I<sub>D</sub>, gate voltage and polarity… the
+  full table is in `docs/data-formats.md`), each an editable field that is
+  written back into the part and exported with it, any other attribute the
+  netlist carried, a pin table saying which imported net each pin belongs to
+  and whether it is wired yet — and the **physical part**: a
   DigiKey + Mouser search (pre-filled from the part number, or from the value
   and kind for a generic passive) whose rows are merged highest-stock-first;
   picking one pins part number, manufacturer, price, stock and datasheet to the
@@ -81,11 +86,14 @@ picker in the Database panel instead.
 ## Working with a netlist
 
 1. **Import** a `circuit_data.json`. Every component becomes a symbol: the
-   reference prefix and the netlist fields pick the right one (`resistor` → R,
-   `MOSFET` + `polarity` → N/P-channel, `relay`, `transformer`, `connector`…),
-   and an IC's pins are read from the net nodes themselves (`U1-1`, `U1-EP`), so
-   a 17-pin part is drawn with its 17 pins even though the netlist never lists
-   them separately.
+   generic part number picks it first (`resistor`, `shunt resistor`,
+   `capacitor`, `inductor`, `choke`, `common-mode choke`, `diode`, `zener
+   diode`, `TVS diode`, `thyristor`, `MOSFET`, `GAN`, `IGBT`, `BJT`, `fuse`,
+   `transformer`, `connector`, `oscillator`, `ntc`, `relay`, `contactor`,
+   `solenoid` — `polarity` decides N/P-channel and NPN/PNP), then the reference
+   prefix and the type-specific fields. An IC's pins are read from the net
+   nodes themselves (`U1-1`, `U1-EP`), so a 17-pin part is drawn with its 17
+   pins even though the netlist never lists them separately.
 2. The sheet is laid out by **functional group** — one dashed room per group,
    ICs on the first row, passives packed underneath — deterministically: the
    same netlist always lands the same way.
@@ -101,14 +109,34 @@ picker in the Database panel instead.
    component with the part picked on DigiKey / Mouser, its price and stock), or
    the sheet as SVG.
 
-### Reshaping wires
+### Wires
 
-Select a wire and it grows handles. Drag a **segment** to slide it sideways,
-drag a **bend** to move the corner, drag an **end** onto another pin. The wire
-never leaves orthogonal, and an end sitting on a pin never comes off it on its
-own — a new bend appears next to the pin instead, the way a schematic editor
-rubber-bands. Moving a part does the same to every wire held by its pins; bends
+A wire is only ever horizontal and vertical, on the grid — the wire tool draws
+L-shaped legs (`Space` flips which leg comes first), reshaping keeps every
+segment on its axis, and a diagonal in a loaded file is straightened into an L.
+Junction dots appear only where three or more conductors actually meet (a T, a
+cross with a vertex on it, two wires landing on one pin); two wires that just
+continue each other around a corner get none.
+
+Select a wire and drag a **segment** to slide it sideways, or drag either
+**end** onto another pin (there are no handles on the corners — a wire is its
+line). An end sitting on a pin never comes off it on its own: a new bend
+appears next to the pin instead, the way a schematic editor rubber-bands.
+**Moving, rotating or mirroring a part** does the same to every wire held by
+its pins — each wire end follows its own pin to wherever the pin lands and the
+wire bends beside it — so turning a part never breaks its connections. Bends
 that stop being bends are removed on release.
+
+### Symbols
+
+The symbols follow the drawing conventions of schematic CAD (Altium's default
+look): thin dark-blue outlines and text, pale-yellow filled bodies for ICs,
+connectors, resistors and transistor envelopes, solid arrows on diodes and
+transistors, pin names inside the body (level whichever way the part is
+turned, vertical on a top/bottom edge), designator above and value below, and
+dark-red junction dots. An open pin end carries a small red ring until
+something reaches it. The dark theme uses the same drawing in lighter inks; the
+SVG export always uses the light palette.
 
 ### How connectivity is decided
 
@@ -158,7 +186,7 @@ folder, or load the JSON files by hand when there is no server.
 | Key | |
 |-----|---|
 | `S` `W` `L` `G` `P` `T` | select · wire · net label · ground · power rail · text |
-| `R` / `M` | rotate / mirror (the selection, or the symbol being placed) |
+| `R` / `M` | rotate / mirror (the selection, or the symbol being placed) — attached wires follow |
 | `Shift`+click · `Shift`+drag · `Ctrl+A` | add to the selection · marquee · select everything |
 | arrows (`Shift` = ×4) | nudge the selection one grid step |
 | `Ctrl+D` | duplicate the selection with fresh designators |

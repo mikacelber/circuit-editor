@@ -23,7 +23,8 @@ window.Element.prototype.releasePointerCapture = () => {};
    eval reproduces that, and the epilogue hands the test what it needs. */
 window.eval(['symbols.js', 'netlist.js', 'db.js', 'parts.js', 'panels.js', 'app.js']
   .map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + `
-  window.__T = { SYMBOLS, PANELS, defOf, partPins, partBounds, kindForComponent, pinNameFor,
+  window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, defOf, partPins, partBounds, kindForComponent, pinNameFor,
+    componentType, typeFields, propValue, symbolBodySVG,
     connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB,
     dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor };`);
 const T = window.__CE, W = window.__T, S = T.S;
@@ -202,6 +203,118 @@ S.sel = { type:'part', id:u1.id };
 T.setPanel('properties');
 check('Properties lists the pins of the selected IC',
   window.document.querySelectorAll('#dockBody .facttbl tbody tr').length >= 17);
+
+section('Turning a part keeps its wires');
+{
+  const ortho = pts => pts.every((p, k) => !k || p.x === pts[k-1].x || p.y === pts[k-1].y);
+  const onGrid = pts => pts.every(p => p.x % 10 === 0 && p.y % 10 === 0);
+  const saved = { parts:S.parts, wires:S.wires };
+  S.parts = []; S.wires = [];
+  const r = T.addPart('res', 200, 200);                      // pins at (180,200) and (220,200)
+  const [p1, p2] = W.partPins(r);
+  S.wires.push({ id:'ra', pts:[{x:p1.x,y:p1.y},{x:p1.x-100,y:p1.y},{x:p1.x-100,y:p1.y+100}] });
+  S.wires.push({ id:'rb', pts:[{x:p2.x,y:p2.y},{x:p2.x+100,y:p2.y}] });     // a straight 2-vertex wire
+  T.selectOnly('part', r.id);
+  T.rotateSel();
+  const q = W.partPins(r), ra = S.wires.find(w => w.id === 'ra'), rb = S.wires.find(w => w.id === 'rb');
+  const onPin = (w, pin) => w.pts.some(pt => pt.x === pin.x && pt.y === pin.y);
+  check('after a 90° rotation every wire still ends on its own pin (' + q.map(x => x.x + ',' + x.y).join(' · ') + ')',
+    r.rot === 90 && onPin(ra, q[0]) && onPin(rb, q[1]));
+  check('…and both wires are still orthogonal and on the grid', ortho(ra.pts) && ortho(rb.pts) && onGrid(ra.pts) && onGrid(rb.pts));
+  check('…and the far ends did not move', ra.pts[ra.pts.length-1].x === p1.x-100 && ra.pts[ra.pts.length-1].y === p1.y+100 &&
+    rb.pts[rb.pts.length-1].x === p2.x+100 && rb.pts[rb.pts.length-1].y === p2.y);
+  T.rotateSel(); T.rotateSel(); T.rotateSel();
+  check('four rotations bring the part and its wires back home',
+    r.rot === 0 && onPin(S.wires.find(w => w.id === 'ra'), p1) && onPin(S.wires.find(w => w.id === 'rb'), p2));
+  T.mirrorSel();
+  const m = W.partPins(r);
+  check('mirroring keeps the wires on their pins too', onPin(S.wires.find(w => w.id === 'ra'), m[0]) && onPin(S.wires.find(w => w.id === 'rb'), m[1]));
+  T.mirrorSel();
+  // the classic diagonal: a straight two-vertex wire and a part that moves sideways
+  S.wires = [{ id:'st', pts:[{x:p2.x,y:p2.y},{x:p2.x+100,y:p2.y}] }];
+  const held = T.rubberBandStart([r]); r.y += 40; T.rubberBandApply(held); T.rubberBandEnd(held);
+  const st = S.wires[0];
+  check('moving a part with a straight wire on it bends the wire instead of drawing a diagonal (' +
+    st.pts.map(p => p.x + ',' + p.y).join(' → ') + ')', ortho(st.pts) && st.pts[0].y === p2.y + 40 && st.pts[st.pts.length-1].x === p2.x+100);
+  // two parts joined by one wire, both rotated at once
+  const r2 = T.addPart('res', 400, 200);
+  const a0 = W.partPins(r)[1], b0 = W.partPins(r2)[0];
+  S.wires = [{ id:'jn', pts:[{x:a0.x,y:a0.y},{x:b0.x,y:b0.y}] }];
+  S.selIds = new Set([r.id, r2.id]); S.sel = { type:'part', id:r.id };
+  T.rotateSel();
+  const jn = S.wires[0], a1 = W.partPins(r)[1], b1 = W.partPins(r2)[0];
+  check('rotating two connected parts keeps the wire between them attached at both ends',
+    onPin(jn, a1) && onPin(jn, b1) && ortho(jn.pts));
+  check('a diagonal wire in a loaded session is straightened into an L',
+    T.simplifyWire([{x:0,y:0},{x:50,y:40}]).length === 3 && ortho(T.simplifyWire([{x:0,y:0},{x:50,y:40}])));
+  T.clearSel(); S.parts = saved.parts; S.wires = saved.wires;
+}
+
+section('Junction dots');
+{
+  const corner = W.connectivity([], [{ id:'a', pts:[{x:0,y:0},{x:100,y:0}] }, { id:'b', pts:[{x:100,y:0},{x:100,y:100}] }]);
+  check('two wires meeting end to end make a corner, not a junction — but they connect',
+    corner.junctions.length === 0 && corner.wireGroup.get('a') === corner.wireGroup.get('b'));
+  const tee = W.connectivity([], [{ id:'a', pts:[{x:0,y:0},{x:100,y:0},{x:100,y:100}] }, { id:'b', pts:[{x:100,y:0},{x:200,y:0}] }]);
+  check('a wire ending on the bend of another makes a T junction', tee.junctions.length === 1);
+  const probe = { id:'px', kind:'res', ref:'RX', x:0, y:0, rot:0, mir:0 };
+  const onePin = W.connectivity([probe], [{ id:'w', pts:[{x:20,y:0},{x:80,y:0}] }]);
+  const twoOnPin = W.connectivity([probe], [{ id:'w', pts:[{x:20,y:0},{x:80,y:0}] }, { id:'v', pts:[{x:20,y:0},{x:20,y:60}] }]);
+  check('a wire on a pin has no dot; two wires on one pin do', onePin.junctions.length === 0 && twoOnPin.junctions.length === 1);
+  T.render();
+  check('a selected wire shows no bend handles on the sheet',
+    (T.selectOnly('wire', S.wires[0].id), T.render(), window.document.querySelectorAll('#wiresG .vtx:not(.end)').length === 0));
+  T.clearSel();
+}
+
+section('Component types and their parameters');
+{
+  const fields = t => W.COMPONENT_TYPES[t].fields.join(',');
+  check('a resistor carries resistance, tolerance, power_rating', fields('resistor') === 'resistance,tolerance,power_rating');
+  check('a capacitor carries capacitance, tolerance, voltage_rating, type', fields('capacitor') === 'capacitance,tolerance,voltage_rating,type');
+  check('an inductor, a choke and a common-mode choke share the inductor fields',
+    fields('inductor') === 'inductance,tolerance,max_operational_frequency,current_rating' && fields('choke') === fields('inductor') && fields('common-mode choke') === fields('inductor'));
+  check('a transformer carries its five fields', fields('transformer') === 'primary_magnetizing_inductance,turns_ratio,operational_frequency_range,voltage_isolation,voltage_primary');
+  check('relay, contactor and solenoid share contact_form, coil_voltage, current_rating, voltage_rating',
+    fields('relay') === 'contact_form,coil_voltage,current_rating,voltage_rating' && fields('contactor') === fields('relay') && fields('solenoid') === fields('relay'));
+  const kinds = { 'resistor':'res', 'shunt resistor':'shunt', 'capacitor':'cap', 'inductor':'ind', 'choke':'choke', 'common-mode choke':'cm_choke',
+    'diode':'diode', 'zener diode':'zener', 'TVS diode':'tvs', 'thyristor':'scr', 'MOSFET':'nmos', 'GAN':'gan', 'IGBT':'igbt', 'BJT':'npn',
+    'fuse':'fuse', 'transformer':'xfmr', 'connector':'connector', 'oscillator':'osc', 'ntc':'ntc', 'relay':'relay', 'contactor':'contactor', 'solenoid':'solenoid' };
+  const bad = Object.entries(kinds).filter(([pn, k]) => W.kindForComponent({ ref:'X1', partNumber:pn }) !== k);
+  check('every generic type in the netlist vocabulary has its own symbol' + (bad.length ? ' — wrong: ' + bad.map(b => b[0]).join(', ') : ''), bad.length === 0);
+  check('polarity picks the P-channel and PNP symbols',
+    W.kindForComponent({ ref:'Q1', partNumber:'MOSFET', polarity:'P-channel' }) === 'pmos' && W.kindForComponent({ ref:'Q2', partNumber:'BJT', polarity:'PNP' }) === 'pnp');
+  check('the type of a placed part follows its part number, else its symbol',
+    W.componentType({ partNumber:'zener diode', kind:'diode' }) === 'zener diode' && W.componentType({ partNumber:'RC0603FR-0710KL', kind:'res' }) === 'resistor' &&
+    W.componentType({ partNumber:'BQ24075-Q1', kind:'ic' }) === null);
+  check('a misspelt netlist field is still read (vce_voltag → vce_voltage)', W.propValue({ vce_voltag:'40 V' }, 'vce_voltage') === '40 V');
+  // the Properties panel: one input per field, edits land in props and the symbol value follows
+  const c1 = S.parts.find(p => p.ref === 'C1');
+  T.selectOnly('part', c1.id); T.setPanel('properties');
+  const inputs = [...window.document.querySelectorAll('#dockBody [data-pfield]')].map(i => i.dataset.pfield);
+  check('Properties shows the capacitor fields as editable inputs (' + inputs.join(', ') + ')', inputs.join(',') === 'capacitance,tolerance,voltage_rating,type');
+  const inp = window.document.querySelector('#dockBody [data-pfield="capacitance"]');
+  inp.value = '2.2 µF'; inp.onchange();
+  check('editing a parameter updates the part and the value under the symbol', c1.props.capacitance === '2.2 µF' && c1.value === '2.2 µF');
+  const q9 = T.addPart('nmos', 0, 0);
+  T.selectOnly('part', q9.id); T.setPanel('properties');
+  check('a hand-placed MOSFET gets its fields empty, ready to fill',
+    [...window.document.querySelectorAll('#dockBody [data-pfield]')].map(i => i.dataset.pfield).join(',') === 'vds_voltage,id_current,gate_voltage,polarity');
+  S.parts = S.parts.filter(p => p !== q9); T.clearSel();
+  check('the export carries the edited parameter', W.netlistFromSheet(S)[0].components.find(c => c.ref === 'C1').capacitance === '2.2 µF');
+}
+
+section('Symbol drawing');
+{
+  const ic = W.symbolBodySVG(W.defOf({ kind:'ic', pinNames:['1','2','3','4'] }), {});
+  check('an IC is a filled body with its pin names inside', /icbody/.test(ic) && (ic.match(/pinname/g) || []).length === 4);
+  check('a resistor body is a closed, filled outline; a diode arrow is solid',
+    W.SYMBOLS.res.bodies.length === 1 && W.SYMBOLS.diode.fills.length === 1);
+  check('every new symbol keeps its pins on the lattice',
+    ['choke','cm_choke','osc','scr','gan','contactor','solenoid'].every(k => W.SYMBOLS[k].pins.every(p => p.x % 10 === 0 && p.y % 10 === 0)));
+  const svgOut = T.sheetSVG();
+  check('the SVG export ships the schematic palette', /#000080/.test(svgOut) && /#FFFFB2/.test(svgOut));
+}
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

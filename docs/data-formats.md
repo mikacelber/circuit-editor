@@ -23,11 +23,43 @@ accepted, as are `{circuit_data: …}` and an agent-style `{output: …}`):
 | Field | Meaning |
 |-------|---------|
 | `ref` | the designator, unique. Its prefix picks the symbol when `partNumber` is generic (`R`, `C`, `L`, `D`, `Q`, `J`, `SW`, `K`, `T`, `U`, `LED`, `TP`…). |
-| `partNumber` | a real part number, or a generic word (`resistor`, `capacitor`, `inductor`, `diode`, `connector`, `switch`, `relay`, `transformer`, `ntc`, `shunt resistor`, `MOSFET`). |
+| `partNumber` | a real part number, or one of the generic component types listed below (`resistor`, `capacitor`, `MOSFET`, `relay`…). |
 | `role`, `group` | free text. `group` drives the sheet layout: one dashed room per group. |
-| anything else | kept as a netlist attribute and shown in Properties (`resistance`, `capacitance`, `tolerance`, `voltage_rating`, `polarity`, `turns_ratio`, `number_of_contacts`…). The first value-looking field becomes the symbol's displayed value. |
+| anything else | kept as a netlist attribute. The fields of the component's type (table below) become editable **parameters** in Properties; the rest is listed under them. The type's main field (`resistance`, `capacitance`, `turns_ratio`…) becomes the symbol's displayed value. |
 | `nets[].nodes` | `"<ref>-<pin>"`. The pin part may be a number or a name (`U1-EP`). **These nodes are what gives an IC its pins**, so they must be complete. |
 | `nets[].type` | free text; the known ones colour the net class (`GROUND`, `POWER_DISTRIBUTION`, `HIGH_VOLTAGE_PATH`, `SWITCHING_NODE`, `DIGITAL_LOGIC`, `CONTROL_SIGNAL`, `ANALOG_*`, `SENSING_LINE`, `NO_CONNECT`…). |
+
+### Component types and their parameters
+
+Every passive and discrete type carries these fields. They are read from the
+netlist, shown as editable inputs in the Properties panel, stored on the part
+and written back by the netlist export. A type not listed here (an IC with a
+real part number) has no parameter fields; its attributes are only listed.
+
+| `partNumber` | symbol | fields |
+|--------------|--------|--------|
+| `resistor` | R | `resistance`, `tolerance`, `power_rating` |
+| `shunt resistor` | R (shunt) | `resistance`, `tolerance`, `power_rating` |
+| `capacitor` | C (polarized when `type` says electrolytic / tantalum / polymer) | `capacitance`, `tolerance`, `voltage_rating`, `type` |
+| `inductor` | L | `inductance`, `tolerance`, `max_operational_frequency`, `current_rating` |
+| `choke` | L with core | `inductance`, `tolerance`, `max_operational_frequency`, `current_rating` |
+| `common-mode choke` | two windings on one core | `inductance`, `tolerance`, `max_operational_frequency`, `current_rating` |
+| `diode` | D (Schottky / LED by `diode_type`) | `diode_type`, `reverse_voltage`, `current_rating` |
+| `zener diode` | D (zener) | `zener_voltage`, `power_rating` |
+| `TVS diode` | D (bidirectional TVS) | `clamping_voltage_max`, `peak_pulse_power`, `polarity` |
+| `thyristor` | SCR | `thyristor_type`, `blocking_voltage`, `current_rating` |
+| `MOSFET` | N- or P-channel by `polarity` | `vds_voltage`, `id_current`, `gate_voltage`, `polarity` |
+| `GAN` | GaN HEMT | `vds_voltage`, `id_current`, `gate_voltage`, `polarity` |
+| `IGBT` | IGBT | `vce_voltage`, `ic_current`, `vge_voltage`, `polarity` |
+| `BJT` | NPN or PNP by `polarity` | `vce_voltage` (`vce_voltag` is read too), `ic_current`, `vbe_voltage`, `polarity` |
+| `fuse` | F | `current_rating`, `voltage_rating` |
+| `transformer` | T | `primary_magnetizing_inductance`, `turns_ratio`, `operational_frequency_range`, `voltage_isolation`, `voltage_primary` |
+| `connector` | J (one pin per `number_of_contacts`, or per net node) | `number_of_contacts`, `mounting_type`, `current_rating`, `voltage_rating` |
+| `oscillator` | Y (4-pin box: EN, GND, OUT, VDD) | `frequency`, `oscillator_type`, `voltage_rating` |
+| `ntc` | RT | `thermistor_type`, `operating_temperature_range`, `power_rating` |
+| `relay` | K | `contact_form`, `coil_voltage`, `current_rating`, `voltage_rating` |
+| `contactor` | K (coil + power contact) | `contact_form`, `coil_voltage`, `current_rating`, `voltage_rating` |
+| `solenoid` | L (coil + plunger) | `contact_form`, `coil_voltage`, `current_rating`, `voltage_rating` |
 
 A two-pin symbol whose netlist nodes use numbers (`D2-1`, `D2-2`) while the
 symbol names its pins `A`/`K` is aliased automatically, in pin order. A fixed

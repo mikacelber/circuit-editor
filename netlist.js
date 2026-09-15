@@ -128,7 +128,7 @@ function arrangeParts(parts, opts){
   const rooms = [];
   let cx = pad, cy = pad, rowH = 0;
   for (const [gname, list] of [...groups.entries()].sort((a, b) => b[1].length - a[1].length)){
-    const big = list.filter(p => SYMBOLS[p.kind].generated === 'ic' || p.kind === 'connector' || p.kind === 'relay');
+    const big = list.filter(p => SYMBOLS[p.kind].generated === 'ic' || /^(connector|relay|contactor|osc)$/.test(p.kind));
     const small = list.filter(p => !big.includes(p));
     const cellW = 160, cellH = 120;      // room for a net name on both sides
     const cols = Math.max(2, Math.min(6, Math.ceil(Math.sqrt(small.length || 1))));
@@ -178,7 +178,7 @@ function connectivity(parts, wires){
   const union = (a, b) => { a = find(node(a)); b = find(node(b)); if (a !== b) parent.set(a, b); };
 
   const key = (x, y) => Math.round(x) + ',' + Math.round(y);
-  const at = new Map();                                  // point → [{t:'pin'|'end'|'thru', id}]
+  const at = new Map();                                  // point → [{t:'pin'|'end'|'thru', id, arms}]
   const put = (x, y, rec) => { const k = key(x, y); if (!at.has(k)) at.set(k, []); at.get(k).push(rec); };
 
   const pinAt = new Map();                               // point → [pinKey]
@@ -193,12 +193,13 @@ function connectivity(parts, wires){
   for (const w of wires){
     const wk = 'w:' + w.id; node(wk);
     const pts = w.pts || [];
-    for (const p of pts) put(p.x, p.y, { t:'end', id:wk });
+    // a vertex brings one "arm" per segment it belongs to: an end one, a bend two
+    pts.forEach((p, i) => put(p.x, p.y, { t:'end', id:wk, arms:(i > 0 ? 1 : 0) + (i < pts.length - 1 ? 1 : 0) }));
     for (let i = 0; i < pts.length - 1; i++){
       const a = pts[i], b = pts[i + 1];
       const dx = Math.sign(b.x - a.x), dy = Math.sign(b.y - a.y);
       const steps = Math.round(Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)) / GRID);
-      for (let s = 1; s < steps; s++) put(a.x + dx * s * GRID, a.y + dy * s * GRID, { t:'thru', id:wk });
+      for (let s = 1; s < steps; s++) put(a.x + dx * s * GRID, a.y + dy * s * GRID, { t:'thru', id:wk, arms:2 });
     }
   }
   const junctions = [];
@@ -213,12 +214,18 @@ function connectivity(parts, wires){
     for (const p of pins) for (const q of pins) union(p.id, q.id);
     // Two wires join when at least one of them ends here (T or corner);
     // two wires crossing through each other do not.
+    let joined = false;
     if (wireIds.size > 1 && endIds.size){
       const list = [...wireIds];
       for (let i = 1; i < list.length; i++) union(list[0], list[i]);
-      const [x, y] = k.split(',').map(Number);
-      junctions.push({ x, y });
-    } else if (pins.length && endIds.size && (pins.length + endIds.size) > 2){
+      joined = true;
+    }
+    // A junction dot marks a point where three or more conductors meet — a T,
+    // a cross with a vertex on it, two wires landing on one pin. Two wires
+    // that merely continue each other around a corner (two arms) get none,
+    // and neither does a wire ending on a pin.
+    if ((joined || (pins.length && endIds.size)) &&
+        recs.reduce((a, r) => a + (r.t === 'pin' ? 1 : r.arms), 0) >= 3){
       const [x, y] = k.split(',').map(Number);
       junctions.push({ x, y });
     }

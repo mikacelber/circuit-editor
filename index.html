@@ -33,6 +33,9 @@
   <button id="btnCheck" title="Run the electrical rules check against the imported netlist">Check</button>
   <button id="btnImport">Import</button>
   <button id="btnExport" class="primary">Export</button>
+  <!-- The component database, at the far right: a grey struck-through cloud
+       while nothing is attached, blue with the database name once it is. -->
+  <button id="btnDb" class="dbchip"><span id="dbLabel">Not connected</span></button>
 </header>
 
 <main>
@@ -131,6 +134,11 @@
        switches between the enabled ones (Altium's docked panel group). -->
   <aside id="dock">
     <div id="dockResize" title="Drag to resize the dock"></div>
+    <button id="dockClose" title="Close the panel group — every tab is unchecked">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>
+      </svg>
+    </button>
     <button id="dockPin" class="pinned" title="Unpin — the dock hides itself to maximize the sheet">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 3 h6 l-1 6 3 3 H7 l3 -3 Z" fill="currentColor" fill-opacity=".25"/>

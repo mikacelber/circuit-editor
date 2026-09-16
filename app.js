@@ -667,7 +667,7 @@ function onPartPointerDown(ev, pid){
   drag = { mode:'part', ids:parts.map(p => p.id), start:new Map(parts.map(p => [p.id, { x:p.x, y:p.y }])),
            ox:w.x, oy:w.y, held:null, moved:false };
   svg.setPointerCapture(ev.pointerId);
-  render(); setPanel('properties');
+  render(); setPanel('properties', true);
 }
 function onWirePointerDown(ev, wid){
   if (S.tool !== 'select') return;
@@ -685,7 +685,7 @@ function onWirePointerDown(ev, wid){
              y0:wire.pts[i].y, x0:wire.pts[i].x };
   }
   svg.setPointerCapture(ev.pointerId);
-  render(); setPanel('properties');
+  render(); setPanel('properties', true);
 }
 
 svg.addEventListener('pointerdown', ev => {
@@ -712,7 +712,7 @@ svg.addEventListener('pointerdown', ev => {
     part.rot = S.place.rot; part.mir = S.place.mir;
     rebuildPinNets(); prefillPortNet(part);
     selectOnly('part', part.id);
-    render(); setPanel('properties');
+    render(); setPanel('properties', true);
     return;
   }
   if (S.tool === 'wire'){
@@ -845,7 +845,7 @@ svg.addEventListener('drop', ev => {
   const part = addPart(kind, w.x, w.y);
   rebuildPinNets(); prefillPortNet(part);
   selectOnly('part', part.id);
-  render(); setPanel('properties');
+  render(); setPanel('properties', true);
 });
 
 /* ---------------- rules check ---------------- */
@@ -1054,12 +1054,13 @@ $('btnArrange').onclick = () => {
 $('btnZoomIn').onclick = () => zoomStep(+1);
 $('btnZoomOut').onclick = () => zoomStep(-1);
 $('btnZoomFit').onclick = () => fitView();
+$('btnDb').onclick = openDbConnect;
 $('emptyImport').onclick = openImport;
 $('emptyBlank').onclick = () => { commit(); S.parts = []; S.wires = []; S.rooms = []; setTool('select'); render(); toast('Blank sheet — drag parts in from Components'); };
 
 initDock();
 renderToolbar();
-DB.loadIndex().then(n => { if (n) renderDock(); });
+DB.autoConnect().then(n => { renderDbChip(); if (n) renderDock(); });
 try {
   const saved = localStorage.getItem('circuit_session');
   if (saved) loadSession(JSON.parse(saved));
@@ -1071,6 +1072,7 @@ if (typeof window !== 'undefined') window.__CE = {
   S, render, importAny, runCheck, setTool, startPlace, addPart, fitView, toWorld, snapView,
   connectivity, checkDesign, netlistFromSheet, partsFromNetlist, arrangeParts, parseCircuitData,
   setPanel, dock, renderDock, renderDockTabs, stepPanel, tabNeighbour, updateTabOverflow,
+  dockCloseAll, dockEmpty, dockApply, renderDbChip, openDbConnect,
   DB, finishWire, sheetBounds, selectOnly, toggleSel, clearSel,
   moveVertex, ensureBends, ensureSegBends, simplifyWire, orthogonalize, rubberBandStart, rubberBandApply, rubberBandEnd,
   rotateSel, mirrorSel, duplicateSel, nudgeSel, bomCSV, loadSession, sheetSVG,

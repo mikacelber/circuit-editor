@@ -16,10 +16,33 @@ const DB = {
   records: [],                 // [{gpn, part_numbers, status, path, facts, ...}]
   byPn: new Map(),             // normalized part number → record
   loaded: false, error: null,
+  name: '',                    // what the cloud in the top bar shows once attached
+
+  /* Attached or not — the Explorer panel and the cloud both read this. */
+  get connected(){ return this.records.length > 0; },
 
   setBase(b){
     this.base = b.endsWith('/') ? b : b + '/';
     try { localStorage.setItem('db_base', this.base); } catch(e){}
+  },
+
+  /* A short name for the thing we are attached to: the folder, or the files. */
+  baseName(){
+    const bits = this.base.replace(/\/+$/, '').split('/').filter(Boolean);
+    return bits[bits.length - 1] || this.base || 'database';
+  },
+  disconnect(){
+    this.records = []; this.byPn = new Map();
+    this.loaded = false; this.error = null; this.name = '';
+    try { localStorage.removeItem('db_connected'); } catch(e){}
+  },
+  remember(){ try { localStorage.setItem('db_connected', this.connected ? '1' : ''); } catch(e){} },
+  /* Only reattach on start-up to a database the user attached before. */
+  async autoConnect(){
+    let want = false;
+    try { want = localStorage.getItem('db_connected') === '1'; } catch(e){}
+    if (!want) return 0;
+    return this.loadIndex();
   },
 
   /* index.json is either {files:[…]} or a bare array; entries are paths or
@@ -43,6 +66,8 @@ const DB = {
         this.add(entry);
       }
       this.loaded = true;
+      this.name = this.baseName();
+      this.remember();
       return this.records.length;
     } catch (e){
       this.error = e.message;
@@ -61,6 +86,7 @@ const DB = {
       } catch (e){ /* skip anything that is not one of ours */ }
     }
     this.loaded = this.loaded || n > 0;
+    if (n) { this.name = 'local files'; this.remember(); }
     return n;
   },
 

@@ -38,10 +38,10 @@ picker in the Explorer panel instead.
 
 | Area | What it does |
 |------|--------------|
-| **Top bar** | Logo, project title, undo/redo, Arrange, Check, Import, Export. |
+| **Top bar** | Logo, project title, undo/redo, Arrange, Check, Import, Export, and at the far right the **component database**: a grey struck-through cloud while nothing is attached, blue with the database name once it is. Click it to connect, change or disconnect. |
 | **Sheet** | Adaptive grid drawn in screen space: it stays on the world lattice at every pan and zoom, and thins out as you zoom away. Wheel zooms about the pointer, drag pans, `F` fits, the bottom-right buttons do the same. |
 | **Tool strip** | Floats over the top-centre of the sheet: select, wire, net label, ground, power rail, text, then rotate / mirror / duplicate / delete. |
-| **Panel dock** | The right-hand panel group. Pin it, fold it away with the handle on the divider, or drag its left edge to resize. Its tabs stay on **one row**: when the names stop fitting, two triangles appear right after them and step to the next or previous panel, scrolling the strip so the active name is always readable. |
+| **Panel dock** | The right-hand panel group. Pin it, close it outright with the **✕** in its top-right corner (which folds it away and unchecks every tab), or drag its left edge to resize. While it is open the ✕ does the closing; once it is closed the handle on the divider is the way back, and clicking it on a group with no tabs left brings back Project alone. Its tabs stay on **one row**: when the names stop fitting, two triangles appear right after them and step to the next or previous panel, scrolling the strip so the active name is always readable. |
 | **Panels button** | Bottom-right corner: check a panel to give it a tab, uncheck it to take the tab away. |
 | **Status bar** | Parts, wires, nets imported, how much of the netlist is drawn, and the error/warning count (click it to open Messages). |
 
@@ -78,7 +78,9 @@ picker in the Explorer panel instead.
   supplies, the **required external components** checked one by one against the
   netlist, the designer notes and, last of all, the figures. Assign a part
   number to the selected symbol from here. The blue cloud on its tab says the
-  panel reads the component database rather than the sheet.
+  panel reads the component database rather than the sheet; until one is
+  attached the panel is just *Please Connect to one of your database:*, and
+  where you attach it is the cloud at the far right of the top bar.
 - **Messages** — the rule check, worst first. Click a line to jump to the net or
   the part it is about.
 
@@ -179,12 +181,15 @@ changes:
 npm run db:index          # node tools/build-db-index.js [dbDir]
 ```
 
-The Explorer panel then matches a symbol's part number to a record — exact
+Attach a database from the cloud at the far right of the top bar: give it the
+folder holding `index.json`, or pick the record files by hand when there is no
+server to read one. The connection is remembered, so the next visit reattaches
+by itself until you disconnect. The Explorer panel then matches a symbol's part
+number to a record — exact
 first, then by family (`BQ24075-Q1` → `BQ24075`, `TPS7A20185PDBVR` → `TPS7A20`)
 — and turns the record's `external_components` list into a checklist against
 the netlist: found (green), probable (amber, when the datasheet names the far
-end after a node instead of a pin) or missing. Point the panel at any other
-folder, or load the JSON files by hand when there is no server.
+end after a node instead of a pin) or missing.
 
 ---
 

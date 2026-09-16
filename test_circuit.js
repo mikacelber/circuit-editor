@@ -23,7 +23,7 @@ window.Element.prototype.releasePointerCapture = () => {};
    eval reproduces that, and the epilogue hands the test what it needs. */
 window.eval(['symbols.js', 'netlist.js', 'db.js', 'parts.js', 'panels.js', 'app.js']
   .map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + `
-  window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, renderDbDetail, defOf, partPins, partBounds, kindForComponent, pinNameFor,
+  window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, renderDbDetail, paneDatabase, defOf, partPins, partBounds, kindForComponent, pinNameFor,
     componentType, typeFields, propValue, symbolBodySVG,
     connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB,
     dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor };`);
@@ -434,6 +434,66 @@ section('One line weight');
     W.SYMBOLS.cap.paths.includes('M-3 -8V8') && W.SYMBOLS.cap.paths.includes('M3 -8V8') &&
     W.SYMBOLS.nmos.paths.includes('M-7 -12V-5') && W.SYMBOLS.npn.paths.includes('M-8 -11V11') &&
     W.SYMBOLS.battery.paths.includes('M-8 -10V10') && W.SYMBOLS.xtal.paths.includes('M-7 -8V8'));
+}
+
+section('Connecting a database');
+{
+  const doc = window.document, chip = doc.getElementById('btnDb');
+  T.setPanel('database');
+  check('the Explorer panel no longer carries the database folder settings',
+    !doc.getElementById('dbBase') && !doc.getElementById('dbReload') && !doc.getElementById('dbFiles'));
+  check('with nothing attached it shows one centred message',
+    doc.getElementById('dockBody').classList.contains('pane-center') &&
+    doc.querySelector('#dockBody .dbempty-msg').textContent === 'Please Connect to one of your database:');
+  check('…and a way to attach one', !!doc.getElementById('dbConnect'));
+  check('the cloud lives at the far right of the top bar',
+    !!chip && chip.parentElement.tagName === 'HEADER' && chip.parentElement.lastElementChild === chip);
+  check('unattached it reads "Not connected", grey and struck through',
+    doc.getElementById('dbLabel').textContent === 'Not connected' && !chip.classList.contains('on') &&
+    !!chip.querySelector('.dbcloud .slash'));
+  const css = fs.readFileSync('styles.css', 'utf8');
+  check('attaching one turns it blue and drops the stroke',
+    /#btnDb\.on\{color:var\(--cloud\)/.test(css) && /\.dbchip\.on \.dbcloud \.slash[^{]*\{display:none\}/.test(css));
+  // attach a record and the panel becomes the part list, the cloud the name
+  W.DB.records.push({ gpn:'FAKE', part_numbers:['FAKE-1'], status:'approved', path:'fake.json' });
+  W.DB.name = 'my-parts';
+  T.renderDbChip(); T.renderDock();
+  check('attached, the cloud shows the database name (' + doc.getElementById('dbLabel').textContent + ')',
+    chip.classList.contains('on') && doc.getElementById('dbLabel').textContent === 'my-parts');
+  check('…and the Explorer switches to the parts it found',
+    !doc.querySelector('#dockBody .dbempty-msg') && !!doc.getElementById('dbSearch') &&
+    doc.querySelectorAll('#dbList [data-db]').length === 1);
+  W.DB.records.length = 0; W.DB.name = '';
+  T.renderDbChip(); T.renderDock();
+  check('disconnecting puts the message back', !!doc.querySelector('#dockBody .dbempty-msg'));
+}
+
+section('Closing the panel group');
+{
+  const doc = window.document;
+  T.setPanel('project');
+  check('while the group is open the reopen arrow is out of the way', doc.getElementById('dockHandle').hidden);
+  T.dockCloseAll();
+  check('the X unchecks every tab', T.dockEmpty() && doc.querySelectorAll('#dockTabs [data-pane]').length === 0);
+  check('…unchecks them in the Panels menu too',
+    [...doc.querySelectorAll('#panelsMenu input')].every(i => !i.checked));
+  check('…folds the group away', T.dock.hidden && doc.getElementById('dock').classList.contains('collapsed'));
+  check('…and brings back the arrow to reopen it', !doc.getElementById('dockHandle').hidden);
+  T.setPanel('properties', true);
+  check('the sheet selecting a part does NOT reopen a group closed on purpose',
+    T.dockEmpty() && T.dock.hidden);
+  doc.getElementById('dockHandle').onclick();
+  check('the arrow reopens it with Project, and only Project',
+    !T.dock.hidden && T.dock.active === 'project' &&
+    [...doc.querySelectorAll('#dockTabs [data-pane]')].map(b => b.textContent.trim()).join() === 'Project');
+  check('…checked in the Panels menu to match',
+    [...doc.querySelectorAll('#panelsMenu input')].filter(i => i.checked).map(i => i.dataset.pane).join() === 'project');
+  // unchecking the last tab closes the group just as the X does
+  const cb = doc.querySelector('#panelsMenu input[data-pane="project"]');
+  cb.checked = false; cb.onchange();
+  check('unchecking the last tab closes the group as well', T.dockEmpty() && T.dock.hidden);
+  for (const p of W.PANELS) T.dock.enabled[p.id] = true;
+  T.setPanel('project');
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

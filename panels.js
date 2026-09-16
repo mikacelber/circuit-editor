@@ -23,6 +23,11 @@ const PANELS = [
 const CLOUD_SVG = '<svg class="cloudicon" viewBox="0 0 24 16" aria-hidden="true" focusable="false">' +
   '<circle cx="7.6" cy="9" r="5"/><circle cx="13.6" cy="6.4" r="5.6"/><circle cx="18.4" cy="10.2" r="4"/>' +
   '<rect x="3.6" y="9" width="16" height="5" rx="2.5"/></svg>';
+/* The database cloud: struck through while nothing is attached. */
+const dbCloudSVG = cls => '<svg class="dbcloud ' + (cls || '') + '" viewBox="0 0 24 18" aria-hidden="true" focusable="false">' +
+  '<g class="puff"><circle cx="7.6" cy="10.4" r="4.9"/><circle cx="13.6" cy="7.6" r="5.6"/><circle cx="18.3" cy="11.2" r="3.9"/>' +
+  '<rect x="3.6" y="10.4" width="15.4" height="4.8" rx="2.4"/></g>' +
+  '<path class="slashbg" d="M2.8 16.4L21.2 2"/><path class="slash" d="M2.8 16.4L21.2 2"/></svg>';
 const TRI_LEFT  = '<svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M7.4 0.6 1.6 6l5.8 5.4z"/></svg>';
 const TRI_RIGHT = '<svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M2.6 0.6 8.4 6l-5.8 5.4z"/></svg>';
 const PANEL_DEFAULT = { project:true, components:true, nets:true, properties:true, database:true, messages:true };
@@ -58,6 +63,7 @@ function renderDock(){
   const ae = document.activeElement;
   const focus = ae && body.contains(ae) && ae.id ? { id:ae.id, s:ae.selectionStart, e:ae.selectionEnd } : null;
   body.dataset.pane = pane.id;
+  body.className = 'body';                 // a pane may add .pane-center
   body.innerHTML = '';
   pane.render(body);
   body.scrollTop = keepScroll;
@@ -125,11 +131,22 @@ function updateTabOverflow(){
   if (left < scroll.scrollLeft) scroll.scrollLeft = left;
   else if (right > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = right - scroll.clientWidth;
 }
-function setPanel(id){
+/* `auto` marks the calls the sheet makes by itself (selecting a part opens
+   Properties). Those must not reopen a dock the user closed with the X. */
+function setPanel(id, auto){
+  if (auto && dockEmpty()) return;
   if (!dock.enabled[id]) dock.enabled[id] = true;
   dock.active = id; dock.save();
   dockShow();
   renderDock();
+}
+/* No panel has a tab: the dock is closed, not merely folded. */
+const dockEmpty = () => !PANELS.some(p => dock.enabled[p.id]);
+/* The X: fold the group away and uncheck every tab with it. */
+function dockCloseAll(){
+  for (const p of PANELS) dock.enabled[p.id] = false;
+  dock.hidden = true; dock.save();
+  dockApply(); renderPanelsMenu(); renderDock();
 }
 function renderPanelsMenu(){
   const m = el('panelsMenu');
@@ -138,9 +155,11 @@ function renderPanelsMenu(){
   m.querySelectorAll('input').forEach(cb => cb.onchange = () => {
     const id = cb.dataset.pane;
     dock.enabled[id] = cb.checked;
-    if (!Object.values(dock.enabled).some(Boolean)){ dock.enabled[id] = true; cb.checked = true; return; }
+    if (cb.checked){ setPanel(id); return; }
+    // unchecking the last tab closes the group, exactly like the X
+    if (dockEmpty()){ dock.hidden = true; dock.save(); dockApply(); renderDock(); return; }
     if (!dock.enabled[dock.active]) dock.active = PANELS.find(p => dock.enabled[p.id]).id;
-    if (cb.checked) setPanel(id); else { dock.save(); renderDock(); }
+    dock.save(); renderDock();
   });
 }
 
@@ -521,17 +540,24 @@ function openSearchSettings(){
    DATABASE — GPN datasheet extracts, and what they demand
    ================================================================ */
 function paneDatabase(body){
+  // Nothing attached: the panel is just the invitation to attach something.
+  // Where you do that is the cloud at the far right of the top bar.
+  if (!DB.connected){
+    body.classList.add('pane-center');
+    body.innerHTML = h`
+      ${dbCloudSVG('dbempty-cloud')}
+      <p class="dbempty-msg">Please Connect to one of your database:</p>
+      <button id="dbConnect" class="primary">Connect a database</button>
+      ${DB.error ? `<p class="hint" style="color:var(--warn);max-width:26ch">${esc(DB.base)}index.json: ${esc(DB.error)}</p>` : ''}`;
+    el('dbConnect').onclick = openDbConnect;
+    return;
+  }
   const q = (S.ui.dbQuery || '').toLowerCase();
   const recs = DB.records.filter(r => !q ||
     String(r.gpn || '').toLowerCase().includes(q) ||
     (r.part_numbers || []).some(p => String(p).toLowerCase().includes(q)));
   const sel = DB.records.find(r => (r.path || r.gpn) === S.ui.dbSel);
   body.innerHTML = h`
-    <div class="kv"><label>Database folder</label>
-      <div class="row"><input type="text" id="dbBase" value="${esc(DB.base)}"><button id="dbReload" style="flex:0 0 auto">Load</button></div></div>
-    <p class="hint">Reads <b>${esc(DB.base)}index.json</b>. No server? Pick the JSON files by hand:</p>
-    <input type="file" id="dbFiles" multiple accept="application/json" style="font-size:11px">
-    ${DB.error ? `<p class="hint" style="color:var(--warn)">index.json: ${esc(DB.error)}</p>` : ''}
     <div class="sechead">Parts (${DB.records.length})</div>
     <input type="search" id="dbSearch" placeholder="Search GPN or part number…" value="${esc(S.ui.dbQuery || '')}">
     <div id="dbList" style="margin-top:8px"></div>
@@ -549,10 +575,50 @@ function paneDatabase(body){
     renderDock();
   });
   el('dbSearch').oninput = e => { S.ui.dbQuery = e.target.value; renderDock(); el('dbSearch').focus(); };
-  el('dbBase').onchange = e => DB.setBase(e.target.value);
-  el('dbReload').onclick = async () => { await DB.loadIndex(); toast(DB.records.length + ' database records'); renderDock(); };
-  el('dbFiles').onchange = async e => { const n = await DB.loadFiles(e.target.files); toast(n + ' records loaded'); renderDock(); };
   if (sel && sel.facts) renderDbDetail(el('dbDetail'), sel);
+}
+
+/* ---- the database itself: the cloud in the top bar, and what it opens ---- */
+function renderDbChip(){
+  const b = el('btnDb');
+  if (!b) return;
+  if (!b.querySelector('.dbcloud')) b.insertAdjacentHTML('afterbegin', dbCloudSVG());
+  b.classList.toggle('on', DB.connected);
+  el('dbLabel').textContent = DB.connected ? DB.name : 'Not connected';
+  b.title = DB.connected
+    ? 'Connected to ' + DB.name + ' — ' + DB.records.length + ' records. Click to change or disconnect.'
+    : 'No component database connected — click to connect one';
+}
+function openDbConnect(){
+  openModal('Component database', h`
+    <p class="hint" style="margin-top:0">The <b>Explorer</b> panel reads the GPN datasheet extracts from here. Point it at a folder
+      holding an <b>index.json</b>, or pick the record files by hand when there is no server to read one.</p>
+    <div class="kv"><label>Database folder</label>
+      <div class="row"><input type="text" id="dbBase" value="${esc(DB.base)}" placeholder="db/">
+        <button id="dbGo" class="primary" style="flex:0 0 auto">Connect</button></div></div>
+    <div class="kv"><label>Or load the record files yourself</label>
+      <input type="file" id="dbFiles" multiple accept="application/json" style="font-size:11px"></div>
+    <p class="hint" id="dbConnState" style="margin-bottom:0"></p>`,
+    `${DB.connected ? '<button class="danger" id="dbDisconnect">Disconnect</button>' : ''}<button class="primary" id="dbClose">Close</button>`);
+  const state = () => {
+    el('dbConnState').innerHTML = DB.error
+      ? `<span style="color:var(--warn)">${esc(DB.base)}index.json: ${esc(DB.error)}</span>`
+      : DB.connected ? `<span style="color:var(--ok)">Connected to <b>${esc(DB.name)}</b> — ${DB.records.length} records.</span>`
+      : 'Not connected.';
+  };
+  const after = msg => { state(); renderDbChip(); renderDock(); if (msg) toast(msg); };
+  state();
+  el('dbGo').onclick = async () => {
+    DB.setBase(el('dbBase').value.trim() || 'db/');
+    await DB.loadIndex();
+    after(DB.connected ? 'Connected to ' + DB.name + ' · ' + DB.records.length + ' records'
+                       : 'No index.json under ' + DB.base);
+  };
+  el('dbFiles').onchange = async e => { const n = await DB.loadFiles(e.target.files); after(n + ' records loaded'); };
+  if (el('dbDisconnect')) el('dbDisconnect').onclick = () => {
+    DB.disconnect(); S.ui.dbSel = null; closeModal(); renderDbChip(); renderDock(); toast('Database disconnected');
+  };
+  el('dbClose').onclick = closeModal;
 }
 
 function renderDbDetail(host, rec){
@@ -649,7 +715,9 @@ function dockApply(){
   const was = d.classList.contains('collapsed');
   d.classList.toggle('collapsed', dock.hidden);
   hnd.classList.toggle('folded', dock.hidden);
-  hnd.title = dock.hidden ? 'Show the panel dock' : 'Hide the panel dock';
+  // the X now does the closing, so the handle is only ever the way back in
+  hnd.hidden = !dock.hidden;
+  hnd.title = 'Show the panel dock';
   if (was !== dock.hidden) setTimeout(render, 240);
 }
 function dockShow(){ dock.hidden = false; dockApply(); }
@@ -665,7 +733,7 @@ function dockScheduleHide(){
   if (!dock.pinned) dock.hideT = setTimeout(dockHide, DOCK_HIDE_MS);
 }
 function dockOnRender(){
-  if (dock.pinned) return;
+  if (dock.pinned || dockEmpty()) return;
   const k = S.sel ? S.sel.type + ':' + S.sel.id + ':' + S.selIds.size : null;
   if (k){ clearTimeout(dock.hideT); dock.hideT = null; if (k !== dock.selKey) dockShow(); }
   else dockScheduleHide();
@@ -673,9 +741,12 @@ function dockOnRender(){
 }
 function initDock(){
   dock.load();
+  if (dockEmpty()) dock.hidden = true;        // closed last time: stay closed
   dockSetWidth(dock.w);
   renderPanelsMenu();
   renderDock();
+  renderDbChip();
+  dockApply();
   el('dockPin').onclick = () => {
     el('dockPin').blur();
     dock.pinned = !dock.pinned;
@@ -683,10 +754,12 @@ function initDock(){
     el('dockPin').title = dock.pinned ? 'Unpin — the dock hides itself to maximize the sheet' : 'Pin — keep the dock always visible';
     if (dock.pinned){ clearTimeout(dock.hideT); dockShow(); } else dockScheduleHide();
   };
+  el('dockClose').onclick = () => { el('dockClose').blur(); dockCloseAll(); };
+  // Reopening a group that was closed outright brings back Project, alone.
   el('dockHandle').onclick = () => {
     el('dockHandle').blur();
-    if (dock.hidden){ dockShow(); dockScheduleHide(); }
-    else { clearTimeout(dock.hideT); dock.hidden = true; dockApply(); }
+    if (dockEmpty()){ dock.enabled.project = true; dock.active = 'project'; dock.save(); renderPanelsMenu(); }
+    dockShow(); renderDock(); dockScheduleHide();
   };
   el('dock').addEventListener('pointerenter', () => clearTimeout(dock.hideT));
   el('dock').addEventListener('pointerleave', dockScheduleHide);

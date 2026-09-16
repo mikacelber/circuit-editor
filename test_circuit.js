@@ -408,5 +408,33 @@ section('Typography');
     (svgOut.match(/Times New Roman/g) || []).length >= 5 && !/IBM Plex/.test(svgOut));
 }
 
+section('One line weight');
+{
+  const css = fs.readFileSync('styles.css', 'utf8');
+  const heavy = Object.keys(W.SYMBOLS).filter(k => W.SYMBOLS[k].thick);
+  check('no symbol carries a heavier set of strokes any more' + (heavy.length ? ' — still: ' + heavy.join(', ') : ''), heavy.length === 0);
+  const drawn = Object.keys(W.SYMBOLS).filter(k => !W.SYMBOLS[k].generated)
+    .map(k => W.symbolBodySVG(W.SYMBOLS[k], {})).join('') +
+    W.symbolBodySVG(W.defOf({ kind:'ic', pinNames:['1','2','3','4'] }), {}) +
+    W.symbolBodySVG(W.defOf({ kind:'connector', pinNames:['1','2'] }), {});
+  check('…and nothing the renderer emits asks for one', !/thick/.test(drawn));
+  check('the stylesheet declares a single symbol line weight',
+    /--sym-w:[\d.]+;/.test(css) && !/\.thick\{/.test(css));
+  const widths = (css.match(/#partsG [^{]*\{[^}]*stroke-width:[^;}]+/g) || [])
+    .map(r => r.split('stroke-width:')[1]).filter(w => !/10/.test(w));
+  check('every symbol stroke on the sheet uses it, pin leads included (' + [...new Set(widths)].join(' ') + ')',
+    widths.length > 0 && widths.every(w => w.startsWith('var(--sym-w)')));
+  const svgOut = T.sheetSVG();
+  const svgW = [...new Set((svgOut.match(/stroke-width:[\d.]+/g) || []).map(Number.parseFloat ? s => s : s => s))]
+    .filter(w => !/:(10|1\.5|2)$/.test(w));
+  check('the exported sheet draws its symbols at one width too (' + svgW.join(' ') + ')',
+    !/\.thick/.test(svgOut) && svgW.every(w => w === 'stroke-width:1.4' || w === 'stroke-width:1.6'));
+  // the capacitor plates and the MOSFET gate bar were the two heaviest
+  check('the capacitor plates and the MOSFET gate bar survived the merge',
+    W.SYMBOLS.cap.paths.includes('M-3 -8V8') && W.SYMBOLS.cap.paths.includes('M3 -8V8') &&
+    W.SYMBOLS.nmos.paths.includes('M-7 -12V-5') && W.SYMBOLS.npn.paths.includes('M-8 -11V11') &&
+    W.SYMBOLS.battery.paths.includes('M-8 -10V10') && W.SYMBOLS.xtal.paths.includes('M-7 -8V8'));
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

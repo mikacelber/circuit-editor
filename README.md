@@ -131,7 +131,9 @@ that stop being bends are removed on release.
 ### Symbols
 
 The symbols follow the drawing conventions of schematic CAD (Altium's default
-look): thin dark-blue outlines and text, pale-yellow filled bodies for ICs,
+look): thin dark-blue outlines and text at **one line weight** — no symbol
+mixes thicknesses, and the pin leads match the bodies — pale-yellow filled
+bodies for ICs,
 connectors, resistors and transistor envelopes, solid arrows on diodes and
 transistors, pin names inside the body (level whichever way the part is
 turned, vertical on a top/bottom edge), designator above and value below, and

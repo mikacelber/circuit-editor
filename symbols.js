@@ -10,7 +10,6 @@
      { id, label, cat, prefix, pins:[{name,x,y,dir}],
        bodies:[d…]   closed outlines, drawn FILLED (the pale body fill)
        paths:[d…]    open strokes: leads, plates, windings
-       thick:[d…]    heavier strokes (capacitor plates)
        fills:[d…]    solid shapes in the line colour (diode triangles, arrows)
        extra:'<svg>', box:{x,y,w,h}, leads:bool, names:bool }
    `leads:true` means the renderer draws the pin leads itself (used by
@@ -19,9 +18,10 @@
    inside the body.
 
    The drawing convention is the one schematic CAD tools share
-   (Altium's default look): thin dark-blue outlines, filled bodies,
-   filled arrows, pin names inside the body, designator above and
-   value below. The colours themselves live in styles.css.
+   (Altium's default look): dark-blue outlines at ONE line weight —
+   no symbol mixes thicknesses — filled bodies, filled arrows, pin names
+   inside the body, designator above and value below. The colours and
+   that single weight live in styles.css.
    ================================================================== */
 'use strict';
 
@@ -66,12 +66,12 @@ const SYMBOLS = {
   cap: {
     label:'Capacitor', cat:'passive', prefix:'C', value:'100n',
     pins:[P('1',-20,0,'l'), P('2',20,0,'r')],
-    paths:['M-20 0H-3','M3 0H20'], thick:['M-3 -8V8','M3 -8V8'], box:box(-20,-10,40,20),
+    paths:['M-20 0H-3','M3 0H20','M-3 -8V8','M3 -8V8'], box:box(-20,-10,40,20),
   },
   cap_pol: {
     label:'Cap. polarized', cat:'passive', prefix:'C', value:'10u',
     pins:[P('1',-20,0,'l'), P('2',20,0,'r')],
-    paths:['M-20 0H-3','M5 0H20','M-13 -7V-3','M-15 -5H-11'], thick:['M-3 -8V8','M6 -8A12 12 0 0 0 6 8'],
+    paths:['M-20 0H-3','M5 0H20','M-13 -7V-3','M-15 -5H-11','M-3 -8V8','M6 -8A12 12 0 0 0 6 8'],
     box:box(-20,-10,40,20),
   },
   ind: {
@@ -109,7 +109,7 @@ const SYMBOLS = {
   xtal: {
     label:'Crystal', cat:'passive', prefix:'Y', value:'32.768k',
     pins:[P('1',-20,0,'l'), P('2',20,0,'r')],
-    paths:['M-20 0H-7','M7 0H20'], thick:['M-7 -8V8','M7 -8V8'], bodies:['M-3 -11H3V11H-3Z'], box:box(-20,-12,40,24),
+    paths:['M-20 0H-7','M7 0H20','M-7 -8V8','M7 -8V8'], bodies:['M-3 -11H3V11H-3Z'], box:box(-20,-12,40,24),
   },
   osc: {
     label:'Oscillator', cat:'passive', prefix:'Y', value:'25MHz',
@@ -161,44 +161,38 @@ const SYMBOLS = {
     label:'NPN transistor', cat:'discrete', prefix:'Q', value:'MMBT3904',
     pins:[P('B',-20,0,'l'), P('C',0,-30,'t'), P('E',0,30,'b')],
     bodies:[circlePath(-3, 0, 15)],
-    paths:['M-20 0H-8','M-8 -6L0 -14','M0 -14V-30','M-8 6L0 14','M0 14V30'],
-    thick:['M-8 -11V11'],
+    paths:['M-20 0H-8','M-8 -6L0 -14','M0 -14V-30','M-8 6L0 14','M0 14V30','M-8 -11V11'],
     fills:['M-0.5 13.5L-6.5 11.1L-2.9 7.5Z'], box:box(-20,-30,30,60),
   },
   pnp: {
     label:'PNP transistor', cat:'discrete', prefix:'Q', value:'MMBT3906',
     pins:[P('B',-20,0,'l'), P('C',0,-30,'t'), P('E',0,30,'b')],
     bodies:[circlePath(-3, 0, 15)],
-    paths:['M-20 0H-8','M-8 -6L0 -14','M0 -14V-30','M-8 6L0 14','M0 14V30'],
-    thick:['M-8 -11V11'],
+    paths:['M-20 0H-8','M-8 -6L0 -14','M0 -14V-30','M-8 6L0 14','M0 14V30','M-8 -11V11'],
     fills:['M-7.5 6.5L-5.1 12.5L-1.5 8.9Z'], box:box(-20,-30,30,60),
   },
   nmos: {
     label:'N-MOSFET', cat:'discrete', prefix:'Q', value:'NMOS',
     pins:[P('G',-20,0,'l'), P('D',0,-30,'t'), P('S',0,30,'b')],
-    paths:['M-20 0H-13','M-13 -11V11','M-7 -9H0V-30','M-7 9H0V30','M-7 0H0','M0 9V0'],
-    thick:['M-7 -12V-5','M-7 -3.5V3.5','M-7 5V12'],
+    paths:['M-20 0H-13','M-13 -11V11','M-7 -9H0V-30','M-7 9H0V30','M-7 0H0','M0 9V0','M-7 -12V-5','M-7 -3.5V3.5','M-7 5V12'],
     fills:['M-7 0L-2 -3L-2 3Z'], box:box(-20,-30,30,60),
   },
   pmos: {
     label:'P-MOSFET', cat:'discrete', prefix:'Q', value:'PMOS',
     pins:[P('G',-20,0,'l'), P('D',0,-30,'t'), P('S',0,30,'b')],
-    paths:['M-20 0H-13','M-13 -11V11','M-7 -9H0V-30','M-7 9H0V30','M-7 0H0','M0 9V0'],
-    thick:['M-7 -12V-5','M-7 -3.5V3.5','M-7 5V12'],
+    paths:['M-20 0H-13','M-13 -11V11','M-7 -9H0V-30','M-7 9H0V30','M-7 0H0','M0 9V0','M-7 -12V-5','M-7 -3.5V3.5','M-7 5V12'],
     fills:['M-1 0L-6 -3L-6 3Z'], box:box(-20,-30,30,60),
   },
   gan: {
     label:'GaN HEMT', cat:'discrete', prefix:'Q', value:'GaN',
     pins:[P('G',-20,0,'l'), P('D',0,-30,'t'), P('S',0,30,'b')],
-    paths:['M-20 0H-13','M-13 -11V11','M-7 -9H0V-30','M-7 9H0V30','M-7 0H0','M0 9V0'],
-    thick:['M-7 -12V12'],
+    paths:['M-20 0H-13','M-13 -11V11','M-7 -9H0V-30','M-7 9H0V30','M-7 0H0','M0 9V0','M-7 -12V12'],
     fills:['M-7 0L-2 -3L-2 3Z'], box:box(-20,-30,30,60),
   },
   igbt: {
     label:'IGBT', cat:'discrete', prefix:'Q', value:'IGBT',
     pins:[P('G',-20,0,'l'), P('C',0,-30,'t'), P('E',0,30,'b')],
-    paths:['M-20 0H-13','M-13 -11V11','M-7 -8L0 -14V-30','M-7 8L0 14V30'],
-    thick:['M-7 -12V12'],
+    paths:['M-20 0H-13','M-13 -11V11','M-7 -8L0 -14V-30','M-7 8L0 14V30','M-7 -12V12'],
     fills:['M-0.5 13.6L-6.7 11.6L-3.5 7.8Z'], box:box(-20,-30,30,60),
   },
   scr: {
@@ -212,8 +206,7 @@ const SYMBOLS = {
     bodies:['M-20 -20H20V20H-20Z'],
     paths:['M-30 -10H-14V-5','M-14 3V10H-30','M-18 3H-10',            // LED
            'M-9 -4H-5','M-9 2H-5',                                    // light
-           'M8 -4L14 -10H30','M8 4L14 10H30'],                        // phototransistor
-    thick:['M8 -8V8'],
+           'M8 -4L14 -10H30','M8 4L14 10H30','M8 -8V8'],                        // phototransistor
     fills:['M-18 -5L-10 -5L-14 3Z','M-4 -4L-7 -6L-7 -2Z','M-4 2L-7 0L-7 4Z','M13.5 9.5L8.6 7.4L11.4 4.6Z'],
     box:box(-30,-20,60,40),
   },
@@ -275,7 +268,7 @@ const SYMBOLS = {
   battery: {
     label:'Battery', cat:'electro', prefix:'BT', value:'3.7V',
     pins:[P('+',-20,0,'l'), P('-',20,0,'r')],
-    paths:['M-20 0H-8','M8 0H20','M-2 -5V5','M8 -5V5','M-17 -7V-3','M-19 -5H-15'], thick:['M-8 -10V10','M2 -10V10'], box:box(-20,-12,40,24),
+    paths:['M-20 0H-8','M8 0H20','M-2 -5V5','M8 -5V5','M-17 -7V-3','M-19 -5H-15','M-8 -10V10','M2 -10V10'], box:box(-20,-12,40,24),
   },
   motor: {
     label:'Motor', cat:'electro', prefix:'M', value:'',
@@ -510,7 +503,6 @@ function symbolBodySVG(def, opts){
   }
   for (const d of def.bodies || []) s += `<path class="symbody" d="${d}"/>`;
   for (const d of def.paths || []) s += `<path class="sym" d="${d}"/>`;
-  for (const d of def.thick || []) s += `<path class="sym thick" d="${d}"/>`;
   for (const d of def.fills || []) s += `<path class="symfill" d="${d}"/>`;
   if (def.extra) s += def.extra;
   return s;

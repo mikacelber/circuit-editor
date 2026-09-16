@@ -996,10 +996,10 @@ function sheetSVG(){
   const pad = 40;
   // the printed sheet: the light schematic palette, whatever theme is on screen
   const css = `<style>
-    .sym{fill:none;stroke:#000080;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}.sym.thick{stroke-width:2.4}
+    .sym{fill:none;stroke:#000080;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
     .symbody{fill:#FFFFB2;stroke:#000080;stroke-width:1.4;stroke-linejoin:round}.symfill{fill:#000080;stroke:none}
     .icbody{fill:#FFFFB2;stroke:#000080;stroke-width:1.4}.pinmark{fill:#000080;stroke:none}
-    .pinline{stroke:#000080;stroke-width:1.2}.pinend{fill:none;stroke:none}.pinend.free{stroke:#C43E1C;stroke-width:1.1}.picked{fill:#3D7A46}
+    .pinline{stroke:#000080;stroke-width:1.4}.pinend{fill:none;stroke:none}.pinend.free{stroke:#C43E1C;stroke-width:1.4}.picked{fill:#3D7A46}
     .wire{fill:none;stroke:#000080;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter}.wire.hit,.vtx,.hit{display:none}.junction{fill:#800000}
     .ref{font:bold 11px 'Times New Roman',Tinos,serif;fill:#000080}.value{font:10px 'Times New Roman',Tinos,serif;fill:#000080}
     .netlabel{font:bold 10.5px 'Times New Roman',Tinos,serif;fill:#000080}

@@ -23,7 +23,7 @@ window.Element.prototype.releasePointerCapture = () => {};
    eval reproduces that, and the epilogue hands the test what it needs. */
 window.eval(['symbols.js', 'netlist.js', 'db.js', 'parts.js', 'panels.js', 'app.js']
   .map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + `
-  window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, defOf, partPins, partBounds, kindForComponent, pinNameFor,
+  window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, renderDbDetail, defOf, partPins, partBounds, kindForComponent, pinNameFor,
     componentType, typeFields, propValue, symbolBodySVG,
     connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB,
     dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor };`);
@@ -314,6 +314,74 @@ section('Symbol drawing');
     ['choke','cm_choke','osc','scr','gan','contactor','solenoid'].every(k => W.SYMBOLS[k].pins.every(p => p.x % 10 === 0 && p.y % 10 === 0)));
   const svgOut = T.sheetSVG();
   check('the SVG export ships the schematic palette', /#000080/.test(svgOut) && /#FFFFB2/.test(svgOut));
+}
+
+section('Panel tabs');
+{
+  const doc = window.document, css = fs.readFileSync('styles.css', 'utf8');
+  const nav = d => doc.querySelector('#dockTabs [data-tabnav="' + d + '"]');
+  const titles = W.PANELS.map(p => p.title).join(',');
+  check('the Database panel is now called Explorer (' + titles + ')',
+    titles === 'Project,Components,Netlist,Properties,Explorer,Messages');
+  T.setPanel('database');
+  check('…and wears a blue cloud in its tab and in the panel header',
+    /cloudicon/.test(doc.querySelector('#dockTabs [data-pane="database"]').innerHTML) &&
+    /cloudicon/.test(doc.getElementById('dockTitle').innerHTML));
+  check('…and no other panel carries one', doc.querySelectorAll('#dockTabs .cloudicon').length === 1);
+  check('the cloud is drawn in the blue token, in both themes',
+    /\.cloudicon\{[^}]*fill:var\(--cloud\)/.test(css) && (css.match(/--cloud:/g) || []).length === 2);
+
+  const strip = doc.querySelector('#dockTabs .dtabs-scroll');
+  check('every tab lives in ONE row that never wraps',
+    !!strip && strip.querySelectorAll('[data-pane]').length === 6 &&
+    /\.dtabs\{[^}]*flex-wrap:nowrap/.test(css) && /\.dtabs-scroll\{[^}]*flex-wrap:nowrap/.test(css));
+  check('the row hides its overflow instead of stacking rows',
+    /\.dtabs-scroll\{[^}]*overflow:hidden/.test(css));
+  check('two triangle buttons sit together just right of the names',
+    !!nav(-1) && !!nav(1) && nav(-1).closest('.dtabs-nav') === nav(1).closest('.dtabs-nav') &&
+    nav(-1).closest('.dtabs-nav').previousElementSibling === strip &&
+    /<path /.test(nav(-1).innerHTML) && /<path /.test(nav(1).innerHTML));
+  check('…and they only show themselves once the names stop fitting',
+    /\.dtabs-nav\{[^}]*display:none/.test(css) && /\.dtabs\.tabnav \.dtabs-nav\{display:flex\}/.test(css));
+
+  T.setPanel('project');
+  check('at the first panel the left triangle is disabled', nav(-1).disabled && !nav(1).disabled);
+  nav(1).click();
+  check('the right triangle makes the NEXT panel active', T.dock.active === 'components');
+  nav(1).click(); nav(1).click();
+  check('…and keeps stepping along the strip', T.dock.active === 'properties');
+  nav(-1).click();
+  check('the left triangle steps back', T.dock.active === 'nets');
+  T.setPanel('messages');
+  check('at the last panel the right triangle is disabled', nav(1).disabled && !nav(-1).disabled);
+  nav(1).click();
+  check('…and pressing it anyway changes nothing', T.dock.active === 'messages');
+  // a panel without a tab is simply not in the walk
+  T.dock.enabled.nets = false; T.setPanel('components');
+  nav(1).click();
+  check('stepping skips a panel whose tab was switched off in the Panels menu', T.dock.active === 'properties');
+  T.dock.enabled.nets = true;
+  check('the active tab is always scrolled into view', typeof T.updateTabOverflow === 'function' &&
+    (T.setPanel('messages'), T.updateTabOverflow(), true));
+  T.setPanel('project');
+}
+
+section('Explorer detail');
+{
+  T.clearSel();
+  const host = window.document.createElement('div');
+  W.renderDbDetail(host, { gpn:'TEST123', part_numbers:['TEST123A'], facts:{
+    identity:{ package:'QFN-16', description:'A test part' },
+    pinout:[{ pin:'1', name:'VIN', type:'power' }],
+    supplies:[{ name:'VDD', min:'2.7', typ:'3.3', max:'5.5', units:'V' }],
+    external_components:[{ type:'capacitor', value:'1 µF', from_pin_name:'VIN', to_pin_name:'GND' }],
+    designer_notes:['Keep the input capacitor close to the pin.'],
+    figures:[{ title:'Application circuit', image_url:'https://example.invalid/fig.png' }] } });
+  const heads = [...host.querySelectorAll('.sechead')].map(e => e.textContent.trim());
+  check('the IC preview ends with Figures, after Designer notes (' + heads.join(' → ') + ')',
+    heads[heads.length - 1] === 'Figures' && heads.indexOf('Figures') > heads.indexOf('Designer notes'));
+  check('…and every other section keeps its order',
+    heads.slice(0, 4).join('|') === 'TEST123 — identity|Pinout|Supplies|Required external parts');
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

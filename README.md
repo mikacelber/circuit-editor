@@ -30,7 +30,7 @@ rules, `Export` gives you the session, the drawn netlist or the sheet as SVG.
 Opening `index.html` straight from disk works too, except for the two things a
 browser refuses to `fetch` over `file://`: the bundled sample and the component
 database. Use the **File** tab of the Import dialog and the **Load files…**
-picker in the Database panel instead.
+picker in the Explorer panel instead.
 
 ---
 
@@ -41,7 +41,7 @@ picker in the Database panel instead.
 | **Top bar** | Logo, project title, undo/redo, Arrange, Check, Import, Export. |
 | **Sheet** | Adaptive grid drawn in screen space: it stays on the world lattice at every pan and zoom, and thins out as you zoom away. Wheel zooms about the pointer, drag pans, `F` fits, the bottom-right buttons do the same. |
 | **Tool strip** | Floats over the top-centre of the sheet: select, wire, net label, ground, power rail, text, then rotate / mirror / duplicate / delete. |
-| **Panel dock** | The right-hand panel group. Pin it, fold it away with the handle on the divider, or drag its left edge to resize. |
+| **Panel dock** | The right-hand panel group. Pin it, fold it away with the handle on the divider, or drag its left edge to resize. Its tabs stay on **one row**: when the names stop fitting, two triangles appear right after them and step to the next or previous panel, scrolling the strip so the active name is always readable. |
 | **Panels button** | Bottom-right corner: check a panel to give it a tab, uncheck it to take the tab away. |
 | **Status bar** | Parts, wires, nets imported, how much of the netlist is drawn, and the error/warning count (click it to open Messages). |
 
@@ -74,10 +74,11 @@ picker in the Database panel instead.
   symbol, exactly as the architecture editor does for ICs. Keys and options
   live in *Part search settings* (also reachable from Project). For a wire: the
   net it carries, the pins it touches, and a warning if it joins two nets.
-- **Database** — the GPN datasheet extracts (see below): identity, pinout,
+- **Explorer** ☁ — the GPN datasheet extracts (see below): identity, pinout,
   supplies, the **required external components** checked one by one against the
-  netlist, the figures and the designer notes. Assign a part number to the
-  selected symbol from here.
+  netlist, the designer notes and, last of all, the figures. Assign a part
+  number to the selected symbol from here. The blue cloud on its tab says the
+  panel reads the component database rather than the sheet.
 - **Messages** — the rule check, worst first. Click a line to jump to the net or
   the part it is about.
 
@@ -172,7 +173,7 @@ changes:
 npm run db:index          # node tools/build-db-index.js [dbDir]
 ```
 
-The Database panel then matches a symbol's part number to a record — exact
+The Explorer panel then matches a symbol's part number to a record — exact
 first, then by family (`BQ24075-Q1` → `BQ24075`, `TPS7A20185PDBVR` → `TPS7A20`)
 — and turns the record's `external_components` list into a checklist against
 the netlist: found (green), probable (amber, when the datasheet names the far

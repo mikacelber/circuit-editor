@@ -8,14 +8,23 @@
    ================================================================== */
 'use strict';
 
+/* `cloud:true` marks a panel whose content comes from the component database
+   rather than from the sheet — it wears a blue cloud next to its name. */
 const PANELS = [
   { id:'project',    title:'Project',    eyebrow:'Design record',        render: paneProject },
   { id:'components', title:'Components', eyebrow:'Symbol library',       render: paneComponents },
   { id:'nets',       title:'Netlist',    eyebrow:'Imported connectivity',render: paneNets },
   { id:'properties', title:'Properties', eyebrow:'Selection',            render: paneProperties },
-  { id:'database',   title:'Database',   eyebrow:'GPN datasheets',       render: paneDatabase },
+  { id:'database',   title:'Explorer',   eyebrow:'GPN datasheets',       render: paneDatabase, cloud:true },
   { id:'messages',   title:'Messages',   eyebrow:'Rule check',           render: paneMessages },
 ];
+/* The blue cloud that says "this panel reads the database", and the two
+   triangles the tab strip grows when the names stop fitting. */
+const CLOUD_SVG = '<svg class="cloudicon" viewBox="0 0 24 16" aria-hidden="true" focusable="false">' +
+  '<circle cx="7.6" cy="9" r="5"/><circle cx="13.6" cy="6.4" r="5.6"/><circle cx="18.4" cy="10.2" r="4"/>' +
+  '<rect x="3.6" y="9" width="16" height="5" rx="2.5"/></svg>';
+const TRI_LEFT  = '<svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M7.4 0.6 1.6 6l5.8 5.4z"/></svg>';
+const TRI_RIGHT = '<svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M2.6 0.6 8.4 6l-5.8 5.4z"/></svg>';
 const PANEL_DEFAULT = { project:true, components:true, nets:true, properties:true, database:true, messages:true };
 
 const dock = {
@@ -42,7 +51,7 @@ const h = (strings, ...vals) => strings.reduce((a, s, i) => a + s + (vals[i] == 
 function renderDock(){
   const pane = PANELS.find(p => p.id === dock.active) || PANELS[0];
   el('dockEyebrow').textContent = pane.eyebrow;
-  el('dockTitle').textContent = pane.title;
+  el('dockTitle').innerHTML = esc(pane.title) + (pane.cloud ? CLOUD_SVG : '');
   const body = el('dockBody');
   const keepScroll = body.dataset.pane === pane.id ? body.scrollTop : 0;
   // a field being typed in survives the re-render: same id, same caret
@@ -58,13 +67,63 @@ function renderDock(){
   }
   renderDockTabs();
 }
+/* ------------------------------------------------------------------
+   The tab strip is ONE row and never wraps. When the names stop fitting
+   the strip scrolls instead, and the two triangles at its right end step
+   the active panel to the next or the previous one — the strip follows,
+   so the active name is always the one you can read.
+   ------------------------------------------------------------------ */
+const enabledPanels = () => PANELS.filter(p => dock.enabled[p.id]);
+/* The panel one step away from the active one, or null at either end. */
+function tabNeighbour(dir){
+  const order = enabledPanels().map(p => p.id);
+  const i = order.indexOf(dock.active);
+  if (i < 0) return order[0] || null;
+  const j = i + dir;
+  return j >= 0 && j < order.length ? order[j] : null;
+}
+function stepPanel(dir){
+  const id = tabNeighbour(dir);
+  if (id && id !== dock.active) setPanel(id);
+}
+
+let tabsKey = null;                 // rebuild the strip only when it changes
 function renderDockTabs(){
   const tabs = el('dockTabs');
   const badges = { messages: (S.lastCheck && S.lastCheck.issues.filter(i => i.sev !== 'info').length) || 0 };
-  tabs.innerHTML = PANELS.filter(p => dock.enabled[p.id]).map(p =>
-    `<button data-pane="${p.id}" class="${p.id === dock.active ? 'on' : ''}">${p.title}` +
-    (badges[p.id] ? `<span class="badge">${badges[p.id]}</span>` : '') + `</button>`).join('');
-  tabs.querySelectorAll('button').forEach(b => b.onclick = () => setPanel(b.dataset.pane));
+  const list = enabledPanels();
+  const key = list.map(p => p.id + ':' + (badges[p.id] || 0)).join(',') + '|' + dock.active;
+  if (key !== tabsKey){
+    tabsKey = key;
+    tabs.innerHTML =
+      `<div class="dtabs-scroll" id="dockTabScroll">` + list.map(p =>
+        `<button data-pane="${p.id}" class="${p.id === dock.active ? 'on' : ''}">${esc(p.title)}${p.cloud ? CLOUD_SVG : ''}` +
+        (badges[p.id] ? `<span class="badge">${badges[p.id]}</span>` : '') + `</button>`).join('') + `</div>` +
+      `<div class="dtabs-nav">
+         <button data-tabnav="-1" title="Previous panel">${TRI_LEFT}</button>
+         <button data-tabnav="1" title="Next panel">${TRI_RIGHT}</button></div>`;
+    tabs.querySelectorAll('[data-pane]').forEach(b => b.onclick = () => setPanel(b.dataset.pane));
+    tabs.querySelectorAll('[data-tabnav]').forEach(b => b.onclick = () => stepPanel(+b.dataset.tabnav));
+  }
+  updateTabOverflow();
+}
+/* Do all the names still fit? If not, show the triangles; either way, keep
+   the active tab inside the visible part of the strip. */
+function updateTabOverflow(){
+  const tabs = el('dockTabs'), scroll = el('dockTabScroll');
+  if (!tabs || !scroll) return;
+  // measured against the tabs themselves, never against the strip with the
+  // triangles already in it, so showing them can never feed back on itself
+  const need = [...scroll.children].reduce((a, b) => a + b.offsetWidth, 0) > tabs.clientWidth + 1;
+  tabs.classList.toggle('tabnav', need);
+  const prev = tabs.querySelector('[data-tabnav="-1"]'), next = tabs.querySelector('[data-tabnav="1"]');
+  if (prev) prev.disabled = !tabNeighbour(-1);
+  if (next) next.disabled = !tabNeighbour(1);
+  const on = scroll.querySelector('.on');
+  if (!on) return;
+  const left = on.offsetLeft, right = left + on.offsetWidth;
+  if (left < scroll.scrollLeft) scroll.scrollLeft = left;
+  else if (right > scroll.scrollLeft + scroll.clientWidth) scroll.scrollLeft = right - scroll.clientWidth;
 }
 function setPanel(id){
   if (!dock.enabled[id]) dock.enabled[id] = true;
@@ -75,7 +134,7 @@ function setPanel(id){
 function renderPanelsMenu(){
   const m = el('panelsMenu');
   m.innerHTML = '<div class="pm-title">Panels</div>' + PANELS.map(p =>
-    `<label><input type="checkbox" data-pane="${p.id}" ${dock.enabled[p.id] ? 'checked' : ''}> ${p.title}</label>`).join('');
+    `<label><input type="checkbox" data-pane="${p.id}" ${dock.enabled[p.id] ? 'checked' : ''}> ${esc(p.title)}${p.cloud ? CLOUD_SVG : ''}</label>`).join('');
   m.querySelectorAll('input').forEach(cb => cb.onchange = () => {
     const id = cb.dataset.pane;
     dock.enabled[id] = cb.checked;
@@ -301,7 +360,7 @@ function paneProperties(body){
         `<tr><td class="mono">${esc(k)}</td><td>${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('')}</tbody></table>` : ''}
     ${rec ? h`<div class="sechead">Datasheet</div>
       <p style="font-size:11.5px">Matched <b>${esc(rec.gpn || '')}</b> in the database.</p>
-      <div class="btnrow"><button id="ppDb">Open in Database panel</button></div>` : ''}`;
+      <div class="btnrow"><button id="ppDb">Open in Explorer</button></div>` : ''}`;
 
   body.querySelectorAll('[data-pp]').forEach(inp => inp.onchange = () => {
     commit(); part[inp.dataset.pp] = inp.value;
@@ -532,11 +591,11 @@ function renderDbDetail(host, rec){
         return `<tr><td class="mono">${esc(c.type)} ${esc(c.value || '')}</td>
           <td class="mono">${esc(c.from_pin_name)} → ${esc(c.to_pin_name)}</td><td>${stateCol}</td></tr>`;
       }).join('')}</tbody></table>` : ''}
+    ${(f.designer_notes || []).length ? h`<div class="sechead">Designer notes</div>
+      ${f.designer_notes.slice(0, 8).map(n => `<p style="font-size:11.5px">${esc(n)}</p>`).join('')}` : ''}
     ${figs.length ? h`<div class="sechead">Figures</div><div class="figgrid">
       ${figs.slice(0, 6).map(x => `<a href="${esc(DB.figureURL(rec, x))}" target="_blank" rel="noreferrer" title="${esc(x.title || '')}"><img loading="lazy" src="${esc(DB.figureURL(rec, x))}" alt="${esc(x.title || '')}"></a>`).join('')}
       </div>` : ''}
-    ${(f.designer_notes || []).length ? h`<div class="sechead">Designer notes</div>
-      ${f.designer_notes.slice(0, 8).map(n => `<p style="font-size:11.5px">${esc(n)}</p>`).join('')}` : ''}
     ${selPart ? h`<div class="btnrow"><button id="dbAssign">Assign ${esc(rec.gpn)} to ${esc(selPart.ref)}</button></div>` : ''}`;
   if (selPart) el('dbAssign').onclick = () => {
     commit();
@@ -583,6 +642,7 @@ function dockSetWidth(w, tiny){
   const d = el('dock');
   d.style.width = dock.w + 'px';
   d.style.setProperty('--dockw', dock.w + 'px');
+  updateTabOverflow();                      // a narrower dock may hide names
 }
 function dockApply(){
   const d = el('dock'), hnd = el('dockHandle');
@@ -650,4 +710,8 @@ function initDock(){
   const menu = el('panelsMenu');
   el('btnPanels').onclick = ev => { ev.stopPropagation(); menu.hidden = !menu.hidden; renderPanelsMenu(); };
   document.addEventListener('click', ev => { if (!menu.hidden && !menu.contains(ev.target)) menu.hidden = true; });
+  // the strip has to re-measure whenever it changes size: the dock being
+  // dragged, folded (a 220ms transition) or the window itself resized
+  window.addEventListener('resize', updateTabOverflow);
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => updateTabOverflow()).observe(el('dockTabs'));
 }

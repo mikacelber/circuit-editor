@@ -1070,7 +1070,8 @@ if (!S.parts.length) fitView({ x:-400, y:-300, w:800, h:600 });
 if (typeof window !== 'undefined') window.__CE = {
   S, render, importAny, runCheck, setTool, startPlace, addPart, fitView, toWorld, snapView,
   connectivity, checkDesign, netlistFromSheet, partsFromNetlist, arrangeParts, parseCircuitData,
-  setPanel, dock, renderDock, DB, finishWire, sheetBounds, selectOnly, toggleSel, clearSel,
+  setPanel, dock, renderDock, renderDockTabs, stepPanel, tabNeighbour, updateTabOverflow,
+  DB, finishWire, sheetBounds, selectOnly, toggleSel, clearSel,
   moveVertex, ensureBends, ensureSegBends, simplifyWire, orthogonalize, rubberBandStart, rubberBandApply, rubberBandEnd,
   rotateSel, mirrorSel, duplicateSel, nudgeSel, bomCSV, loadSession, sheetSVG,
   get wireDraft(){ return wireDraft; }, set wireDraft(v){ wireDraft = v; },

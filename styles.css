@@ -14,6 +14,10 @@
   --vellum:#F6EFDC; --field-bg:#FDFCF9;
   --btn-hover:#EFECE2; --primary-hover:#2A3D5C; --danger-hover:#FBEAE4;
   --overlay:rgba(27,42,65,.45);
+  /* Altium's ribbon toolbars highlight with the Windows "hot"/"pressed" blue
+     rather than the copper accent used elsewhere in the UI. */
+  --tb-bg:#ECE9E1; --tb-hover-bg:#DCEBFA; --tb-hover-border:#8FC1EE;
+  --tb-active-bg:#C7E0F4; --tb-active-border:#3E92D8;
   /* Net-class palette — colour tells the class apart, never the line weight. */
   --sig-hv:#C43E1C; --sig-power:#C46A12; --sig-control:#2A63C4; --sig-logic:#1B8E86;
   --sig-analog:#3D7A46; --sig-switching:#8A4FC4; --sig-ground:#5A6472; --sig-other:#767F8C;
@@ -39,6 +43,8 @@
   --vellum:#2E2A1E; --field-bg:#161B21;
   --btn-hover:#2A323C; --primary-hover:#C7CEDA; --danger-hover:#3A2620;
   --overlay:rgba(0,0,0,.55);
+  --tb-bg:#262C34; --tb-hover-bg:rgba(91,155,255,.18); --tb-hover-border:rgba(91,155,255,.55);
+  --tb-active-bg:rgba(91,155,255,.32); --tb-active-border:#5B9BFF;
   --sig-hv:#FF7A5C; --sig-power:#F2A23D; --sig-control:#5B9BFF; --sig-logic:#3ED6C7;
   --sig-analog:#5FBE6D; --sig-switching:#BE93F5; --sig-ground:#98A4B4; --sig-other:#8D99AC;
   --sym-stroke:#A9C4F5; --sym-fill:#33362B; --sym-text:#D7E2F7;
@@ -100,17 +106,22 @@ svg#board .dim{opacity:.22;filter:saturate(.35)}
 .breadcrumb b{color:var(--ink);font-weight:600}
 .breadcrumb .crumb-sep{color:var(--line)}
 
-/* ---------- schematic tool strip (top-centre of the sheet) ---------- */
+/* ---------- schematic tool strip (top-centre of the sheet) ----------
+   Styled after Altium's docked ribbon toolbars: a flat grey strip, square
+   buttons packed edge-to-edge with no gap, and the Windows "hot"/"pressed"
+   blue highlight on hover/active rather than the copper accent used
+   elsewhere in the UI. */
 #toolbar{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:7;
-  display:flex;align-items:center;gap:2px;padding:4px;
-  background:var(--panel);border:1.5px solid var(--ink);border-radius:6px;
-  box-shadow:0 2px 10px rgba(0,0,0,.12)}
-#toolbar button{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;
-  border:1.5px solid transparent;border-radius:4px;background:transparent;color:var(--ink-soft);line-height:0}
-#toolbar button:hover{background:var(--btn-hover);color:var(--ink)}
-#toolbar button.on{background:var(--btn-hover);border-color:var(--copper);color:var(--ink)}
-#toolbar button svg{width:19px;height:19px}
-#toolbar .tsep{width:1px;height:22px;background:var(--line);margin:0 4px;flex-shrink:0}
+  display:flex;align-items:center;gap:0;padding:2px;
+  background:var(--tb-bg);border:1px solid var(--ink-soft);border-radius:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,.22)}
+#toolbar button{width:29px;height:27px;padding:0;display:flex;align-items:center;justify-content:center;
+  border:1px solid transparent;border-radius:2px;background:transparent;color:var(--ink-soft);line-height:0;margin:1px}
+#toolbar button:hover{background:var(--tb-hover-bg);border-color:var(--tb-hover-border);color:var(--ink)}
+#toolbar button.on{background:var(--tb-active-bg);border-color:var(--tb-active-border);color:var(--ink)}
+#toolbar button:active{background:var(--tb-active-bg);border-color:var(--tb-active-border)}
+#toolbar button svg{width:17px;height:17px}
+#toolbar .tsep{width:1px;height:19px;background:var(--line);margin:0 3px;flex-shrink:0}
 
 /* ---------- docked panel group (right) ---------- */
 aside#dock{width:340px;flex-shrink:0;border-left:2px solid var(--ink);background:var(--panel);display:flex;flex-direction:column;min-height:0;

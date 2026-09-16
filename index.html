@@ -47,11 +47,12 @@
     <div id="toolbar" role="toolbar" aria-label="Schematic tools"></div>
 
     <!-- Collapse/expand handle, centred on the divider between sheet and dock. -->
-    <button id="dockHandle" title="Hide the panel dock">
-      <svg viewBox="0 0 12 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="2.2,4 5.2,20 2.2,36"/>
-        <polyline points="5.4,8 7.9,20 5.4,32"/>
-        <polyline points="8.6,12 10.6,20 8.6,28"/>
+    <!-- « — the handle only ever expands the group now, so it points the way
+         the panels come out: to the left. -->
+    <button id="dockHandle" title="Show the panel dock">
+      <svg viewBox="0 0 12 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6.5,3 2.5,7 6.5,11"/>
+        <polyline points="10,3 6,7 10,11"/>
       </svg>
     </button>
 

@@ -488,6 +488,14 @@ section('Closing the panel group');
     [...doc.querySelectorAll('#dockTabs [data-pane]')].map(b => b.textContent.trim()).join() === 'Project');
   check('…checked in the Panels menu to match',
     [...doc.querySelectorAll('#panelsMenu input')].filter(i => i.checked).map(i => i.dataset.pane).join() === 'project');
+  // the handle itself: one double arrow in a narrow box
+  const hnd = doc.getElementById('dockHandle'), css = fs.readFileSync('styles.css', 'utf8');
+  check('the handle is a double arrow, not a stack of chevrons (' + hnd.querySelectorAll('polyline').length + ')',
+    hnd.querySelectorAll('polyline').length === 2);
+  check('…pointing the way the panels come out, with no mirroring left over',
+    /points="6\.5,3 2\.5,7 6\.5,11"/.test(hnd.innerHTML) && !/#dockHandle\.folded svg\{transform/.test(css));
+  check('…in a box narrower than before but just as tall',
+    /#dockHandle\{[^}]*width:12px;height:52px/.test(css) && /#dockHandle svg\{width:9px;height:11px\}/.test(css));
   // unchecking the last tab closes the group just as the X does
   const cb = doc.querySelector('#panelsMenu input[data-pane="project"]');
   cb.checked = false; cb.onchange();

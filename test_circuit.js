@@ -384,5 +384,29 @@ section('Explorer detail');
     heads.slice(0, 4).join('|') === 'TEST123 — identity|Pinout|Supplies|Required external parts');
 }
 
+section('Typography');
+{
+  const css = fs.readFileSync('styles.css', 'utf8');
+  const token = n => (css.match(new RegExp('--' + n + ':([^;]+);')) || [])[1] || '';
+  check("the interface runs on Altium's own UI face, Segoe UI (" + token('sans').split(',')[0] + ')',
+    /^'Segoe UI'/.test(token('sans').trim()));
+  check("the sheet is drawn in Times New Roman, Altium's default schematic font",
+    /^'Times New Roman'/.test(token('sheet').trim()));
+  check('both name a stand-in for machines without them',
+    /Open Sans/.test(token('sans')) && /Tinos/.test(token('sheet')) && /Liberation Serif/.test(token('sheet')));
+  check('the page actually loads those two stand-ins',
+    /family=Open\+Sans/.test(fs.readFileSync('index.html', 'utf8')) && /family=Tinos/.test(fs.readFileSync('index.html', 'utf8')));
+  const sheetText = ['#partsG \\.ref', '#partsG \\.value', '#partsG \\.netlabel', '#partsG \\.netstub', '#partsG \\.note', '#roomsG \\.roomlbl'];
+  const wrong = sheetText.filter(sel => !new RegExp(sel + '\\{font-family:var\\(--sheet\\)').test(css));
+  check('every piece of text ON the sheet uses the schematic face' + (wrong.length ? ' — not: ' + wrong.join(', ') : ''), wrong.length === 0);
+  check('…pin names included, on the sheet and in the library preview',
+    /#partsG \.pinname,#overlayG \.pinname\{font-family:var\(--sheet\)/.test(css) && /\.libitem \.pinname\{font-family:var\(--sheet\)/.test(css));
+  check('nothing in the chrome is monospaced any more except a raw JSON/CSV dump',
+    (css.match(/font-family:var\(--mono\)/g) || []).length === 1 && /pre\.out\{font-family:var\(--mono\)/.test(css));
+  const svgOut = T.sheetSVG();
+  check('the exported sheet carries the schematic face too',
+    (svgOut.match(/Times New Roman/g) || []).length >= 5 && !/IBM Plex/.test(svgOut));
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

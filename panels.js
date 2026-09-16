@@ -398,7 +398,7 @@ function paneWire(body, wid){
   body.innerHTML = h`<div class="kv"><label>Object</label><div class="val">Wire · ${w.pts.length - 1} segment${w.pts.length === 2 ? '' : 's'} · ${Math.round(len)} units</div></div>
     <div class="kv"><label>Net</label><div class="val">${nets.length ? nets.map(n => `<span class="chip">${esc(n)}</span>`).join(' ') : '<span style="color:var(--ink-soft)">not attached to any imported net</span>'}
       ${nets.length > 1 ? '<p class="icwarn">⚠ this conductor joins pins of different nets — a short</p>' : ''}</div></div>
-    <div class="kv"><label>Touches</label><div class="val" style="font-family:var(--mono);font-size:11px">${esc(touch.join('  ') || '—')}</div></div>
+    <div class="kv"><label>Touches</label><div class="val" style="font-family:var(--sans);font-size:11px">${esc(touch.join('  ') || '—')}</div></div>
     <p class="hint">Drag a segment to slide it sideways, drag either end onto another pin — the wire stays horizontal and vertical and keeps its pins. Corners that stop being corners are removed on release.</p>
     <div class="btnrow"><button class="danger" id="wDel">Delete wire</button></div>`;
   el('wDel').onclick = deleteSel;

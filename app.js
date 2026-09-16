@@ -1001,11 +1001,11 @@ function sheetSVG(){
     .icbody{fill:#FFFFB2;stroke:#000080;stroke-width:1.4}.pinmark{fill:#000080;stroke:none}
     .pinline{stroke:#000080;stroke-width:1.2}.pinend{fill:none;stroke:none}.pinend.free{stroke:#C43E1C;stroke-width:1.1}.picked{fill:#3D7A46}
     .wire{fill:none;stroke:#000080;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter}.wire.hit,.vtx,.hit{display:none}.junction{fill:#800000}
-    .ref{font:600 10px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}.value{font:9px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}
-    .netlabel{font:600 9.5px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}
-    .netstub{font:7.5px 'IBM Plex Mono',monospace;fill:#4A5A72}.pinname{font:7px 'IBM Plex Sans',Arial,sans-serif;fill:#000080}
-    .room{fill:none;stroke:#DEDACC;stroke-width:1.5;stroke-dasharray:6 5}.roomlbl{font:11px monospace;fill:#4A5A72}
-    .note{font:11px sans-serif;fill:#1B2A41}</style>`;
+    .ref{font:bold 11px 'Times New Roman',Tinos,serif;fill:#000080}.value{font:10px 'Times New Roman',Tinos,serif;fill:#000080}
+    .netlabel{font:bold 10.5px 'Times New Roman',Tinos,serif;fill:#000080}
+    .netstub{font:8px 'Times New Roman',Tinos,serif;fill:#4A5A72}.pinname{font:8px 'Times New Roman',Tinos,serif;fill:#000080}
+    .room{fill:none;stroke:#DEDACC;stroke-width:1.5;stroke-dasharray:6 5}.roomlbl{font:11.5px 'Times New Roman',Tinos,serif;fill:#4A5A72}
+    .note{font:12px 'Times New Roman',Tinos,serif;fill:#1B2A41}</style>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x - pad} ${b.y - pad} ${b.w + 2*pad} ${b.h + 2*pad}" width="${Math.round(b.w + 2*pad)}" height="${Math.round(b.h + 2*pad)}">
     ${css}<rect x="${b.x - pad}" y="${b.y - pad}" width="${b.w + 2*pad}" height="${b.h + 2*pad}" fill="#FFFFFF"/>
     ${roomsG.innerHTML}${partsG.innerHTML}${wiresG.innerHTML}</svg>`;

@@ -135,7 +135,11 @@ look): thin dark-blue outlines and text, pale-yellow filled bodies for ICs,
 connectors, resistors and transistor envelopes, solid arrows on diodes and
 transistors, pin names inside the body (level whichever way the part is
 turned, vertical on a top/bottom edge), designator above and value below, and
-dark-red junction dots. An open pin end carries a small red ring until
+dark-red junction dots. The lettering follows suit: everything drawn on the
+sheet is **Times New Roman**, the default system font of an Altium schematic
+document, and the interface itself runs on **Segoe UI**, the Windows shell font
+Altium's panels and dialogs use. Both are system fonts on Windows; Tinos and
+Open Sans stand in for them elsewhere. An open pin end carries a small red ring until
 something reaches it. The dark theme uses the same drawing in lighter inks; the
 SVG export always uses the light palette.
 

@@ -1,0 +1,80 @@
+{
+  "format": "circuit-editor/component-library/1",
+  "name": "Sample library",
+  "generated": "2026-09-21T17:46:36.722Z",
+  "components": [
+    {
+      "part_number": "BQ24075RGTR",
+      "manufacturer": "Texas Instruments",
+      "category": "battery charger",
+      "description": "1-A linear charger with power path and dynamic power-path management",
+      "package": "VQFN-16",
+      "pins": [
+        "IN1",
+        "IN2",
+        "PMID",
+        "OUT1",
+        "OUT2",
+        "BAT1",
+        "BAT2",
+        "TS",
+        "ISET",
+        "TMR",
+        "EN1",
+        "EN2",
+        "CE",
+        "PG",
+        "CHG",
+        "VSS",
+        "EP"
+      ],
+      "parameters": {
+        "input_voltage_max": "28 V",
+        "charge_current_max": "1.5 A",
+        "regulation_voltage": "4.2 V",
+        "operating_temperature_range": "-40…125 °C",
+        "lifecycle": "active",
+        "internal_code": "NX-PM-0001"
+      },
+      "models": {
+        "datasheet": "https://www.ti.com/lit/ds/symlink/bq24075.pdf"
+      }
+    },
+    {
+      "part_number": "CSD17573Q5B",
+      "manufacturer": "Texas Instruments",
+      "category": "MOSFET",
+      "description": "30 V N-channel NexFET power MOSFET, SON 5×6",
+      "package": "SON-8 5x6",
+      "parameters": {
+        "vds_voltage": "30 V",
+        "id_current": "100 A",
+        "gate_voltage": "20 V",
+        "polarity": "N-channel",
+        "rds_on": "1.6 mΩ @ 10 V"
+      },
+      "models": {
+        "datasheet": "https://www.ti.com/lit/ds/symlink/csd17573q5b.pdf",
+        "spice": "models/CSD17573Q5B.lib"
+      }
+    },
+    {
+      "part_number": "GRM155R61A104KA01D",
+      "manufacturer": "Murata",
+      "category": "capacitor",
+      "description": "100 nF ±10% 10 V X5R 0402 MLCC",
+      "package": "0402",
+      "value": "100n",
+      "parameters": {
+        "capacitance": "100 nF",
+        "tolerance": "±10%",
+        "voltage_rating": "10 V",
+        "type": "X5R ceramic",
+        "preferred": "yes"
+      },
+      "models": {
+        "datasheet": "https://search.murata.co.jp/Ceramy/image/img/A01X/G101/ENG/GRM155R61A104KA01-01.pdf"
+      }
+    }
+  ]
+}

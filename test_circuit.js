@@ -21,9 +21,11 @@ window.Element.prototype.setPointerCapture = () => {};
 window.Element.prototype.releasePointerCapture = () => {};
 /* The browser loads the five scripts into ONE global lexical scope; a single
    eval reproduces that, and the epilogue hands the test what it needs. */
-window.eval(['symbols.js', 'netlist.js', 'db.js', 'parts.js', 'panels.js', 'app.js']
+window.eval(['symbols.js', 'netlist.js', 'db.js', 'altium.js', 'library.js', 'parts.js', 'panels.js', 'app.js']
   .map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + `
   window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, renderDbDetail, paneDatabase, defOf, partPins, partBounds, kindForComponent, pinNameFor,
+    LIB_MODEL_SLOTS, normalizeLibComponent, componentsFromFiles, serializeLibComponent, libFallbackKind, libPinNames,
+    paneLibrary, renderLibDetail, makeIcDef, makeLibDef, defPreviewSVG,
     componentType, typeFields, propValue, symbolBodySVG,
     connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB,
     dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor };`);
@@ -192,7 +194,7 @@ section('Selection and BOM');
 
 section('Panels');
 const ids = W.PANELS.map(p => p.id).join(',');
-check('the dock offers the six panels (' + ids + ')', ids === 'project,components,nets,properties,database,messages');
+check('the dock offers the seven panels (' + ids + ')', ids === 'project,components,nets,properties,library,database,messages');
 T.setPanel('components');
 check('Components renders the library', window.document.querySelectorAll('#dockBody .libitem').length > 25);
 T.setPanel('nets');
@@ -322,18 +324,20 @@ section('Panel tabs');
   const nav = d => doc.querySelector('#dockTabs [data-tabnav="' + d + '"]');
   const titles = W.PANELS.map(p => p.title).join(',');
   check('the Database panel is now called Explorer (' + titles + ')',
-    titles === 'Project,Components,Netlist,Properties,Explorer,Messages');
+    titles === 'Project,Components,Netlist,Properties,Library,Explorer,Messages');
   T.setPanel('database');
   check('…and wears a blue cloud in its tab and in the panel header',
     /cloudicon/.test(doc.querySelector('#dockTabs [data-pane="database"]').innerHTML) &&
     /cloudicon/.test(doc.getElementById('dockTitle').innerHTML));
-  check('…and no other panel carries one', doc.querySelectorAll('#dockTabs .cloudicon').length === 1);
+  check('…and so does Library — the two panels that read a store, and no others',
+    doc.querySelectorAll('#dockTabs .cloudicon').length === 2 &&
+    /cloudicon/.test(doc.querySelector('#dockTabs [data-pane="library"]').innerHTML));
   check('the cloud is drawn in the blue token, in both themes',
     /\.cloudicon\{[^}]*fill:var\(--cloud\)/.test(css) && (css.match(/--cloud:/g) || []).length === 2);
 
   const strip = doc.querySelector('#dockTabs .dtabs-scroll');
   check('every tab lives in ONE row that never wraps',
-    !!strip && strip.querySelectorAll('[data-pane]').length === 6 &&
+    !!strip && strip.querySelectorAll('[data-pane]').length === 7 &&
     /\.dtabs\{[^}]*flex-wrap:nowrap/.test(css) && /\.dtabs-scroll\{[^}]*flex-wrap:nowrap/.test(css));
   check('the row hides its overflow instead of stacking rows',
     /\.dtabs-scroll\{[^}]*overflow:hidden/.test(css));
@@ -504,5 +508,200 @@ section('Closing the panel group');
   T.setPanel('project');
 }
 
+/* ------------------------------------------------------------------
+   The component library is read asynchronously (files, fetches, the
+   Altium models), so its section — and the summary — run last.
+   ------------------------------------------------------------------ */
+(async () => {
+
+section('Component library — records');
+const LIB = T.LIB;
+{
+  // every shape a library file comes in lands on the same record
+  const a = W.normalizeLibComponent({ partNumber:'ABC123', attributes:{ tolerance:'1%' }, rds_on:'2 mOhm',
+                                      datasheet:'https://x/y.pdf', schlib:'models/ABC123.SchLib' }, {});
+  check('a record is read whatever it calls its part number', a.part_number === 'ABC123');
+  check('parameters come from wherever they were written, loose keys included (' +
+    Object.keys(a.parameters).join(', ') + ')', a.parameters.tolerance === '1%' && a.parameters.rds_on === '2 mOhm');
+  check('a model named at the top level of the record is still a model',
+    a.models.datasheet.url === 'https://x/y.pdf' && a.models.symbol.path === 'models/ABC123.SchLib');
+  check('a record with no part number is not a component', W.normalizeLibComponent({ description:'x' }, {}) === null);
+  check('the four slots are datasheet, symbol, footprint and spice',
+    W.LIB_MODEL_SLOTS.map(x => x.id).join(',') === 'datasheet,symbol,footprint,spice');
+}
+
+const file = (name, text, rel) => {
+  const f = new window.File([text], name, { type:'text/plain' });
+  if (rel) Object.defineProperty(f, 'relativePath', { value:rel });
+  return f;
+};
+const libJson = fs.readFileSync('library/library.json', 'utf8');
+const spiceText = fs.readFileSync('library/models/CSD17573Q5B.lib', 'utf8');
+
+{
+  const n = await LIB.loadFiles([
+    file('library.json', libJson, 'sample/library.json'),
+    file('CSD17573Q5B.lib', spiceText, 'sample/models/CSD17573Q5B.lib'),
+    file('BQ24075RGTR.SchLib', 'PLACEHOLDER-BINARY', 'sample/models/BQ24075RGTR.SchLib'),
+  ], { label:'sample library' });
+  check('a library imported off the disk holds every component of its index (' + n + ')', n === 3);
+  check('…and is what the chip in the top bar says it is', LIB.connected && LIB.name === 'sample library');
+  const bq = LIB.match('BQ24075RGTR');
+  check('a part number finds its component', bq && bq.part_number === 'BQ24075RGTR');
+  check('…and so does a part number from the same family (BQ24075-Q1)',
+    LIB.match('BQ24075-Q1') === bq);
+  check('a picked model file is attached to the component that names it',
+    bq.models.symbol && bq.models.symbol.file && bq.models.symbol.name === 'BQ24075RGTR.SchLib');
+  check('a model that lives on the web stays a URL',
+    /^https:\/\/www\.ti\.com\//.test(LIB.modelURL(bq, 'datasheet')));
+  check('the parameters the designer chose are kept as they were (' +
+    Object.keys(bq.parameters).length + ' of them)',
+    bq.parameters.charge_current_max === '1.5 A' && bq.parameters.internal_code === 'NX-PM-0001');
+  check('searching runs over the parameters too, not just the part number',
+    LIB.search('NX-PM-0001').length === 1 && LIB.search('murata').length === 1 &&
+    LIB.search('', 'MOSFET').map(c => c.part_number).join() === 'CSD17573Q5B');
+  const lib2 = JSON.parse(JSON.stringify(LIB.toJSON()));
+  check('exporting the library writes it back in the documented format',
+    lib2.format === 'circuit-editor/component-library/1' && lib2.components.length === 3 &&
+    lib2.components.find(c => c.part_number === 'BQ24075RGTR').parameters.regulation_voltage === '4.2 V');
+}
+
+{
+  // a bare folder of models, with no index at all
+  const n = await LIB.loadFiles([
+    file('TPS7A2033PDBVR.SchLib', 'PLACEHOLDER', 'parts/ldo/TPS7A2033PDBVR.SchLib'),
+    file('TPS7A2033PDBVR.pdf', 'PLACEHOLDER', 'parts/ldo/TPS7A2033PDBVR.pdf'),
+    file('CSD17573Q5B.lib', spiceText, 'parts/fet/CSD17573Q5B.lib'),
+  ], { label:'loose models' });
+  check('a folder of loose model files is a library by itself (' + n + ' components)', n === 2);
+  const ldo = LIB.match('TPS7A2033PDBVR');
+  check('…each file landing in the slot its extension says',
+    ldo.models.symbol.name.endsWith('.SchLib') && ldo.models.datasheet.name.endsWith('.pdf'));
+  check('…and the folder it sat in becoming its category', ldo.category === 'ldo');
+}
+
+{
+  // a served directory: the editor fetches library.json and reattaches by
+  // itself next time, exactly as the datasheet database does
+  const seen = [];
+  window.fetch = async url => {
+    seen.push(String(url));
+    if (/library\/library\.json$/.test(url)) return { ok:true, json: async () => JSON.parse(libJson) };
+    return { ok:false, status:404, json: async () => ({}) };
+  };
+  const n = await LIB.connectFolder('library');
+  check('a served library folder is read from its library.json (' + n + ')',
+    n === 3 && seen.includes('library/library.json'));
+  check('…and a relative model path is resolved against that folder',
+    LIB.modelURL(LIB.match('CSD17573Q5B'), 'spice') === 'library/models/CSD17573Q5B.lib');
+  LIB.reset(); LIB.loaded = false;
+  const back = await LIB.autoConnect();
+  check('…so the next session reattaches to it without being asked', back === 3);
+  delete window.fetch;
+}
+
+section('Component library — the Altium models');
+{
+  const parsed = T.Altium.parseSchLib('PLACEHOLDER-BINARY', { name:'X' });
+  check('the .SchLib parser is still the placeholder, and says so',
+    parsed.ok === false && parsed.implemented === false && /not implemented/.test(parsed.reason));
+  check('the .PcbLib parser says the same', T.Altium.parsePcbLib('X').implemented === false);
+  const sp = T.Altium.parseLtspice(spiceText);
+  check('the LTspice model is read: its subcircuit and the pin order (' +
+    (sp.models[0] && sp.models[0].pins.join(' ')) + ')',
+    sp.ok && sp.models[0].name === 'CSD17573Q5B' && sp.models[0].pins.join(' ') === 'drain gate source');
+
+  // the IR → symbol conversion is REAL: this is what draws the part once the
+  // reader above is implemented
+  const ir = { name:'U_TEST', designator:'U',
+    pins:[ { name:'VIN', designator:'1', x:-500, y:100, orientation:0 },
+           { name:'GND', designator:'2', x:0, y:-500, orientation:90 },
+           { name:'OUT', designator:'3', x:500, y:100, orientation:180 },
+           { name:'EN',  designator:'4', x:0, y:500, orientation:270 } ],
+    primitives:[ { type:'rect', x1:-300, y1:-300, x2:300, y2:300, filled:true },
+                 { type:'line', x1:-200, y1:0, x2:200, y2:0 } ] };
+  const def = T.Altium.symbolDefFromAltium(ir, {});
+  check('an Altium symbol becomes a drawable def: four pins, one body',
+    def.pins.length === 4 && def.body.w === 60 && def.body.h === 60 && def.leads === true);
+  check('…mils become world units and the y axis is flipped (VIN at ' +
+    def.pins[0].x + ',' + def.pins[0].y + ')', def.pins[0].x === -50 && def.pins[0].y === -10);
+  check('…every pin lands on the 10-unit lattice', def.pins.every(p => p.x % 10 === 0 && p.y % 10 === 0));
+  check('…and hangs off the edge Altium put it on (' + def.pins.map(p => p.dir).join('') + ')',
+    def.pins.map(p => p.dir).join('') === 'lbrt');
+  check('the rest of the symbol is drawn too', def.paths.length === 1);
+  // and the sheet draws it like any other symbol
+  const probe = { id:'lx', kind:'ic', ref:'U9', x:100, y:100, rot:90, mir:0, libSymbol:def };
+  check('a part carrying an Altium symbol takes its geometry from it',
+    W.defOf(probe).pins.length === 4 && W.partPins(probe).every(p => p.x % 10 === 0 && p.y % 10 === 0));
+  check('…and it survives a session round-trip as plain data',
+    W.makeLibDef(JSON.parse(JSON.stringify(def))).pins.length === 4);
+}
+
+section('Component library — on the sheet');
+{
+  await LIB.loadFiles([file('library.json', libJson, 'sample/library.json')], { label:'sample library' });
+  const cap = LIB.match('GRM155R61A104KA01D'), bq = LIB.match('BQ24075RGTR');
+  const symCap = await LIB.symbolFor(cap);
+  check('while the .SchLib parser is a placeholder the symbol falls back, and says why',
+    symCap.state === 'fallback' && /no Altium symbol attached|not implemented/.test(symCap.reason));
+  check('…to the right generic symbol: a library capacitor is drawn as a capacitor',
+    symCap.kind === 'cap');
+  const symBq = await LIB.symbolFor(bq);
+  check('…and an IC to a body with the pins the record lists (' + W.libPinNames(bq).length + ')',
+    symBq.kind === 'ic' && W.libPinNames(bq).length === 17);
+
+  const before = S.parts.length;
+  const part = await T.dropLibComponent(bq.id, 400, 400);
+  check('dragging a component onto the sheet places it', S.parts.length === before + 1 && part.partNumber === 'BQ24075RGTR');
+  check('…with the library parameters as the part parameters',
+    part.props.charge_current_max === '1.5 A' && part.props.internal_code === 'NX-PM-0001');
+  check('…with the 17 pins of the record, not a default eight',
+    W.partPins(part).length === 17 && W.partPins(part).some(p => p.name === 'EP'));
+  check('…and remembering where it came from',
+    part.lib.id === bq.id && part.lib.library === 'sample library' && part.lib.models.datasheet);
+  check('…so a saved session carries the library link', /"lib":/.test(JSON.stringify(part)));
+
+  // applying a component to a symbol already on the sheet
+  const r1 = S.parts.find(p => p.ref === 'R1');
+  await T.applyLibComponent(r1, cap);
+  check('a library component can be applied to a symbol already drawn',
+    r1.partNumber === 'GRM155R61A104KA01D' && r1.props.voltage_rating === '10 V');
+  T.selectOnly('part', r1.id); T.setPanel('properties');
+  check('…and Properties then says which library it came from',
+    /Component library/.test(window.document.getElementById('dockBody').innerHTML));
+
+  T.setPanel('library');
+  const body = window.document.getElementById('dockBody');
+  check('the Library panel lists every component of the library',
+    body.querySelectorAll('[data-libc]').length === 3);
+  check('…each row showing which of the four models it has',
+    body.querySelectorAll('[data-libc] .mdot').length === 12 &&
+    body.querySelectorAll('[data-libc] .mdot.on').length === 4);
+  S.ui.libSel = bq.id; T.renderDock();
+  const detail = window.document.getElementById('dockBody').innerHTML;
+  check('…and opening one shows its parameters, its models and what it will draw',
+    /charge_current_max|charge current max/.test(detail) && /Altium symbol/.test(detail) &&
+    /Schematic symbol/.test(detail) && /libcPlace/.test(detail));
+
+  // a component added by hand, the way the editor's "New…" does it
+  const made = LIB.upsert({ part_number:'NX-TEST-1', category:'resistor',
+                            parameters:{ resistance:'10k', tolerance:'1%' } });
+  check('a component can be added to the library from the editor',
+    LIB.count === 4 && LIB.match('NX-TEST-1') === made && LIB.dirty);
+  LIB.remove(made.id);
+  check('…and removed again', LIB.count === 3 && !LIB.match('NX-TEST-1'));
+
+  T.renderLibChip();
+  check('the chip in the top bar names the library it is attached to',
+    window.document.getElementById('libLabel').textContent === 'sample library' &&
+    window.document.getElementById('btnLib').classList.contains('on'));
+  LIB.disconnect();
+  T.setPanel('library');
+  check('detaching it leaves the panel asking for one',
+    !LIB.connected && /Import a library/.test(window.document.getElementById('dockBody').innerHTML));
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
+
+})().catch(e => { console.error(e); process.exit(1); });

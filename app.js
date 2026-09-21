@@ -25,7 +25,8 @@ const S = {
   selIds: new Set(),            // every selected part (multi-select)
   tool:'select', place:null, traceNet:null, lastCheck:null,
   pinNets: new Map(), showRooms:true, showStubs:true,
-  ui: { libQuery:'', netQuery:'', netFilter:'all', dbQuery:'', dbSel:null, pick:{} },
+  ui: { libQuery:'', netQuery:'', netFilter:'all', dbQuery:'', dbSel:null,
+        libcQuery:'', libCat:'all', libSel:null, pick:{} },
 };
 
 /* ---------------- history ---------------- */
@@ -180,8 +181,8 @@ function setTool(t){
   svg.classList.toggle('placing', t === 'place');
   renderToolbar(); render();
 }
-function startPlace(kind){
-  S.place = { kind, rot:0, mir:0, x:null, y:null };
+function startPlace(kind, opts){
+  S.place = { kind, rot:0, mir:0, x:null, y:null, ...(opts || {}) };
   S.tool = 'place';
   svg.classList.add('placing'); svg.classList.remove('drawing');
   renderToolbar(); renderDock();
@@ -204,10 +205,78 @@ function addPart(kind, x, y, extra){
   };
   if (def.port === 'label' || def.port === 'gnd' || def.port === 'power') part.net = def.net;
   if (def.port === 'note') part.text = 'Note';
-  if (def.generated) part.pinNames = def.generated === 'ic' ? ['1','2','3','4','5','6','7','8'] : ['1','2','3','4'];
+  if (def.generated && !part.pinNames) part.pinNames = def.generated === 'ic' ? ['1','2','3','4','5','6','7','8'] : ['1','2','3','4'];
   S.parts.push(part);
   return part;
 }
+/* ---------------- the component library ----------------
+   A library component becomes a part: its part number, its parameters as the
+   part's props, and the symbol the library resolved for it — the Altium one
+   when altium.js could read the .SchLib, a generated body otherwise. */
+async function libPartFields(c){
+  const sym = await LIB.symbolFor(c);
+  const props = {};
+  for (const [k, v] of Object.entries(c.parameters || {})) props[k] = typeof v === 'object' ? JSON.stringify(v) : String(v);
+  const kind = sym.def ? 'ic' : (sym.kind || 'ic');
+  const prefix = (sym.def && sym.def.prefix) || (SYMBOLS[kind] && SYMBOLS[kind].prefix) || 'U';
+  const extra = {
+    ref: nextRef(prefix),
+    partNumber: c.part_number,
+    value: c.value || valueForComponent({ partNumber:c.part_number, ...c.parameters }) || '',
+    group: c.category || '', props,
+    lib: { id:c.id, library:LIB.name, source:(LIB.source && LIB.source.kind) || '',
+           models:Object.fromEntries(LIB_MODEL_SLOTS.filter(sl => c.models[sl.id])
+             .map(sl => [sl.id, c.models[sl.id].name || c.models[sl.id].path || c.models[sl.id].url || ''])) },
+  };
+  if (sym.def) extra.libSymbol = sym.def;
+  else if (SYMBOLS[kind] && SYMBOLS[kind].generated){
+    const names = (sym.pinNames && sym.pinNames.length) ? sym.pinNames : libPinNames(c);
+    extra.pinNames = names.length ? names : ['1','2','3','4','5','6','7','8'];
+  }
+  return { kind, extra, symbol:sym };
+}
+/* Click-to-place: the cursor carries the component until the sheet is clicked. */
+async function placeLibComponent(id){
+  const c = LIB.byId.get(id);
+  if (!c) return null;
+  const { kind, extra, symbol } = await libPartFields(c);
+  startPlace(kind, { extra, label:c.part_number, libId:c.id });
+  toast('Click the sheet to place ' + c.part_number +
+        (symbol.state === 'altium' ? '' : ' · ' + (symbol.reason || 'generated body')));
+  return c;
+}
+/* Dragged straight onto the sheet. */
+async function dropLibComponent(id, x, y){
+  const c = LIB.byId.get(id);
+  if (!c) return null;
+  const { kind, extra } = await libPartFields(c);
+  commit();
+  const part = addPart(kind, x, y, extra);
+  rebuildPinNets();
+  selectOnly('part', part.id);
+  render(); setPanel('properties', true);
+  return part;
+}
+/* Pin a library component onto a symbol that is already on the sheet: the
+   part number, the parameters and — when there is one — the Altium symbol. */
+async function applyLibComponent(part, c){
+  if (!part || !c) return null;
+  const { kind, extra } = await libPartFields(c);
+  commit();
+  part.partNumber = extra.partNumber;
+  if (extra.value) part.value = extra.value;
+  part.props = { ...(part.props || {}), ...extra.props };
+  part.lib = extra.lib;
+  if (extra.libSymbol){ part.libSymbol = extra.libSymbol; part.kind = kind; }
+  else {
+    delete part.libSymbol;                       // the new component draws itself
+    if (extra.pinNames && SYMBOLS[part.kind] && SYMBOLS[part.kind].generated) part.pinNames = extra.pinNames;
+  }
+  rebuildPinNets(); render(); renderDock();
+  toast(part.ref + ' → ' + c.part_number);
+  return part;
+}
+
 /* A label or a power port dropped on a pin (or a wire end) takes the name of
    the imported net that pin belongs to — the netlist already knows it. */
 function prefillPortNet(part){
@@ -570,7 +639,9 @@ function renderOverlay(){
     s += `<path class="preview" d="${pts.map((p, i) => (i ? 'L' : 'M') + p.x + ' ' + p.y).join(' ')}"/>`;
   }
   if (S.place && S.place.x != null){
-    const def = defOf({ kind:S.place.kind, pinNames:['1','2','3','4','5','6','7','8'] });
+    const ex = S.place.extra || {};
+    const def = defOf({ kind:S.place.kind, libSymbol:ex.libSymbol,
+                        pinNames:ex.pinNames || ['1','2','3','4','5','6','7','8'] });
     s += `<g class="ghost" transform="translate(${S.place.x},${S.place.y})">
       <g transform="rotate(${S.place.rot}) scale(${S.place.mir ? -1 : 1},1)">${symbolBodySVG(def, {})}</g></g>`;
   }
@@ -585,7 +656,7 @@ function renderSheetChip(){
   $('sheetChip').innerHTML = `<b>${esc(S.project.title || 'Untitled circuit')}</b>
     <span class="crumb-sep">/</span> ${esc(S.project.revision ? 'rev ' + S.project.revision : 'rev —')}
     <span class="crumb-sep">/</span> ${Math.round(S.view.k * 100)}%
-    <span class="crumb-sep">/</span> ${esc(S.place ? 'placing ' + SYMBOLS[S.place.kind].label : S.tool)}` +
+    <span class="crumb-sep">/</span> ${esc(S.place ? 'placing ' + (S.place.label || SYMBOLS[S.place.kind].label) : S.tool)}` +
     (n > 1 ? `<span class="crumb-sep">/</span> ${n} selected` : '');
 }
 function renderStatus(){
@@ -708,7 +779,7 @@ svg.addEventListener('pointerdown', ev => {
   if (ev.button !== 0) return;
   if (S.tool === 'place' && S.place){
     commit();
-    const part = addPart(S.place.kind, w.x, w.y);
+    const part = addPart(S.place.kind, w.x, w.y, S.place.extra);
     part.rot = S.place.rot; part.mir = S.place.mir;
     rebuildPinNets(); prefillPortNet(part);
     selectOnly('part', part.id);
@@ -837,6 +908,13 @@ function cancelTool(){
 /* drag & drop from the Components panel */
 svg.addEventListener('dragover', ev => { ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; });
 svg.addEventListener('drop', ev => {
+  const libId = ev.dataTransfer.getData('text/libcomponent');
+  if (libId){
+    ev.preventDefault();
+    const w = toWorld(ev.clientX, ev.clientY);
+    dropLibComponent(libId, w.x, w.y);
+    return;
+  }
   const kind = ev.dataTransfer.getData('text/symbol');
   if (!kind || !SYMBOLS[kind]) return;
   ev.preventDefault();
@@ -1055,12 +1133,14 @@ $('btnZoomIn').onclick = () => zoomStep(+1);
 $('btnZoomOut').onclick = () => zoomStep(-1);
 $('btnZoomFit').onclick = () => fitView();
 $('btnDb').onclick = openDbConnect;
+$('btnLib').onclick = openLibConnect;
 $('emptyImport').onclick = openImport;
 $('emptyBlank').onclick = () => { commit(); S.parts = []; S.wires = []; S.rooms = []; setTool('select'); render(); toast('Blank sheet — drag parts in from Components'); };
 
 initDock();
 renderToolbar();
 DB.autoConnect().then(n => { renderDbChip(); if (n) renderDock(); });
+LIB.autoConnect().then(n => { renderLibChip(); if (n) renderDock(); });
 try {
   const saved = localStorage.getItem('circuit_session');
   if (saved) loadSession(JSON.parse(saved));
@@ -1073,6 +1153,8 @@ if (typeof window !== 'undefined') window.__CE = {
   connectivity, checkDesign, netlistFromSheet, partsFromNetlist, arrangeParts, parseCircuitData,
   setPanel, dock, renderDock, renderDockTabs, stepPanel, tabNeighbour, updateTabOverflow,
   dockCloseAll, dockEmpty, dockApply, renderDbChip, openDbConnect,
+  LIB, Altium, paneLibrary, renderLibChip, openLibConnect, openLibEditor,
+  placeLibComponent, dropLibComponent, applyLibComponent, libPartFields,
   DB, finishWire, sheetBounds, selectOnly, toggleSel, clearSel,
   moveVertex, ensureBends, ensureSegBends, simplifyWire, orthogonalize, rubberBandStart, rubberBandApply, rubberBandEnd,
   rotateSel, mirrorSel, duplicateSel, nudgeSel, bomCSV, loadSession, sheetSVG,

@@ -33,8 +33,10 @@
   <button id="btnCheck" title="Run the electrical rules check against the imported netlist">Check</button>
   <button id="btnImport">Import</button>
   <button id="btnExport" class="primary">Export</button>
-  <!-- The component database, at the far right: a grey struck-through cloud
-       while nothing is attached, blue with the database name once it is. -->
+  <!-- The component library and the datasheet database, at the far right:
+       a grey struck-through cloud while nothing is attached, blue with the
+       name of the thing once it is. -->
+  <button id="btnLib" class="dbchip"><span id="libLabel">No library</span></button>
   <button id="btnDb" class="dbchip"><span id="dbLabel">Not connected</span></button>
 </header>
 
@@ -176,6 +178,8 @@
 <script src="symbols.js"></script>
 <script src="netlist.js"></script>
 <script src="db.js"></script>
+<script src="altium.js"></script>
+<script src="library.js"></script>
 <script src="parts.js"></script>
 <script src="panels.js"></script>
 <script src="app.js"></script>

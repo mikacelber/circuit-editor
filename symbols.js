@@ -413,10 +413,28 @@ function makeConnDef(count, label){
   };
 }
 
-/* The def a part actually uses: generated symbols carry their pin list on the
-   part itself (part.pinNames), fixed ones come straight from the library. */
+/* A def that came from outside — an Altium symbol parsed by altium.js and
+   stored on the part, or one restored from a saved session. It is data like
+   any other def; this only fills in what a hand-written def states inline. */
+function makeLibDef(sym){
+  const def = { label:'Symbol', cat:'active', prefix:'U', leads:true, names:true,
+                paths:[], bodies:[], fills:[], ...sym };
+  def.pins = (def.pins || []).map(p => P(p.name, p.x, p.y, p.dir));
+  if (!def.box){
+    const xs = def.pins.map(p => p.x), ys = def.pins.map(p => p.y);
+    const b = def.body || box(-20, -20, 40, 40);
+    const x0 = Math.min(b.x, ...xs) - GRID, y0 = Math.min(b.y, ...ys) - GRID;
+    def.box = box(x0, y0, Math.max(b.x + b.w, ...xs) - x0 + GRID, Math.max(b.y + b.h, ...ys) - y0 + GRID);
+  }
+  return def;
+}
+
+/* The def a part actually uses: a symbol carried by the part itself (the
+   library's Altium symbol) wins, then the generated symbols, which carry
+   their pin list on the part (part.pinNames), then the fixed library. */
 function defOf(part){
   if (!part) return null;
+  if (part.libSymbol && part.libSymbol.pins && part.libSymbol.pins.length) return makeLibDef(part.libSymbol);
   const base = SYMBOLS[part.kind];
   if (base && base.generated === 'ic')   return makeIcDef(part.pinNames, part.partNumber || base.label);
   if (base && base.generated === 'conn') return makeConnDef(part.pinNames ? part.pinNames.length : part.pinCount, part.partNumber || 'Connector');
@@ -506,6 +524,14 @@ function symbolBodySVG(def, opts){
   for (const d of def.fills || []) s += `<path class="symfill" d="${d}"/>`;
   if (def.extra) s += def.extra;
   return s;
+}
+
+/* A small standalone preview of any def — the Components panel draws the
+   fixed library with it, the Library panel the symbol a component resolves to. */
+function defPreviewSVG(def, opts){
+  const b = (def && def.box) || box(-20,-20,40,40);
+  const pad = 6;
+  return `<svg viewBox="${b.x-pad} ${b.y-pad} ${b.w+2*pad} ${b.h+2*pad}" preserveAspectRatio="xMidYMid meet">${symbolBodySVG(def, opts || {})}</svg>`;
 }
 
 /* A small standalone preview, used by the Components panel. */
@@ -608,7 +634,7 @@ function valueForComponent(c){
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  GRID, SYMBOLS, SYM_CATS, COMPONENT_TYPES, FIELD_ALIASES, makeIcDef, makeConnDef, defOf, pinWorld, partPins, partBounds,
-  symbolBodySVG, symbolPreviewSVG, pinNameText, kindForComponent, valueForComponent, componentType, typeFields, propValue,
+  GRID, PIN_LEAD, SYMBOLS, SYM_CATS, COMPONENT_TYPES, FIELD_ALIASES, makeIcDef, makeConnDef, makeLibDef, defOf, pinWorld, partPins, partBounds,
+  symbolBodySVG, symbolPreviewSVG, defPreviewSVG, pinNameText, kindForComponent, valueForComponent, componentType, typeFields, propValue,
   rotPoint, rotDir,
 };

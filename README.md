@@ -27,10 +27,11 @@ Then **Import → Sample → Load sample/circuit_data.json** (236 components,
 192 nets). `Arrange` re-places everything by functional group, `Check` runs the
 rules, `Export` gives you the session, the drawn netlist or the sheet as SVG.
 
-Opening `index.html` straight from disk works too, except for the two things a
-browser refuses to `fetch` over `file://`: the bundled sample and the component
-database. Use the **File** tab of the Import dialog and the **Load files…**
-picker in the Explorer panel instead.
+Opening `index.html` straight from disk works too, except for the things a
+browser refuses to `fetch` over `file://`: the bundled sample, the component
+database and a served component library. Use the **File** tab of the Import
+dialog, the **Load files…** picker in the Explorer panel, and *Choose folder…*
+in the library dialog instead — all three read the files straight off your disk.
 
 ---
 
@@ -38,7 +39,7 @@ picker in the Explorer panel instead.
 
 | Area | What it does |
 |------|--------------|
-| **Top bar** | Logo, project title, undo/redo, Arrange, Check, Import, Export, and at the far right the **component database**: a grey struck-through cloud while nothing is attached, blue with the database name once it is. Click it to connect, change or disconnect. |
+| **Top bar** | Logo, project title, undo/redo, Arrange, Check, Import, Export, and at the far right two clouds: the **component library** and the **component database**. Each is a grey struck-through cloud while nothing is attached and blue with its name once it is; click one to attach, change or detach it. |
 | **Sheet** | Adaptive grid drawn in screen space: it stays on the world lattice at every pan and zoom, and thins out as you zoom away. Wheel zooms about the pointer, drag pans, `F` fits, the bottom-right buttons do the same. |
 | **Tool strip** | Floats over the top-centre of the sheet: select, wire, net label, ground, power rail, text, then rotate / mirror / duplicate / delete. |
 | **Panel dock** | The right-hand panel group. Pin it, close it outright with the **✕** in its top-right corner (which folds it away and unchecks every tab), or drag its left edge to resize. While it is open the ✕ does the closing; once it is closed a **«** handle on the right edge is the way back, and clicking it on a group with no tabs left brings back Project alone. Its tabs stay on **one row**: when the names stop fitting, two triangles appear right after them and step to the next or previous panel, scrolling the strip so the active name is always readable. |
@@ -74,6 +75,13 @@ picker in the Explorer panel instead.
   symbol, exactly as the architecture editor does for ICs. Keys and options
   live in *Part search settings* (also reachable from Project). For a wire: the
   net it carries, the pins it touches, and a warning if it joins two nets.
+- **Library** ☁ — the component library (see below): every component of the
+  attached library, searchable over its part number *and* its parameters, with
+  four dots on each row saying which of its models it carries. Open one and you
+  get its parameters, its four model slots (open, attach, remove) and the symbol
+  it will draw; place it on the sheet, drag it straight in, or apply it to a
+  symbol already drawn. **New…** adds a component with whatever parameters you
+  choose, and the library dialog exports the whole thing back as `library.json`.
 - **Explorer** ☁ — the GPN datasheet extracts (see below): identity, pinout,
   supplies, the **required external components** checked one by one against the
   netlist, the designer notes and, last of all, the figures. Assign a part
@@ -162,6 +170,55 @@ Exactly like a schematic, so the check can be trusted:
 
 ---
 
+## The component library
+
+A library is an open-ended list of components. Each one is a **part number**,
+whatever **parameters** the designer decided to keep — the fields are yours to
+choose — and up to **four attached models**:
+
+| | |
+|--|--|
+| **datasheet** | the PDF, or a URL to it |
+| **symbol** | the Altium `.SchLib` — **this is what draws the component in the editor** |
+| **footprint** | the Altium `.PcbLib` |
+| **spice** | the LTspice model (`.lib`, `.mod`, `.sub`, `.cir`, `.asy`) |
+
+Attach one from the cloud in the top bar (or the Library panel):
+
+- **from this disk** — pick a folder or the files themselves. A `library.json`
+  in the folder describes the components; **without one, every model file found
+  becomes a component named after it**, and the folder it sat in becomes its
+  category;
+- **from a served directory** — `library/`, holding `library.json` next to its
+  models. Regenerate the index with `npm run lib:index` whenever the folder
+  changes;
+- **from the cloud** — a URL to a repository or a server, with an access token
+  if it needs one. A backend registers an adapter (`LIB.registerAdapter`) and
+  drops into the same path; `LIB.push()` is the placeholder for writing a
+  library back.
+
+A served folder and a remote URL are remembered, so the next visit reattaches by
+itself until you detach.
+
+Placing a component brings its part number, its parameters (they become the
+part's parameters, editable in Properties) and its symbol onto the sheet; the
+part keeps a link back to the library, and Properties matches any part number
+against the library by family (`BQ24075-Q1` → `BQ24075RGTR`).
+
+### The symbol comes from the Altium model
+
+```
+.SchLib  →  Altium.parseSchLib()  →  IR  →  Altium.symbolDefFromAltium()  →  the symbol on the sheet
+```
+
+**The `.SchLib` and `.PcbLib` readers are placeholders for now** — they report
+that they are not implemented, and the component still places, drawn as a body
+with the pins the record lists (a 17-pin part gets its 17 pins), with the panel
+saying why. Everything downstream of the IR is real and tested: mils become grid
+units, Altium's upward y axis is flipped, pins are snapped onto the lattice and
+hung off the edge Altium put them on. `docs/component-library.md` has the IR and
+the notes for filling the reader in.
+
 ## The component database
 
 The datasheet extraction pipeline writes one JSON per GPN (the general part
@@ -220,13 +277,16 @@ styles.css          design tokens and every piece of chrome
 symbols.js          the symbol library and its geometry
 netlist.js          import, placement, connectivity engine, rules check, export
 db.js               the GPN database and the required-external-parts report
+altium.js           the Altium/LTspice model readers (the .SchLib parser is a placeholder)
+library.js          the component library: sources, records, models, symbols
 parts.js            DigiKey + Mouser part search (ported from the architecture editor)
-panels.js           the panel dock and the six panels
+panels.js           the panel dock and the seven panels
 app.js              state, view, grid, rendering, tools, import/export
 sample/             an example circuit_data.json
 db/                 the component database + its generated index
+library/            a sample component library + its models
 credential/         digikey_credentials.json, mouser_credentials.json (one-click load)
-tools/              build-db-index.js
+tools/              build-db-index.js, build-library-index.js
 test_circuit.js     headless test suite (jsdom)
 ```
 
@@ -242,9 +302,14 @@ exercises the whole path: import, symbol geometry and rotation, the connectivity
 rules (crossing versus T, wire over a pin versus wire ending on it), the netlist
 check (realised, partial, short), wire reshaping and rubber-banding,
 multi-selection, the distributor result normalisers, the BOM, the export
-round-trip and the panels.
+round-trip, the panels, and the component library: the record shapes, the three
+sources, family matching, the Altium IR → symbol conversion and placing a
+library component on the sheet.
 
 ## Not there yet
 
 Buses and bus entries, multi-sheet projects and hierarchical blocks, copy/paste
 across sessions, PDF output, and writing values back into the imported netlist.
+In the component library: the Altium `.SchLib` and `.PcbLib` readers themselves
+(the path around them is in place) and pushing a library back to a cloud
+repository.

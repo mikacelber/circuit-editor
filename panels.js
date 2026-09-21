@@ -15,6 +15,7 @@ const PANELS = [
   { id:'components', title:'Components', eyebrow:'Symbol library',       render: paneComponents },
   { id:'nets',       title:'Netlist',    eyebrow:'Imported connectivity',render: paneNets },
   { id:'properties', title:'Properties', eyebrow:'Selection',            render: paneProperties },
+  { id:'library',    title:'Library',    eyebrow:'Component library',    render: paneLibrary, cloud:true },
   { id:'database',   title:'Explorer',   eyebrow:'GPN datasheets',       render: paneDatabase, cloud:true },
   { id:'messages',   title:'Messages',   eyebrow:'Rule check',           render: paneMessages },
 ];
@@ -30,7 +31,7 @@ const dbCloudSVG = cls => '<svg class="dbcloud ' + (cls || '') + '" viewBox="0 0
   '<path class="slashbg" d="M2.8 16.4L21.2 2"/><path class="slash" d="M2.8 16.4L21.2 2"/></svg>';
 const TRI_LEFT  = '<svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M7.4 0.6 1.6 6l5.8 5.4z"/></svg>';
 const TRI_RIGHT = '<svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M2.6 0.6 8.4 6l-5.8 5.4z"/></svg>';
-const PANEL_DEFAULT = { project:true, components:true, nets:true, properties:true, database:true, messages:true };
+const PANEL_DEFAULT = { project:true, components:true, nets:true, properties:true, library:true, database:true, messages:true };
 
 const dock = {
   active:'project', enabled:{ ...PANEL_DEFAULT },
@@ -336,6 +337,9 @@ function paneProperties(body){
   const def = SYMBOLS[part.kind];
   const isPort = !!def.port;
   const rec = part.partNumber ? DB.match(part.partNumber) : null;
+  // the library component behind this symbol: the one it was placed from, or
+  // the one its part number matches
+  const libc = (part.lib && LIB.byId.get(part.lib.id)) || (part.partNumber ? LIB.match(part.partNumber) : null);
   // the parameters this kind of component carries (resistance, tolerance…),
   // each an editable field; whatever else the netlist said is listed after
   const ctype = isPort ? null : componentType(part);
@@ -379,7 +383,12 @@ function paneProperties(body){
         `<tr><td class="mono">${esc(k)}</td><td>${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('')}</tbody></table>` : ''}
     ${rec ? h`<div class="sechead">Datasheet</div>
       <p style="font-size:11.5px">Matched <b>${esc(rec.gpn || '')}</b> in the database.</p>
-      <div class="btnrow"><button id="ppDb">Open in Explorer</button></div>` : ''}`;
+      <div class="btnrow"><button id="ppDb">Open in Explorer</button></div>` : ''}
+    ${libc ? h`<div class="sechead">Component library</div>
+      <p style="font-size:11.5px">${part.lib ? 'Placed from' : 'Matched'} <b>${esc(libc.part_number)}</b> in ${esc(LIB.name)}${
+        LIB.modelsOf(libc).length ? ' · ' + LIB.modelsOf(libc).map(m => esc(m.slot.short)).join(' ') : ' · no models attached'}.</p>
+      <div class="btnrow"><button id="ppLib">Open in Library</button>
+        <button id="ppLibApply">Apply its parameters</button></div>` : ''}`;
 
   body.querySelectorAll('[data-pp]').forEach(inp => inp.onchange = () => {
     commit(); part[inp.dataset.pp] = inp.value;
@@ -402,6 +411,10 @@ function paneProperties(body){
   el('ppDel').onclick = deleteSel;
   if (!isPort) wirePartPick(part);
   if (rec) el('ppDb').onclick = () => { S.ui.dbSel = rec.path || rec.gpn; setPanel('database'); };
+  if (libc){
+    el('ppLib').onclick = () => { S.ui.libSel = libc.id; setPanel('library'); };
+    el('ppLibApply').onclick = () => applyLibComponent(part, libc);
+  }
 }
 
 /* The wire: which imported nets it carries, what it touches, and its shape. */
@@ -533,6 +546,293 @@ function openSearchSettings(){
     msSaveConfig(el('msKeyUsd').value.trim(), el('msKeyEur').value.trim());
     saveSearchOptions({ digikey:el('psUseDk').checked, mouser:el('psUseMs').checked, currency:el('psCur').value });
     closeModal(); render(); toast('Part search settings saved');
+  };
+}
+
+/* ================================================================
+   LIBRARY — the component library: part numbers, the parameters the
+   designer chose to keep, and the four models attached to each one.
+   The sheet symbol comes from the Altium .SchLib through altium.js;
+   while that parser is a placeholder the component still places, with
+   a body generated from its pin list, and the panel says so.
+   ================================================================ */
+function paneLibrary(body){
+  if (!LIB.connected){
+    body.classList.add('pane-center');
+    body.innerHTML = h`
+      ${dbCloudSVG('dbempty-cloud')}
+      <p class="dbempty-msg">No component library loaded yet.</p>
+      <button id="libConnect" class="primary">Import a library</button>
+      <p class="hint" style="max-width:30ch">From a folder on this disk, from a served directory, or — once there is one —
+        from a repository in the cloud.</p>
+      ${LIB.error ? `<p class="hint" style="color:var(--warn);max-width:30ch">${esc(LIB.error)}</p>` : ''}`;
+    el('libConnect').onclick = openLibConnect;
+    return;
+  }
+  const cats = LIB.categories();
+  const cat = S.ui.libCat || 'all';
+  const shown = LIB.search(S.ui.libcQuery || '', cat);
+  const sel = LIB.byId.get(S.ui.libSel) || null;
+  body.innerHTML = h`
+    <div class="sechead">${esc(LIB.name)} — ${LIB.count} component${LIB.count === 1 ? '' : 's'}${LIB.dirty ? ' · edited' : ''}</div>
+    <input type="search" id="libcSearch" placeholder="Search part number, parameter or value…" value="${esc(S.ui.libcQuery || '')}">
+    <div class="row" style="margin-top:8px">
+      <select id="libcCat">
+        <option value="all"${cat === 'all' ? ' selected' : ''}>All categories</option>
+        ${cats.map(c => `<option value="${esc(c)}"${cat === c ? ' selected' : ''}>${esc(c)}</option>`).join('')}
+      </select>
+      <button id="libcNew" title="Add a component to this library">New…</button>
+      <button id="libcSource" title="Change where the library comes from">Source…</button>
+    </div>
+    <div id="libcList" style="margin-top:8px"></div>
+    <div id="libcDetail"></div>`;
+
+  el('libcList').innerHTML = shown.slice(0, 200).map(c => h`
+    <button class="lrow ${sel === c ? 'on' : ''}" data-libc="${esc(c.id)}" draggable="true">
+      <span class="lmain"><span class="lref">${esc(c.part_number)}</span>
+        <span class="lsub">${esc([c.manufacturer, c.description || c.category].filter(Boolean).join(' · ') || '—')}</span></span>
+      <span class="modeldots">${LIB_MODEL_SLOTS.map(sl =>
+        `<i class="mdot ${c.models[sl.id] ? 'on' : ''}" title="${esc(sl.label)}: ${c.models[sl.id] ? 'attached' : 'not attached'}">${esc(sl.short[0])}</i>`).join('')}</span>
+    </button>`).join('') ||
+    `<p style="font-size:11.5px">Nothing matches “${esc(S.ui.libcQuery || '')}”.</p>`;
+
+  el('libcList').querySelectorAll('[data-libc]').forEach(b => {
+    b.onclick = () => { S.ui.libSel = b.dataset.libc; renderDock(); };
+    b.ondragstart = ev => { ev.dataTransfer.setData('text/libcomponent', b.dataset.libc); ev.dataTransfer.effectAllowed = 'copy'; };
+  });
+  el('libcSearch').oninput = e => { S.ui.libcQuery = e.target.value; renderDock(); el('libcSearch').focus(); };
+  el('libcCat').onchange = e => { S.ui.libCat = e.target.value; renderDock(); };
+  el('libcNew').onclick = () => openLibEditor(null);
+  el('libcSource').onclick = openLibConnect;
+  if (sel) renderLibDetail(el('libcDetail'), sel);
+}
+
+/* One component: what it is, what it carries, and what it draws. */
+function renderLibDetail(host, c){
+  const selPart = S.sel && S.sel.type === 'part' ? S.parts.find(p => p.id === S.sel.id) : null;
+  const params = Object.entries(c.parameters || {});
+  const sym = c.symbol;
+  host.innerHTML = h`
+    <div class="sechead">${esc(c.part_number)}</div>
+    <table class="facttbl"><tbody>
+      ${c.manufacturer ? `<tr><td>Manufacturer</td><td class="mono">${esc(c.manufacturer)}</td></tr>` : ''}
+      ${c.category ? `<tr><td>Category</td><td class="mono">${esc(c.category)}</td></tr>` : ''}
+      ${c.package ? `<tr><td>Package</td><td class="mono">${esc(c.package)}</td></tr>` : ''}
+      ${c.value ? `<tr><td>Value</td><td class="mono">${esc(c.value)}</td></tr>` : ''}
+      ${c.pins.length ? `<tr><td>Pins</td><td class="mono">${c.pins.length} · ${esc(c.pins.slice(0, 12).join(', '))}${c.pins.length > 12 ? '…' : ''}</td></tr>` : ''}
+    </tbody></table>
+    ${c.description ? `<p style="font-size:11.5px;margin-top:8px">${esc(c.description)}</p>` : ''}
+
+    <div class="sechead">Parameters (${params.length})</div>
+    ${params.length ? h`<table class="facttbl"><tbody>${params.map(([k, v]) =>
+      `<tr><td class="mono">${esc(k.replace(/_/g, ' '))}</td><td>${esc(typeof v === 'object' ? JSON.stringify(v) : v)}</td></tr>`).join('')}
+      </tbody></table>` : '<p class="hint">No parameters yet — <b>Edit</b> adds whichever ones this part deserves.</p>'}
+
+    <div class="sechead">Models</div>
+    <table class="facttbl"><tbody>${LIB_MODEL_SLOTS.map(sl => libModelRow(c, sl)).join('')}</tbody></table>
+
+    <div class="sechead">Schematic symbol</div>
+    ${sym ? h`
+      <div class="libsym">${sym.def ? defPreviewSVG(sym.def, { names:true })
+        : defPreviewSVG(sym.kind === 'ic' ? makeIcDef(sym.pinNames && sym.pinNames.length ? sym.pinNames : ['1','2','3','4'], c.part_number)
+                                          : SYMBOLS[sym.kind] || SYMBOLS.res, {})}</div>
+      <p class="hint">${sym.state === 'altium'
+        ? 'Drawn from the Altium symbol in ' + esc((c.models.symbol && c.models.symbol.name) || '.SchLib') + '.'
+        : esc(sentence(sym.reason || 'Generated body')) + ' Placing it on the sheet works all the same.'}</p>`
+      : '<p class="hint">Reading the symbol…</p>'}
+
+    <div class="btnrow">
+      <button class="primary" id="libcPlace">Place on sheet</button>
+      ${selPart ? `<button id="libcAssign">Apply to ${esc(selPart.ref || 'selection')}</button>` : ''}
+      <button id="libcEdit">Edit</button>
+      <button class="danger" id="libcDel">Remove</button>
+    </div>`;
+
+  host.querySelectorAll('[data-libopen]').forEach(b => b.onclick = () => {
+    const url = LIB.modelURL(c, b.dataset.libopen);
+    if (!url) return toast('That model has no file behind it');
+    window.open(url, '_blank', 'noreferrer');
+  });
+  host.querySelectorAll('[data-libattach]').forEach(inp => inp.onchange = async e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    c.models[inp.dataset.libattach] = { slot:inp.dataset.libattach, file:f, name:f.name, size:f.size || 0 };
+    c.symbol = null; LIB.dirty = true;
+    toast(f.name + ' attached to ' + c.part_number);
+    renderDock();
+  });
+  host.querySelectorAll('[data-libdrop]').forEach(b => b.onclick = () => {
+    delete c.models[b.dataset.libdrop]; c.symbol = null; LIB.dirty = true; renderDock();
+  });
+  el('libcPlace').onclick = () => placeLibComponent(c.id);
+  if (el('libcAssign')) el('libcAssign').onclick = () => applyLibComponent(selPart, c);
+  el('libcEdit').onclick = () => openLibEditor(c);
+  el('libcDel').onclick = () => {
+    if (!window.confirm('Remove ' + c.part_number + ' from the library?')) return;
+    LIB.remove(c.id); S.ui.libSel = null; renderLibChip(); renderDock();
+  };
+  // The symbol is read lazily — once it is in, the panel redraws with it.
+  if (!sym) LIB.symbolFor(c).then(() => { if (S.ui.libSel === c.id) renderDock(); });
+}
+
+/* "no Altium symbol attached" → "No Altium symbol attached." */
+const sentence = t => {
+  const s = String(t || '').trim();
+  return s ? s[0].toUpperCase() + s.slice(1) + (/[.!?]$/.test(s) ? '' : '.') : '';
+};
+
+function libModelRow(c, slot){
+  const m = c.models[slot.id];
+  const size = m && m.size ? ' · ' + libFileSize(m.size) : '';
+  return h`<tr>
+    <td>${esc(slot.label)}</td>
+    <td class="mono">${m ? esc(m.name || m.path || m.url) + esc(size) : '<span style="color:var(--ink-soft)">not attached</span>'}</td>
+    <td style="white-space:nowrap">
+      ${m ? `<button class="linklike" data-libopen="${esc(slot.id)}">open</button> ·
+             <button class="linklike" data-libdrop="${esc(slot.id)}">remove</button>`
+          : `<label class="linklike">attach<input type="file" data-libattach="${esc(slot.id)}" hidden></label>`}
+    </td></tr>`;
+}
+
+/* ---- where the library comes from ---- */
+function renderLibChip(){
+  const b = el('btnLib');
+  if (!b) return;
+  if (!b.querySelector('.dbcloud')) b.insertAdjacentHTML('afterbegin', dbCloudSVG());
+  b.classList.toggle('on', LIB.connected);
+  el('libLabel').textContent = LIB.connected ? LIB.name : 'No library';
+  b.title = LIB.connected
+    ? 'Component library ' + LIB.name + ' — ' + LIB.count + ' components. Click to change or detach.'
+    : 'No component library loaded — click to import one';
+}
+
+function openLibConnect(){
+  const src = LIB.source || {};
+  openModal('Component library', h`
+    <p class="hint" style="margin-top:0">A library is a list of components, each one a <b>part number</b>, the
+      <b>parameters</b> you chose to keep, and up to four attached models: the datasheet, the Altium symbol
+      (<b>.SchLib</b>), the Altium footprint (<b>.PcbLib</b>) and the LTspice model.</p>
+    <div class="kv"><label>From this disk — a folder, or the files themselves</label>
+      <div class="row">
+        <label class="filebtn">Choose folder…<input type="file" id="libDir" webkitdirectory directory multiple hidden></label>
+        <label class="filebtn">Choose files…<input type="file" id="libFiles" multiple hidden></label>
+      </div>
+      <p class="hint">A <b>library.json</b> in the folder describes the components; without one, every model file
+        found becomes a component named after it.</p></div>
+    <div class="kv"><label>From a served directory</label>
+      <div class="row"><input type="text" id="libBase" value="${esc(src.base || 'library/')}" placeholder="library/">
+        <button id="libGoFolder" style="flex:0 0 auto">Load</button></div></div>
+    <div class="kv"><label>From a repository or a server in the cloud</label>
+      <div class="row"><input type="text" id="libUrl" value="${esc(src.url || '')}" placeholder="https://…/library.json">
+        <button id="libGoRemote" style="flex:0 0 auto">Load</button></div>
+      <div class="row" style="margin-top:6px"><input type="password" id="libToken" placeholder="Access token (optional)"></div></div>
+    <p class="hint" id="libConnState" style="margin-bottom:0"></p>`,
+    `${LIB.connected ? '<button id="libExport">Export library.json</button><button class="danger" id="libDetach">Detach</button>' : ''}<button class="primary" id="libClose">Close</button>`);
+
+  const state = () => {
+    el('libConnState').innerHTML = LIB.error
+      ? `<span style="color:var(--warn)">${esc(LIB.error)}</span>`
+      : LIB.connected ? `<span style="color:var(--ok)">Loaded <b>${esc(LIB.name)}</b> — ${LIB.count} components.</span>`
+      : 'No library loaded.';
+  };
+  const after = msg => { state(); renderLibChip(); renderDock(); if (msg) toast(msg); };
+  state();
+  el('libDir').onchange = async e => { const n = await LIB.loadFiles(e.target.files); after(n + ' components read from the folder'); };
+  el('libFiles').onchange = async e => { const n = await LIB.loadFiles(e.target.files); after(n + ' components read'); };
+  el('libGoFolder').onclick = async () => {
+    const n = await LIB.connectFolder(el('libBase').value.trim() || 'library/');
+    after(n ? n + ' components from ' + LIB.name : 'No library.json under ' + el('libBase').value.trim());
+  };
+  el('libGoRemote').onclick = async () => {
+    const url = el('libUrl').value.trim();
+    if (!url) return;
+    const n = await LIB.connectRemote(url, { token:el('libToken').value.trim() || null });
+    after(n ? n + ' components from ' + LIB.name : 'Could not read ' + url);
+  };
+  if (el('libExport')) el('libExport').onclick = () => {
+    download((LIB.name || 'library').replace(/[^\w.-]+/g, '_') + '.json', JSON.stringify(LIB.toJSON(), null, 2));
+    LIB.dirty = false; renderDock();
+  };
+  if (el('libDetach')) el('libDetach').onclick = () => {
+    LIB.disconnect(); S.ui.libSel = null; closeModal(); renderLibChip(); renderDock(); toast('Library detached');
+  };
+  el('libClose').onclick = closeModal;
+}
+
+/* ---- adding and editing a component: the parameters are the user's ---- */
+function openLibEditor(c){
+  const draft = c ? { ...c, parameters:{ ...c.parameters } } : { part_number:'', parameters:{}, models:{}, pins:[] };
+  const rows = () => Object.entries(draft.parameters);
+  const paramRows = () => rows().map(([k, v], i) => h`
+    <div class="row" data-prow="${i}">
+      <input type="text" class="pkey" value="${esc(k)}" placeholder="parameter">
+      <input type="text" class="pval" value="${esc(v)}" placeholder="value">
+      <button class="danger" data-pdel="${esc(k)}" style="flex:0 0 auto">✕</button>
+    </div>`).join('');
+
+  openModal(c ? 'Edit ' + c.part_number : 'New component', h`
+    <div class="kv"><label>Part number</label><input type="text" id="leePn" value="${esc(draft.part_number)}" placeholder="e.g. BQ24075RGTR"></div>
+    <div class="row">
+      <div class="kv"><label>Manufacturer</label><input type="text" id="leeMfr" value="${esc(draft.manufacturer || '')}"></div>
+      <div class="kv"><label>Category</label><input type="text" id="leeCat" value="${esc(draft.category || '')}" placeholder="capacitor, MCU, connector…"></div>
+    </div>
+    <div class="row">
+      <div class="kv"><label>Value</label><input type="text" id="leeVal" value="${esc(draft.value || '')}"></div>
+      <div class="kv"><label>Package</label><input type="text" id="leePkg" value="${esc(draft.package || '')}"></div>
+    </div>
+    <div class="kv"><label>Description</label><input type="text" id="leeDesc" value="${esc(draft.description || '')}"></div>
+    <div class="kv"><label>Pin names (comma separated — the fallback symbol uses them)</label>
+      <input type="text" id="leePins" value="${esc((draft.pins || []).join(', '))}" placeholder="VIN, GND, EN, OUT"></div>
+    <div class="sechead">Parameters</div>
+    <div id="leeParams">${paramRows()}</div>
+    <div class="btnrow"><button id="leeAdd">Add parameter</button></div>
+    <div class="sechead">Models</div>
+    <table class="facttbl"><tbody>${LIB_MODEL_SLOTS.map(sl => h`<tr>
+      <td>${esc(sl.label)}</td>
+      <td class="mono" id="leeM_${esc(sl.id)}">${draft.models[sl.id] ? esc(draft.models[sl.id].name || draft.models[sl.id].path || '') : '<span style="color:var(--ink-soft)">not attached</span>'}</td>
+      <td><input type="file" data-leefile="${esc(sl.id)}" style="font-size:10.5px;max-width:150px"></td></tr>`).join('')}</tbody></table>`,
+    `<button class="primary" id="leeSave">${c ? 'Save' : 'Add to library'}</button><button id="leeCancel">Cancel</button>`);
+
+  const readParams = () => {
+    const out = {};
+    el('leeParams').querySelectorAll('[data-prow]').forEach(r => {
+      const k = r.querySelector('.pkey').value.trim();
+      if (k) out[k] = r.querySelector('.pval').value;
+    });
+    draft.parameters = out;
+  };
+  const redrawParams = () => { el('leeParams').innerHTML = paramRows(); bindParams(); };
+  const bindParams = () => {
+    el('leeParams').querySelectorAll('[data-pdel]').forEach(b => b.onclick = () => {
+      readParams(); delete draft.parameters[b.dataset.pdel]; redrawParams();
+    });
+  };
+  bindParams();
+  el('leeAdd').onclick = () => { readParams(); draft.parameters[''] = ''; redrawParams();
+    const last = el('leeParams').querySelector('[data-prow]:last-child .pkey'); if (last) last.focus(); };
+  document.querySelectorAll('[data-leefile]').forEach(inp => inp.onchange = e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    draft.models[inp.dataset.leefile] = { slot:inp.dataset.leefile, file:f, name:f.name, size:f.size || 0 };
+    el('leeM_' + inp.dataset.leefile).textContent = f.name;
+  });
+  el('leeCancel').onclick = closeModal;
+  el('leeSave').onclick = () => {
+    readParams();
+    const pn = el('leePn').value.trim();
+    if (!pn) return toast('A component needs a part number');
+    const saved = LIB.upsert({
+      id: c ? c.id : undefined,
+      part_number: pn,
+      manufacturer: el('leeMfr').value.trim(), category: el('leeCat').value.trim(),
+      value: el('leeVal').value.trim(), package: el('leePkg').value.trim(),
+      description: el('leeDesc').value.trim(),
+      pins: el('leePins').value.split(',').map(x => x.trim()).filter(Boolean),
+      parameters: draft.parameters, models: draft.models,
+    });
+    if (saved){ saved.symbol = null; S.ui.libSel = saved.id; }
+    closeModal(); renderLibChip(); renderDock();
+    toast(pn + (c ? ' saved' : ' added to the library'));
   };
 }
 

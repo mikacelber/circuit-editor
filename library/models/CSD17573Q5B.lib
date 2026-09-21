@@ -1,0 +1,9 @@
+* CSD17573Q5B — LTspice subcircuit (abridged sample: the real model comes
+* from the manufacturer; this one only has to have the right shape).
+.subckt CSD17573Q5B drain gate source
+M1 d g s s NMOS_MODEL
+Rd drain d 1.2m
+Rg gate g 1.4
+Rs source s 0.2m
+.model NMOS_MODEL NMOS (Vto=2.1 Kp=180 Lambda=0.002)
+.ends CSD17573Q5B

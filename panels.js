@@ -631,14 +631,17 @@ function renderLibDetail(host, c){
     <div class="sechead">Models</div>
     <table class="facttbl"><tbody>${LIB_MODEL_SLOTS.map(sl => libModelRow(c, sl)).join('')}</tbody></table>
 
-    <div class="sechead">Schematic symbol</div>
+    <div class="sechead">Schematic symbol${sym ? ' · ' + symbolStateTag(c, sym) : ''}</div>
     ${sym ? h`
       <div class="libsym">${sym.def ? defPreviewSVG(sym.def, { names:true })
         : defPreviewSVG(sym.kind === 'ic' ? makeIcDef(sym.pinNames && sym.pinNames.length ? sym.pinNames : ['1','2','3','4'], c.part_number)
                                           : SYMBOLS[sym.kind] || SYMBOLS.res, {})}</div>
-      <p class="hint">${sym.state === 'altium'
-        ? 'Drawn from the Altium symbol in ' + esc((c.models.symbol && c.models.symbol.name) || '.SchLib') + '.'
-        : esc(sentence(sym.reason || 'Generated body')) + ' Placing it on the sheet works all the same.'}</p>`
+      <p class="hint">${symbolStateLine(c, sym)}</p>
+      <div class="btnrow">
+        <button id="libcGen">${c.models.symbol_ir || c.models.symbol ? 'Regenerate from datasheet…' : 'Generate from datasheet…'}</button>
+        ${sym.state === 'ir' && symbolStatus(c, sym) !== 'reviewed' ? '<button id="libcApprove">Approve symbol</button>' : ''}
+        ${sym.state === 'ir' && !c.models.symbol ? '<button id="libcSchlib">Write .SchLib…</button>' : ''}
+      </div>`
       : '<p class="hint">Reading the symbol…</p>'}
 
     <div class="btnrow">
@@ -664,6 +667,14 @@ function renderLibDetail(host, c){
   host.querySelectorAll('[data-libdrop]').forEach(b => b.onclick = () => {
     delete c.models[b.dataset.libdrop]; c.symbol = null; LIB.dirty = true; renderDock();
   });
+  if (el('libcGen')) el('libcGen').onclick = () => openSymbolJob(c, 'symbol');
+  if (el('libcSchlib')) el('libcSchlib').onclick = () => openSymbolJob(c, 'schlib');
+  if (el('libcApprove')) el('libcApprove').onclick = () => {
+    c.symbol_status = 'reviewed';
+    if (c.symbol) c.symbol.status = 'reviewed';
+    LIB.dirty = true; renderDock();
+    toast(c.part_number + ' — symbol approved. Export the library to keep it.');
+  };
   el('libcPlace').onclick = () => placeLibComponent(c.id);
   if (el('libcAssign')) el('libcAssign').onclick = () => applyLibComponent(selPart, c);
   el('libcEdit').onclick = () => openLibEditor(c);
@@ -673,6 +684,75 @@ function renderLibDetail(host, c){
   };
   // The symbol is read lazily — once it is in, the panel redraws with it.
   if (!sym) LIB.symbolFor(c).then(() => { if (S.ui.libSel === c.id) renderDock(); });
+}
+
+/* Where the symbol on screen came from: the Altium file, the generated IR
+   (and whether anyone has approved it yet), or the fallback body. */
+function symbolStatus(c, sym){
+  return c.symbol_status || (sym && sym.status) || 'generated';
+}
+function symbolStateTag(c, sym){
+  if (sym.state === 'altium') return '<span class="symtag ok">Altium</span>';
+  if (sym.state === 'ir') return symbolStatus(c, sym) === 'reviewed'
+    ? '<span class="symtag ok">generated · approved</span>'
+    : '<span class="symtag warn">generated · not reviewed</span>';
+  return '<span class="symtag">fallback</span>';
+}
+function symbolStateLine(c, sym){
+  if (sym.state === 'altium')
+    return 'Drawn from the Altium symbol in ' + esc((c.models.symbol && c.models.symbol.name) || '.SchLib') + '.';
+  if (sym.state === 'ir'){
+    const p = sym.provenance || {};
+    const from = p.source && p.source.gpn ? ' from the datasheet of ' + esc(p.source.gpn) : '';
+    const by = p.layout === 'agent' ? 'the agent' + (p.model ? ' (' + esc(p.model) + ')' : '') : 'the layout rules';
+    return 'Generated' + from + ' by ' + by + '.' +
+      (symbolStatus(c, sym) === 'reviewed' ? '' : ' Check it against the datasheet, then approve it.');
+  }
+  return esc(sentence(sym.reason || 'Generated body')) + ' Placing it on the sheet works all the same.';
+}
+
+/* Asking for a symbol from the interface. The generator is an offline step
+   (tools/gen-symbol.js), so what the panel hands over is the job: this
+   downloads it and says which command turns it into a symbol. The result
+   comes back through `attach` on the model row. */
+function openSymbolJob(c, kind){
+  const schlib = kind === 'schlib';
+  const prov = (c.symbol && c.symbol.provenance) || {};
+  const job = {
+    kind: schlib ? 'schlib' : 'symbol',
+    part_number: c.part_number,
+    // the GPN the datasheet pipeline filed this part under, when we know it
+    gpn: (prov.source && prov.source.gpn) || c.parameters.gpn || c.part_number,
+    pins: c.pins || [],
+    datasheet: (c.models.datasheet && (c.models.datasheet.url || c.models.datasheet.path || c.models.datasheet.name)) || '',
+    library: LIB.name,
+    created: new Date().toISOString(),
+  };
+  const name = c.part_number.replace(/[^\w.-]+/g, '_') + (schlib ? '.schlibjob.json' : '.symboljob.json');
+  const cmd = schlib
+    ? 'python3 tools/write-schlib.py --job ' + name
+    : 'node tools/gen-symbol.js --job ' + name + ' --agent';
+  openModal(schlib ? 'Write the Altium symbol' : 'Generate the symbol from the datasheet', h`
+    <p class="hint" style="margin-top:0">${schlib
+      ? 'The Altium file is written from the symbol this component already has, so it can be opened in Altium and used for the PCB.'
+      : 'The generator reads the pinout the datasheet pipeline extracted for <b>' + esc(job.gpn) + '</b>, decides which side each pin goes on, and writes the symbol. It runs next to the repository, not in the browser.'}</p>
+    <div class="kv"><label>1 · the job</label>
+      <div class="row"><button id="sjDownload" class="primary" style="flex:0 0 auto">Download ${esc(name)}</button></div>
+      <p class="hint">Save it in the repository folder.</p></div>
+    <div class="kv"><label>2 · the command</label>
+      <pre class="cmd" id="sjCmd">${esc(cmd)}</pre>
+      <p class="hint">${schlib ? 'Writes <b>library/models/' + esc(c.part_number) + '.SchLib</b>.'
+        : 'Writes <b>library/models/' + esc(c.part_number) + '.sym.json</b> and updates <b>library.json</b>. Drop <code>--agent</code> to use the layout rules alone.'}</p></div>
+    <div class="kv"><label>3 · back into the library</label>
+      <p class="hint">Reload the library from its folder (<b>Source…</b>), or attach the file it wrote on the
+        <b>${schlib ? 'Altium symbol' : 'Symbol (IR)'}</b> row of this component.</p></div>`,
+    '<button id="sjCopy">Copy the command</button><button class="primary" id="sjClose">Close</button>');
+  el('sjDownload').onclick = () => download(name, JSON.stringify(job, null, 2));
+  el('sjCopy').onclick = async () => {
+    try { await navigator.clipboard.writeText(cmd); toast('Command copied'); }
+    catch (e){ toast('Copy it from the box above'); }
+  };
+  el('sjClose').onclick = closeModal;
 }
 
 /* "no Altium symbol attached" → "No Altium symbol attached." */

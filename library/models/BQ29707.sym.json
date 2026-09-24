@@ -1,0 +1,105 @@
+{
+  "format": "circuit-editor/symbol-ir/1",
+  "status": "generated",
+  "generated": "2026-09-24T17:25:55.287Z",
+  "provenance": {
+    "part_number": "BQ29707",
+    "source": {
+      "gpn": "BQ2970",
+      "record": "db/approved/BQ2970__BQ29707__2c7bf3ab65c3.json",
+      "status": "approved",
+      "sha256": "98e736a6c8f6a24e"
+    },
+    "layout": "rules",
+    "model": null,
+    "notes": "",
+    "generator": "tools/gen-symbol.js",
+    "pin_count": 6
+  },
+  "ir": {
+    "ok": true,
+    "implemented": true,
+    "reason": "",
+    "warnings": [],
+    "units": "mil",
+    "symbols": [
+      {
+        "name": "BQ29707",
+        "description": "Cost-effective single-cell Li-Ion/Li-polymer battery protection IC with factory-programmed overcharge, over-discharge, charge/discharge overcurrent and short-circuit protection driving two external low-side NMOS FETs, 8 V operating BAT input and BAT - 25 V V- tolerance",
+        "designator": "U",
+        "pins": [
+          {
+            "name": "V-",
+            "designator": "6",
+            "x": -600,
+            "y": 100,
+            "length": 300,
+            "orientation": 0,
+            "electrical": "input",
+            "hidden": false
+          },
+          {
+            "name": "NC",
+            "designator": "1",
+            "x": -600,
+            "y": 0,
+            "length": 300,
+            "orientation": 0,
+            "electrical": "passive",
+            "hidden": false
+          },
+          {
+            "name": "COUT",
+            "designator": "2",
+            "x": 600,
+            "y": 100,
+            "length": 300,
+            "orientation": 180,
+            "electrical": "output",
+            "hidden": false
+          },
+          {
+            "name": "DOUT",
+            "designator": "3",
+            "x": 600,
+            "y": 0,
+            "length": 300,
+            "orientation": 180,
+            "electrical": "output",
+            "hidden": false
+          },
+          {
+            "name": "BAT",
+            "designator": "5",
+            "x": -200,
+            "y": 500,
+            "length": 300,
+            "orientation": 270,
+            "electrical": "power",
+            "hidden": false
+          },
+          {
+            "name": "VSS",
+            "designator": "4",
+            "x": -200,
+            "y": -500,
+            "length": 300,
+            "orientation": 90,
+            "electrical": "power",
+            "hidden": false
+          }
+        ],
+        "primitives": [
+          {
+            "type": "rect",
+            "x1": -300,
+            "y1": -200,
+            "x2": 300,
+            "y2": 200,
+            "filled": true
+          }
+        ]
+      }
+    ]
+  }
+}

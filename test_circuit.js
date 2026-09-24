@@ -7,6 +7,8 @@
    ================================================================== */
 'use strict';
 const fs = require('fs');
+const path = require('path'), os = require('os'), cp = require('child_process');
+const GEN = require('./tools/gen-symbol.js');
 const { JSDOM } = require('jsdom');
 
 let pass = 0, fail = 0;
@@ -526,8 +528,8 @@ const LIB = T.LIB;
   check('a model named at the top level of the record is still a model',
     a.models.datasheet.url === 'https://x/y.pdf' && a.models.symbol.path === 'models/ABC123.SchLib');
   check('a record with no part number is not a component', W.normalizeLibComponent({ description:'x' }, {}) === null);
-  check('the four slots are datasheet, symbol, footprint and spice',
-    W.LIB_MODEL_SLOTS.map(x => x.id).join(',') === 'datasheet,symbol,footprint,spice');
+  check('the five slots are datasheet, symbol, footprint, spice and the generated IR',
+    W.LIB_MODEL_SLOTS.map(x => x.id).join(',') === 'datasheet,symbol,footprint,spice,symbol_ir');
 }
 
 const file = (name, text, rel) => {
@@ -544,7 +546,7 @@ const spiceText = fs.readFileSync('library/models/CSD17573Q5B.lib', 'utf8');
     file('CSD17573Q5B.lib', spiceText, 'sample/models/CSD17573Q5B.lib'),
     file('BQ24075RGTR.SchLib', 'PLACEHOLDER-BINARY', 'sample/models/BQ24075RGTR.SchLib'),
   ], { label:'sample library' });
-  check('a library imported off the disk holds every component of its index (' + n + ')', n === 3);
+  check('a library imported off the disk holds every component of its index (' + n + ')', n === 4);
   check('…and is what the chip in the top bar says it is', LIB.connected && LIB.name === 'sample library');
   const bq = LIB.match('BQ24075RGTR');
   check('a part number finds its component', bq && bq.part_number === 'BQ24075RGTR');
@@ -562,7 +564,7 @@ const spiceText = fs.readFileSync('library/models/CSD17573Q5B.lib', 'utf8');
     LIB.search('', 'MOSFET').map(c => c.part_number).join() === 'CSD17573Q5B');
   const lib2 = JSON.parse(JSON.stringify(LIB.toJSON()));
   check('exporting the library writes it back in the documented format',
-    lib2.format === 'circuit-editor/component-library/1' && lib2.components.length === 3 &&
+    lib2.format === 'circuit-editor/component-library/1' && lib2.components.length === 4 &&
     lib2.components.find(c => c.part_number === 'BQ24075RGTR').parameters.regulation_voltage === '4.2 V');
 }
 
@@ -591,12 +593,12 @@ const spiceText = fs.readFileSync('library/models/CSD17573Q5B.lib', 'utf8');
   };
   const n = await LIB.connectFolder('library');
   check('a served library folder is read from its library.json (' + n + ')',
-    n === 3 && seen.includes('library/library.json'));
+    n === 4 && seen.includes('library/library.json'));
   check('…and a relative model path is resolved against that folder',
     LIB.modelURL(LIB.match('CSD17573Q5B'), 'spice') === 'library/models/CSD17573Q5B.lib');
   LIB.reset(); LIB.loaded = false;
   const back = await LIB.autoConnect();
-  check('…so the next session reattaches to it without being asked', back === 3);
+  check('…so the next session reattaches to it without being asked', back === 4);
   delete window.fetch;
 }
 
@@ -673,10 +675,10 @@ section('Component library — on the sheet');
   T.setPanel('library');
   const body = window.document.getElementById('dockBody');
   check('the Library panel lists every component of the library',
-    body.querySelectorAll('[data-libc]').length === 3);
-  check('…each row showing which of the four models it has',
-    body.querySelectorAll('[data-libc] .mdot').length === 12 &&
-    body.querySelectorAll('[data-libc] .mdot.on').length === 4);
+    body.querySelectorAll('[data-libc]').length === 4);
+  check('…each row showing which of the five models it has',
+    body.querySelectorAll('[data-libc] .mdot').length === 20 &&
+    body.querySelectorAll('[data-libc] .mdot.on').length === 6);
   S.ui.libSel = bq.id; T.renderDock();
   const detail = window.document.getElementById('dockBody').innerHTML;
   check('…and opening one shows its parameters, its models and what it will draw',
@@ -687,9 +689,9 @@ section('Component library — on the sheet');
   const made = LIB.upsert({ part_number:'NX-TEST-1', category:'resistor',
                             parameters:{ resistance:'10k', tolerance:'1%' } });
   check('a component can be added to the library from the editor',
-    LIB.count === 4 && LIB.match('NX-TEST-1') === made && LIB.dirty);
+    LIB.count === 5 && LIB.match('NX-TEST-1') === made && LIB.dirty);
   LIB.remove(made.id);
-  check('…and removed again', LIB.count === 3 && !LIB.match('NX-TEST-1'));
+  check('…and removed again', LIB.count === 4 && !LIB.match('NX-TEST-1'));
 
   T.renderLibChip();
   check('the chip in the top bar names the library it is attached to',
@@ -699,6 +701,140 @@ section('Component library — on the sheet');
   T.setPanel('library');
   check('detaching it leaves the panel asking for one',
     !LIB.connected && /Import a library/.test(window.document.getElementById('dockBody').innerHTML));
+}
+
+section('Symbol generation — the layout rules');
+const SL = require('./tools/symbol-layout.js');
+const bqRec = JSON.parse(fs.readFileSync('db/approved/BQ2970__BQ29707__2c7bf3ab65c3.json', 'utf8'));
+{
+  const pins = SL.pinoutFromRecord(bqRec);
+  check('the pinout is read straight from the datasheet pipeline (' + pins.length + ' pins)',
+    pins.length === 6 && pins[4].name === 'BAT' && pins[4].type === 'power');
+  check('the short type codes of a pin table are normalised (O→output, PWR→power, I/O→io)',
+    SL.normType('O') === 'output' && SL.normType('PWR') === 'power' && SL.normType('I/O') === 'io' &&
+    SL.normType('GND') === 'ground');
+  const plan = SL.planLayout(pins);
+  const side = n => (plan.find(e => e.name === n) || {}).side;
+  check('supplies go to the top, grounds to the bottom, outputs right, the rest left (' +
+    plan.map(e => e.name + '→' + e.side).join(' ') + ')',
+    side('BAT') === 'top' && side('VSS') === 'bottom' &&
+    side('COUT') === 'right' && side('DOUT') === 'right' && side('V-') === 'left' && side('NC') === 'left');
+  const ep = SL.planLayout(SL.pinoutFromRecord({ facts:{ pinout:[
+    { pin:1, name:'VIN', type:'PWR' }, { pin:2, name:'OUT', type:'O' }, { pin:'EP', name:'EP', type:'' }] } }));
+  check('the thermal pad goes to the bottom even when the datasheet types it as nothing',
+    ep.find(e => e.name === 'EP').side === 'bottom');
+
+  const ir = SL.irFromPlan(plan, { name:'BQ29707', designator:'U' });
+  const sym = ir.symbols[0];
+  check('the plan becomes an IR: one body, every pin, mils and Altium axes',
+    ir.units === 'mil' && sym.pins.length === 6 && sym.primitives[0].type === 'rect');
+  check('…with the orientation that puts each pin on its own side',
+    sym.pins.find(p => p.name === 'BAT').orientation === 270 &&
+    sym.pins.find(p => p.name === 'VSS').orientation === 90 &&
+    sym.pins.find(p => p.name === 'DOUT').orientation === 180 &&
+    sym.pins.find(p => p.name === 'V-').orientation === 0);
+  const def = T.Altium.symbolDefFromAltium(sym, {});
+  check('…and altium.js draws it: 6 pins on the lattice, on the four sides',
+    def.pins.length === 6 && def.pins.every(p => p.x % 10 === 0 && p.y % 10 === 0) &&
+    new Set(def.pins.map(p => p.dir)).size === 4);
+  check('two runs of the generator give byte-identical geometry',
+    JSON.stringify(SL.irFromPlan(SL.planLayout(SL.pinoutFromRecord(bqRec)), { name:'BQ29707' })) ===
+    JSON.stringify(SL.irFromPlan(SL.planLayout(SL.pinoutFromRecord(bqRec)), { name:'BQ29707' })));
+}
+
+section('Symbol generation — what the agent is allowed to change');
+{
+  const pins = SL.pinoutFromRecord(bqRec);
+  const good = pins.map((p, i) => ({ pin:p.pin, side:'left', group:'input', order:i }));
+  const applied = SL.applyAgentPlan(pins, good);
+  check('a complete assignment from the agent is taken',
+    applied.ok && applied.plan.length === 6 && applied.plan.every(e => e.side === 'left'));
+  check('…one that drops a pin is refused whole',
+    SL.applyAgentPlan(pins, good.slice(1)).ok === false);
+  check('…one that repeats a pin is refused whole',
+    SL.applyAgentPlan(pins, [...good, good[0]]).ok === false);
+  check('…and so is a side that is not a side',
+    SL.applyAgentPlan(pins, good.map(e => ({ ...e, side:'middle' }))).ok === false);
+  check('the agent is asked for every pin, and only for the assignment',
+    /emit_symbol_layout/.test(GEN.LAYOUT_TOOL.name) &&
+    GEN.LAYOUT_TOOL.input_schema.properties.pins.items.required.join() === 'pin,side,group,order' &&
+    GEN.LAYOUT_TOOL.strict === true);
+}
+
+section('Symbol generation — the offline step, end to end');
+{
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ce-lib-'));
+  const out = cp.execFileSync('node', ['tools/gen-symbol.js', 'BQ2970', '--lib', tmp], { encoding:'utf8' });
+  check('the CLI finds the datasheet record and writes the symbol\n      ' + out.trim().split('\n')[0],
+    /BQ29707 · 6 pins/.test(out));
+  const symPath = path.join(tmp, 'models', 'BQ29707.sym.json');
+  const doc = JSON.parse(fs.readFileSync(symPath, 'utf8'));
+  check('…as an IR file that says where it came from and that nobody has reviewed it',
+    doc.format === 'circuit-editor/symbol-ir/1' && doc.status === 'generated' &&
+    doc.provenance.source.gpn === 'BQ2970' && doc.provenance.layout === 'rules' && doc.ir.symbols.length === 1);
+  const index = JSON.parse(fs.readFileSync(path.join(tmp, 'library.json'), 'utf8'));
+  const entry = index.components.find(c => c.part_number === 'BQ29707');
+  check('…and the component lands in library.json pointing at it',
+    entry && entry.models.symbol_ir === 'models/BQ29707.sym.json' && entry.pins.length === 6);
+  cp.execFileSync('node', ['tools/gen-symbol.js', 'BQ2970', '--lib', tmp], { encoding:'utf8' });
+  check('running it twice does not duplicate the component',
+    JSON.parse(fs.readFileSync(path.join(tmp, 'library.json'), 'utf8')).components.length === index.components.length);
+
+  // the Altium writer: the records are real, the OLE2 container is not yet
+  let wrote = '';
+  try {
+    wrote = cp.execFileSync('python3', ['tools/write-schlib.py', 'BQ29707', '--lib', tmp], { encoding:'utf8' });
+  } catch (e){ wrote = (e.stdout || '') + (e.stderr || ''); }   // it exits 3 while the container is a stub
+  const dump = path.join(tmp, 'models', 'BQ29707.schlib.txt');
+  const recs = fs.existsSync(dump) ? fs.readFileSync(dump, 'utf8').trim().split('\n') : [];
+  check('the writer turns the IR into Altium records: a component, a body, six pins',
+    recs.length === 8 && /^\|RECORD=1\|LIBREFERENCE=BQ29707\|/.test(recs[0]) &&
+    recs.filter(r => /^\|RECORD=2\|/.test(r)).length === 6 && /RECORD=14/.test(recs[1]));
+  check('…in Altium internal units, 1/10000 inch (the 600-mil body is 6000)',
+    /LOCATION\.X=-3000\|LOCATION\.Y=-2000\|CORNER\.X=3000/.test(recs[1]) &&
+    /PINLENGTH=3000/.test(recs[2]));
+  check('…and it refuses to write a .SchLib it cannot write yet, saying so',
+    /not implemented yet/.test(wrote) && !fs.existsSync(path.join(tmp, 'models', 'BQ29707.SchLib')));
+
+  section('Symbol generation — the generated symbol in the editor');
+  const libJson2 = fs.readFileSync(path.join(tmp, 'library.json'), 'utf8');
+  const symJson = fs.readFileSync(symPath, 'utf8');
+  (async () => {})();
+  global.__genFiles = { libJson2, symJson };
+}
+{
+  const { libJson2, symJson } = global.__genFiles;
+  const n = await LIB.loadFiles([
+    file('library.json', libJson2, 'gen/library.json'),
+    file('BQ29707.sym.json', symJson, 'gen/models/BQ29707.sym.json'),
+  ], { label:'generated library' });
+  check('a .sym.json in the folder is a model, not a library index (' + n + ' component)', n === 1);
+  const c = LIB.match('BQ29707');
+  check('…attached to the component it is named after', !!c && !!c.models.symbol_ir);
+  const sym = await LIB.symbolFor(c);
+  check('the editor draws the generated symbol, with no Altium file anywhere',
+    sym.state === 'ir' && sym.def && sym.def.pins.length === 6 && sym.status === 'generated');
+  const genPart = await T.dropLibComponent(c.id, 900, 900);
+  check('…and the part places carrying that symbol, with the pins of the datasheet',
+    !!genPart.libSymbol && W.partPins(genPart).length === 6 &&
+    W.partPins(genPart).some(p => p.name === 'BAT'));
+  S.ui.libSel = c.id; T.setPanel('library'); T.renderDock();
+  await new Promise(r => setTimeout(r, 10));
+  T.renderDock();
+  const html = window.document.getElementById('dockBody').innerHTML;
+  check('…the panel says it was generated and still needs a look',
+    /generated · not reviewed/.test(html) && /libcApprove/.test(html) && /Generate from datasheet|Regenerate/.test(html));
+  window.document.getElementById('libcApprove').onclick();
+  check('approving it is remembered on the component and exported with the library',
+    c.symbol_status === 'reviewed' &&
+    LIB.toJSON().components.find(x => x.part_number === 'BQ29707').symbol_status === 'reviewed');
+
+  // a broken IR must never take the sheet down
+  c.symbol = null; c.models.symbol_ir = { slot:'symbol_ir', name:'x.sym.json', file:file('x.sym.json', 'not json at all') };
+  const bad = await LIB.symbolFor(c);
+  check('a symbol file that cannot be read falls back to the generated body, and says so',
+    bad.state === 'fallback' && /could not read the generated symbol|no Altium/.test(bad.reason));
+  LIB.disconnect();
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

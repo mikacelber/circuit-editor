@@ -7,7 +7,9 @@
     "serve": "python3 -m http.server 8123",
     "test": "node test_circuit.js",
     "db:index": "node tools/build-db-index.js",
-    "lib:index": "node tools/build-library-index.js"
+    "lib:index": "node tools/build-library-index.js",
+    "symbol": "node tools/gen-symbol.js",
+    "symbol:schlib": "python3 tools/write-schlib.py"
   },
   "devDependencies": {
     "jsdom": "^24.1.3"

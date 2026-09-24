@@ -41,8 +41,31 @@ const LIB_MODEL_SLOTS = [
     keys:['footprint','pcblib','altium_footprint','pcb'] },
   { id:'spice',     label:'LTspice model',    short:'SPICE', ext:['lib','mod','sub','cir','asy','net','sp'],
     keys:['spice','ltspice','model','sim','spice_model'] },
+  /* The symbol the editor draws, already in the IR of altium.js — written by
+     tools/gen-symbol.js from a datasheet, or from a .SchLib once the reader
+     is implemented. A component with one of these draws properly without any
+     Altium file at all. */
+  { id:'symbol_ir', label:'Symbol (IR)',       short:'IR',    ext:['sym.json'],
+    keys:['symbol_ir','ir','symbol_json'] },
 ];
 const LIB_SLOT_IDS = LIB_MODEL_SLOTS.map(s => s.id);
+/* What a loose file is, by the end of its name. Two-part endings (.sym.json)
+   are why this is not just the extension. */
+for (const s of LIB_MODEL_SLOTS) s.suffix = s.ext.map(e => '.' + e);
+function slotForFileName(name){
+  const n = String(name || '').toLowerCase();
+  for (const s of LIB_MODEL_SLOTS) if (s.suffix.some(x => n.endsWith(x))) return s;
+  return null;
+}
+/* The part number a model file is named after: the name without its ending. */
+function stemOfFile(name, slot){
+  const n = String(name || '');
+  const sl = slot || slotForFileName(n);
+  const hit = sl && sl.suffix.find(x => n.toLowerCase().endsWith(x));
+  return hit ? n.slice(0, -hit.length) : n.replace(/\.[^.]+$/, '');
+}
+/* An index is a .json that is not one of our model files. */
+const isLibIndexFile = f => /\.json$/i.test(f.name) && !slotForFileName(f.name);
 
 const LIB = {
   source: null,            // {kind:'files'|'folder'|'remote', base, url, label, adapter}
@@ -117,8 +140,8 @@ const LIB = {
     const files = [...(fileList || [])];
     if (!files.length) return 0;
     const o = opts || {};
-    const jsons = files.filter(f => /\.json$/i.test(f.name));
-    const models = files.filter(f => !/\.json$/i.test(f.name));
+    const jsons = files.filter(isLibIndexFile);
+    const models = files.filter(f => !isLibIndexFile(f));
     this.error = null;
     if (!o.merge) this.reset();
     if (!o.merge || !this.source) this.source = { kind:'files', label:o.label || folderOf(files) || 'local files' };
@@ -160,8 +183,8 @@ const LIB = {
         if (!f){                                   // …or a file named after the part
           const stem = normPn(c.part_number);
           for (const [base, cand] of byBase){
-            const ext = base.split('.').pop();
-            if (slot.ext.includes(ext) && normPn(base.replace(/\.[^.]+$/, '')) === stem){ f = cand; break; }
+            const sl = slotForFileName(base);
+            if (sl && sl.id === slot.id && normPn(stemOfFile(base, sl)) === stem){ f = cand; break; }
           }
         }
         if (f){ c.models[slot.id] = modelFromFile(f, slot.id); claimed.add(f); }
@@ -330,25 +353,39 @@ const LIB = {
   async symbolFor(c){
     if (!c) return null;
     if (c.symbol && c.symbol.def) return c.symbol;
-    const fallback = () => ({ def:null, kind:libFallbackKind(c), pinNames:libPinNames(c),
-                              state:'fallback', reason:Altium.status('symbol').note });
-    if (!c.models.symbol) { c.symbol = { ...fallback(), reason:'no Altium symbol attached' }; return c.symbol; }
-    let parsed = null;
-    try {
-      const data = await this.modelData(c, 'symbol');
-      parsed = Altium.parseSchLib(data, { name:c.part_number });
-    } catch (e){
-      c.symbol = { ...fallback(), reason:'could not read the .SchLib: ' + e.message };
-      return c.symbol;
-    }
-    const sym = parsed && parsed.symbols && (parsed.symbols.find(s =>
-      normPn(s.name) === normPn(c.part_number)) || parsed.symbols[0]);
-    const def = sym ? Altium.symbolDefFromAltium(sym, { label:c.part_number }) : null;
+    const why = [];
     // kind stays a real symbols.js kind ('ic') so every consumer of
     // SYMBOLS[part.kind] keeps working; the parsed def rides on the part.
-    c.symbol = def
-      ? { def, kind:'ic', pinNames:def.pins.map(p => p.name), state:'altium', reason:'' }
-      : { ...fallback(), reason:(parsed && parsed.reason) || 'the .SchLib held no usable symbol' };
+    const drawn = (def, state, extra) => ({ def, kind:'ic', pinNames:def.pins.map(p => p.name),
+                                            state, reason:'', ...(extra || {}) });
+
+    // 1. the Altium symbol — the source of truth, once altium.js can read one
+    if (c.models.symbol){
+      try {
+        const parsed = Altium.parseSchLib(await this.modelData(c, 'symbol'), { name:c.part_number });
+        const def = symbolDefFromIR(parsed, c);
+        if (def) { c.symbol = drawn(def, 'altium'); return c.symbol; }
+        why.push((parsed && parsed.reason) || 'the .SchLib held no usable symbol');
+      } catch (e){ why.push('could not read the .SchLib: ' + e.message); }
+    } else why.push('no Altium symbol attached');
+
+    // 2. the generated symbol: the IR written by tools/gen-symbol.js
+    if (c.models.symbol_ir){
+      try {
+        const raw = await this.modelData(c, 'symbol_ir', 'text');
+        const doc = JSON.parse(typeof raw === 'string' ? raw : decodeText(raw));
+        const def = symbolDefFromIR(doc.ir || doc, c);
+        if (def){
+          c.symbol = drawn(def, 'ir', { status:doc.status || 'generated', provenance:doc.provenance || {} });
+          return c.symbol;
+        }
+        why.push('the generated symbol file held no usable symbol');
+      } catch (e){ why.push('could not read the generated symbol: ' + e.message); }
+    }
+
+    // 3. nothing to draw from: a body generated from the pin list
+    c.symbol = { def:null, kind:libFallbackKind(c), pinNames:libPinNames(c),
+                 state:'fallback', reason:why[0] || Altium.status('symbol').note };
     return c.symbol;
   },
 };
@@ -360,7 +397,8 @@ const LIB = {
    ------------------------------------------------------------------ */
 const LIB_KNOWN_KEYS = new Set(['id','part_number','partNumber','pn','mpn','part','description','desc',
   'manufacturer','mfr','vendor','category','cat','group','value','package','footprint_name','pins','pin_count',
-  'parameters','params','attributes','specs','properties','models','notes','base','path','source','symbol']);
+  'parameters','params','attributes','specs','properties','models','notes','base','path','source','symbol',
+  'symbol_status']);
 
 function normalizeLibComponent(raw, ctx){
   if (!raw || typeof raw !== 'object') return null;
@@ -394,6 +432,8 @@ function normalizeLibComponent(raw, ctx){
     parameters: params,
     models,
     notes: String(raw.notes || ''),
+    // 'generated' until somebody has looked at the symbol and approved it
+    symbol_status: String(raw.symbol_status || ''),
     base: raw.base || c.base || '',
     source: raw.source || c.source || 'files',
     path: raw.path || c.path || '',
@@ -420,7 +460,7 @@ function modelFromFile(f, slotId){
   return { slot:slotId, file:f, name:f.name, path:relPath(f), size:f.size || 0 };
 }
 function mergeComponent(old, next){
-  for (const k of ['description','manufacturer','category','value','package','notes'])
+  for (const k of ['description','manufacturer','category','value','package','notes','symbol_status'])
     if (next[k]) old[k] = next[k];
   if (next.pins && next.pins.length){ old.pins = next.pins; old.pin_count = next.pin_count; }
   Object.assign(old.parameters, next.parameters);
@@ -435,6 +475,7 @@ function serializeLibComponent(c){
     if (m) models[s] = m.url || m.path || m.name || '';
   }
   const out = { part_number:c.part_number };
+  if (c.symbol_status) out.symbol_status = c.symbol_status;
   for (const k of ['description','manufacturer','category','value','package','notes'])
     if (c[k]) out[k] = c[k];
   if (c.pins && c.pins.length) out.pins = c.pins;
@@ -456,10 +497,9 @@ function releaseComponent(c){
 function componentsFromFiles(files){
   const groups = new Map();
   for (const f of files){
-    const ext = (f.name.split('.').pop() || '').toLowerCase();
-    const slot = LIB_MODEL_SLOTS.find(s => s.ext.includes(ext));
+    const slot = slotForFileName(f.name);
     if (!slot) continue;
-    const stem = f.name.replace(/\.[^.]+$/, '').trim();
+    const stem = stemOfFile(f.name, slot).trim();
     if (!stem) continue;
     const key = normPn(stem);
     if (!groups.has(key)) groups.set(key, { part_number:stem, parameters:{}, models:{} });
@@ -470,6 +510,16 @@ function componentsFromFiles(files){
   }
   return [...groups.values()];
 }
+
+/* The symbol of an IR that matches this component, drawn by altium.js. */
+function symbolDefFromIR(ir, c){
+  const list = (ir && ir.symbols) || [];
+  if (!list.length) return null;
+  const sym = list.find(s => normPn(s.name) === normPn(c.part_number)) || list[0];
+  return sym ? Altium.symbolDefFromAltium(sym, { label:c.part_number }) : null;
+}
+const decodeText = buf => typeof TextDecoder !== 'undefined'
+  ? new TextDecoder().decode(buf) : String.fromCharCode(...new Uint8Array(buf));
 
 /* ---- the symbol the editor draws while the .SchLib parser is a stub ---- */
 function libPinNames(c){
@@ -527,6 +577,6 @@ function readFileBuffer(f){
 const libFileSize = n => !n ? '' : n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' kB' : (n / 1048576).toFixed(1) + ' MB';
 
 if (typeof module !== 'undefined') module.exports = {
-  LIB, LIB_MODEL_SLOTS, LIB_FORMAT, normalizeLibComponent, componentsFromFiles,
+  LIB, LIB_MODEL_SLOTS, LIB_FORMAT, normalizeLibComponent, componentsFromFiles, slotForFileName, stemOfFile,
   serializeLibComponent, libFallbackKind, libPinNames, libFileSize,
 };

@@ -178,10 +178,11 @@ choose — and up to **four attached models**:
 
 | | |
 |--|--|
-| **datasheet** | the PDF, or a URL to it |
+| **datasheet** | the PDF, or a URL to it — also what the symbol is generated from |
 | **symbol** | the Altium `.SchLib` — **this is what draws the component in the editor** |
 | **footprint** | the Altium `.PcbLib` |
 | **spice** | the LTspice model (`.lib`, `.mod`, `.sub`, `.cir`, `.asy`) |
+| **symbol (IR)** | `<PN>.sym.json` — the symbol generated from the datasheet, drawn when there is no readable `.SchLib` |
 
 Attach one from the cloud in the top bar (or the Library panel):
 
@@ -204,6 +205,41 @@ Placing a component brings its part number, its parameters (they become the
 part's parameters, editable in Properties) and its symbol onto the sheet; the
 part keeps a link back to the library, and Properties matches any part number
 against the library by family (`BQ24075-Q1` → `BQ24075RGTR`).
+
+### Creating a component: two ways in, one symbol
+
+```
+(A)  datasheet ─[pipeline]→ pinout ─[gen-symbol]→ IR ─[write-schlib]→ .SchLib ─┐
+                                                   │                           │
+(B)  your .SchLib ─────────────────────────────────┼──[parser]─────────────────┘
+                                                   ▼
+                                          the symbol on the sheet
+```
+
+**(A) From the datasheet.** The component's *Generate from datasheet…* hands you
+the job and the command; the generator runs next to the repository (the editor
+is a static page and cannot run it):
+
+```bash
+npm run symbol -- <GPN or part number> --agent
+```
+
+It reads the pinout the **datasheet pipeline already extracted** — nothing is
+re-extracted — and splits the work: the **agent** decides which side each pin
+goes on and how pins group; the **geometry is always deterministic code**, so
+the same component comes out identical twice. Whatever the agent answers is
+checked against the pinout that went in, pin by pin, and thrown away whole if it
+does not hold up — the rules (supplies up, grounds down, outputs right) stand in.
+The result is marked *generated · not reviewed* until you **Approve** it.
+
+Writing the real `.SchLib` is an optional step you can run whenever you want,
+from the same panel (`npm run symbol:schlib -- <PN>`). It builds the Altium
+records; **putting them inside the OLE2 container is still to do**, so it writes
+them as `<PN>.schlib.txt` and says so rather than leaving a file that only looks
+like a `.SchLib`.
+
+**(B) From an Altium file.** Attach a `.SchLib` and the parser below draws it. A
+`.SchLib` always wins over a generated symbol — it is the source of truth.
 
 ### The symbol comes from the Altium model
 
@@ -286,7 +322,9 @@ sample/             an example circuit_data.json
 db/                 the component database + its generated index
 library/            a sample component library + its models
 credential/         digikey_credentials.json, mouser_credentials.json (one-click load)
-tools/              build-db-index.js, build-library-index.js
+tools/              build-db-index.js, build-library-index.js,
+                    symbol-layout.js + gen-symbol.js (datasheet → symbol),
+                    write-schlib.py (symbol → Altium)
 test_circuit.js     headless test suite (jsdom)
 ```
 
@@ -302,14 +340,17 @@ exercises the whole path: import, symbol geometry and rotation, the connectivity
 rules (crossing versus T, wire over a pin versus wire ending on it), the netlist
 check (realised, partial, short), wire reshaping and rubber-banding,
 multi-selection, the distributor result normalisers, the BOM, the export
-round-trip, the panels, and the component library: the record shapes, the three
+round-trip, the panels, the component library (the record shapes, the three
 sources, family matching, the Altium IR → symbol conversion and placing a
-library component on the sheet.
+library component on the sheet) and the symbol generator end to end: the layout
+rules against a real datasheet record, what the agent is and is not allowed to
+change, the CLI, the Altium records, and the generated symbol being drawn and
+approved in the panel.
 
 ## Not there yet
 
 Buses and bus entries, multi-sheet projects and hierarchical blocks, copy/paste
 across sessions, PDF output, and writing values back into the imported netlist.
-In the component library: the Altium `.SchLib` and `.PcbLib` readers themselves
-(the path around them is in place) and pushing a library back to a cloud
-repository.
+In the component library: the Altium `.SchLib` and `.PcbLib` readers, the OLE2
+container of the writer (the records are there), and pushing a library back to a
+cloud repository.

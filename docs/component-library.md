@@ -5,10 +5,11 @@ An open-ended list of components. Each one is a **part number**, whatever
 
 | Model | File | What the editor does with it |
 |-------|------|------------------------------|
-| `datasheet` | `.pdf` (or a URL) | opened from the Library panel |
+| `datasheet` | `.pdf` (or a URL) | opened from the Library panel — and the input of the symbol generator |
 | `symbol` | Altium `.SchLib` | **parsed into the schematic symbol** the sheet draws |
 | `footprint` | Altium `.PcbLib` | carried with the part, handed to the layout stage |
 | `spice` | LTspice `.lib` / `.mod` / `.sub` / `.cir` / `.asy` | its `.subckt` and pin order are read |
+| `symbol_ir` | `<PN>.sym.json` | the symbol **generated from the datasheet** — what the sheet draws when there is no readable `.SchLib` |
 
 Nothing but the part number is required: a component with no parameters and no
 models is still a component, and a component can gain a model at any time
@@ -104,6 +105,76 @@ it finds.
 
 ---
 
+## Where a symbol comes from
+
+Two ways in, one thing drawn. Whichever way a component is created, the sheet
+draws it from the **IR** — so the symbol in the editor is the symbol in Altium,
+never a parallel approximation:
+
+```
+(A)  datasheet.pdf ─[pipeline]→ facts.pinout ─[gen-symbol.js]→ IR ─[write-schlib.py]→ .SchLib ─┐
+                                                                │                              │
+(B)  the user's .SchLib ────────────────────────────────────────┼──[altium.js parser]──────────┘
+                                                                ▼
+                                                        the symbol on the sheet
+```
+
+### (A) From the datasheet
+
+The generator is an **offline step**, run next to the repository — the editor is
+a static page and cannot run it itself. The Library panel's *Generate from
+datasheet…* writes the job and gives you the command:
+
+```bash
+node tools/gen-symbol.js <GPN or part number> --agent     # npm run symbol -- <GPN> --agent
+node tools/gen-symbol.js --job BQ29707.symboljob.json     # the job the panel exported
+```
+
+It reads the pinout the datasheet pipeline already extracted
+(`db/approved/<GPN>__….json` → `facts.pinout`), so nothing is re-extracted and
+nothing is invented, and writes `library/models/<PN>.sym.json` plus the entry in
+`library.json`.
+
+The work is split on purpose:
+
+| | Who | Why |
+|--|-----|-----|
+| **Judgement** — which side a pin goes on, how pins group, the order within a side | the agent (`--agent`, Claude), or the rules when it is off or unavailable | grouping a bus, spotting a differential pair or reading a pin description is what a model is good at |
+| **Geometry** — body size, 100-mil pitch, coordinates, the IR | `tools/symbol-layout.js`, always | the same component must come out identical twice; a model never decides a coordinate |
+
+The agent's answer is **validated against the pinout that went in** — every pin
+exactly once, on a real side — and thrown away whole if it does not hold up,
+falling back to the rules. The rules alone already give: supplies at the top,
+grounds and the thermal pad at the bottom, outputs on the right, everything else
+on the left, ordered by group and pin number.
+
+The result is marked `generated` and the panel says *generated · not reviewed*
+until you press **Approve symbol** — the same draft/approved discipline the
+datasheet database uses. `symbol_status` rides in `library.json`.
+
+### (A′) The Altium file, when you want it
+
+Writing the `.SchLib` is an **optional step you can run at any time** from the
+component's *Write .SchLib…*:
+
+```bash
+python3 tools/write-schlib.py <PN>        # npm run symbol:schlib -- <PN>
+```
+
+It turns the IR into the `|KEY=VALUE|` records of a SchLib component (real,
+deterministic, tested) and writes them as `<PN>.schlib.txt`. **Putting those
+records inside the OLE2 container is not implemented yet**, so it says so and
+writes no `.SchLib` rather than a file that only looks like one. The notes for
+finishing it are at the top of the script.
+
+### (B) From an Altium file
+
+Attach a `.SchLib` on the component's *Altium symbol* row (or drop a folder of
+them in) and the parser below takes over. A `.SchLib` always wins over a
+generated IR: it is the source of truth.
+
+---
+
 ## The symbol: the Altium parser
 
 `altium.js` is where a `.SchLib` becomes something the sheet can draw:
@@ -166,6 +237,10 @@ divide by 10 for the mils the IR wants.
   component's part number, its parameters as the part's parameters, and the
   symbol the library resolved — the Altium one when it could be read, the
   generated body otherwise.
+- The **Symbol** section of a component says where its drawing came from —
+  `Altium`, `generated · approved`, `generated · not reviewed` or `fallback` —
+  with the datasheet it was generated from and whether the agent or the rules
+  laid it out.
 - **Apply to `<ref>`** pins the component onto a symbol that is already drawn:
   part number, parameters, and the symbol when there is one.
 - The part keeps a `lib` record (`{id, library, source, models}`), so a saved

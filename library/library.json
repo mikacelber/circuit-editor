@@ -1,7 +1,7 @@
 {
   "format": "circuit-editor/component-library/1",
   "name": "Sample library",
-  "generated": "2026-09-21T17:46:36.722Z",
+  "generated": "2026-09-24T17:25:55.302Z",
   "components": [
     {
       "part_number": "BQ24075RGTR",
@@ -38,6 +38,25 @@
       },
       "models": {
         "datasheet": "https://www.ti.com/lit/ds/symlink/bq24075.pdf"
+      }
+    },
+    {
+      "part_number": "BQ29707",
+      "description": "Cost-effective single-cell Li-Ion/Li-polymer battery protection IC with factory-programmed overcharge, over-discharge, charge/discharge overcurrent and short-circuit protection driving two external low-side NMOS FETs, 8 V operating BAT input and BAT - 25 V V- tolerance",
+      "manufacturer": "ti",
+      "package": "DSE (6-PIN WSON)",
+      "pins": [
+        "NC",
+        "COUT",
+        "DOUT",
+        "VSS",
+        "BAT",
+        "V-"
+      ],
+      "parameters": {},
+      "models": {
+        "symbol_ir": "models/BQ29707.sym.json",
+        "datasheet": "https://www.ti.com/lit/ds/symlink/bq2970.pdf"
       }
     },
     {

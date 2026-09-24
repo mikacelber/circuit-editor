@@ -14,6 +14,16 @@ itself. Until a symbol is attached (and until the `.SchLib` reader in
 `altium.js` is implemented) a component is drawn as a body with the pins its
 record lists.
 
+`BQ29707` shows the other way in: its symbol was **generated from the datasheet**
+the extraction pipeline already had, with
+
+```bash
+npm run symbol -- BQ2970            # add --agent to have Claude lay the pins out
+```
+
+which wrote `models/BQ29707.sym.json` and the entry here. The Library panel marks
+it *generated · not reviewed* until somebody approves it.
+
 Rebuild the index after changing the folder:
 
 ```bash

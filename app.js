@@ -17,7 +17,7 @@ const svg = $('board'), viewport = $('viewport'), gridG = $('gridG');
 const roomsG = $('roomsG'), wiresG = $('wiresG'), partsG = $('partsG'), overlayG = $('overlayG');
 
 const S = {
-  project: { title:'Untitled circuit', code:'', revision:'A', author:'', customer:'', variant:'', status:'draft',
+  project: { title:'Untitled circuit', sheetName:'Sheet1', code:'', revision:'A', author:'', customer:'', variant:'', status:'draft',
              vin:'', vout:'', imax:'', isolation:'', standards:'', notes:'', checklist:[] },
   parts: [], wires: [], rooms: [], netlist: null,
   view: { tx:0, ty:0, k:1 },
@@ -654,6 +654,7 @@ function renderEmpty(){ $('emptyState').hidden = S.parts.length > 0 || S.wires.l
 function renderSheetChip(){
   const n = S.selIds.size;
   $('sheetChip').innerHTML = `<b>${esc(S.project.title || 'Untitled circuit')}</b>
+    <span class="crumb-sep">/</span> ${esc(S.project.sheetName || 'Sheet1')}
     <span class="crumb-sep">/</span> ${esc(S.project.revision ? 'rev ' + S.project.revision : 'rev —')}
     <span class="crumb-sep">/</span> ${Math.round(S.view.k * 100)}%
     <span class="crumb-sep">/</span> ${esc(S.place ? 'placing ' + (S.place.label || SYMBOLS[S.place.kind].label) : S.tool)}` +
@@ -1040,12 +1041,33 @@ function bomCSV(){
       p.pick ? p.pick.datasheet : '', p.group, p.role].map(q).join(','));
   return [head.map(q).join(','), ...rows].join('\n');
 }
-function openExport(){
+/* The sheet as an Altium project — <title>.PrjPcb, <sheet>.SchDoc and a
+   <title>.SchLib holding every symbol used — zipped into one download.
+   altium-project.js does the work; this only feeds it the sheet. */
+async function exportAltium(opts){
+  const o = opts || {};
+  return AltiumProject.build({ project:S.project, parts:S.parts, wires:S.wires },
+                             { name:o.name || S.project.title, format:o.format || 'binary', library:LIB });
+}
+function altiumReportHTML(r){
+  const sh = r.report.sheets.map(s => `<li><b>${esc(s.file)}</b> — ${s.components} components
+      (${s.library} with their library .SchLib symbol, ${s.converted} converted), ${s.wires} wires,
+      ${s.junctions} junctions, ${s.netLabels} net labels, ${s.powerPorts} power ports</li>`).join('');
+  const warn = r.report.warnings.length
+    ? `<div class="sechead">Check in Altium (${r.report.warnings.length})</div><ul class="altwarn">` +
+      r.report.warnings.slice(0, 40).map(w => `<li>${esc(w)}</li>`).join('') +
+      (r.report.warnings.length > 40 ? `<li>… and ${r.report.warnings.length - 40} more</li>` : '') + '</ul>'
+    : '';
+  return `<p class="hint" style="margin-bottom:4px">Downloaded <b>${esc(r.name)}.zip</b>:</p>
+    <ul class="altfiles">${Object.keys(r.files).map(f => `<li>${esc(f)}</li>`).join('')}</ul>
+    <ul class="altstats">${sh}<li>${r.report.symbols} symbols in ${esc(r.name)}.SchLib</li></ul>${warn}`;
+}
+function openExport(tab){
   const session = sessionJSON();
   const netlist = JSON.stringify(netlistFromSheet(S), null, 2);
   const bom = bomCSV();
   openModal('Export', `
-    <div class="tabs"><button class="on" data-etab="session">Session</button><button data-etab="netlist">Drawn netlist</button><button data-etab="bom">BOM</button><button data-etab="svg">Sheet SVG</button></div>
+    <div class="tabs"><button class="on" data-etab="session">Session</button><button data-etab="netlist">Drawn netlist</button><button data-etab="bom">BOM</button><button data-etab="svg">Sheet SVG</button><button data-etab="altium">Altium project</button></div>
     <div data-epane="session"><p class="hint">Everything: project fields, placed symbols, wires and the imported netlist.</p>
       <pre class="out">${esc(session.slice(0, 4000))}${session.length > 4000 ? '\n…' : ''}</pre>
       <div class="btnrow"><button id="dlSession" class="primary">Download session.json</button></div></div>
@@ -1056,7 +1078,18 @@ function openExport(){
       <pre class="out">${esc(bom.slice(0, 4000))}${bom.length > 4000 ? '\n…' : ''}</pre>
       <div class="btnrow"><button id="dlBom" class="primary">Download bom.csv</button></div></div>
     <div data-epane="svg" hidden><p class="hint">The sheet as vector art, for reports and reviews.</p>
-      <div class="btnrow"><button id="dlSvg" class="primary">Download sheet.svg</button></div></div>`,
+      <div class="btnrow"><button id="dlSvg" class="primary">Download sheet.svg</button></div></div>
+    <div data-epane="altium" hidden><p class="hint">The sheet as an Altium Designer project: the <b>.PrjPcb</b>, one
+      <b>.SchDoc</b> per sheet with every component, wire, junction, net label and power port where it is drawn here,
+      and a <b>.SchLib</b> holding every symbol used. Parts placed from the component library keep the symbol of their
+      own <b>.SchLib</b>; the rest are drawn as on this sheet.</p>
+      <div class="row"><div class="kv"><label>Project name</label><input type="text" id="altName" value="${esc(S.project.title || 'Untitled circuit')}"></div>
+        <div class="kv"><label>Sheet name</label><input type="text" id="altSheet" value="${esc(S.project.sheetName || 'Sheet1')}"></div></div>
+      <div class="kv"><label>Schematic file format</label><select id="altFormat">
+        <option value="binary">Binary — ASCII records in an OLE2 compound file (Altium's native .SchDoc)</option>
+        <option value="ascii">ASCII — the same records as a plain-text .SchDoc</option></select></div>
+      <div class="btnrow"><button id="dlAltium" class="primary">Export Altium project</button></div>
+      <div id="altReport"></div></div>`,
     `<button class="primary" id="expClose">Close</button>`);
   const show = t => {
     document.querySelectorAll('[data-etab]').forEach(b => b.classList.toggle('on', b.dataset.etab === t));
@@ -1067,7 +1100,28 @@ function openExport(){
   $('dlNetlist').onclick = () => download('circuit_data.json', netlist);
   $('dlBom').onclick = () => download('bom.csv', bom, 'text/csv');
   $('dlSvg').onclick = () => download('sheet.svg', sheetSVG(), 'image/svg+xml');
+  $('dlAltium').onclick = async () => {
+    const name = $('altName').value.trim(), sheet = $('altSheet').value.trim();
+    // the names are the project's own: what is typed here is kept
+    if ((name && name !== S.project.title) || (sheet && sheet !== S.project.sheetName)){
+      commit();
+      if (name){ S.project.title = name; $('projTitle').textContent = name; }
+      if (sheet) S.project.sheetName = sheet;
+      render();
+    }
+    const btn = $('dlAltium');
+    btn.disabled = true; btn.textContent = 'Exporting…';
+    try {
+      const r = await exportAltium({ format:$('altFormat').value });
+      download(r.name + '.zip', r.zip(), 'application/zip');
+      $('altReport').innerHTML = altiumReportHTML(r);
+      toast('Altium project exported · ' + r.name + '.zip');
+    } catch (err){
+      $('altReport').innerHTML = `<p class="hint" style="color:var(--warn)">Export failed: ${esc(err.message)}</p>`;
+    } finally { btn.disabled = false; btn.textContent = 'Export Altium project'; }
+  };
   $('expClose').onclick = closeModal;
+  if (tab) show(tab);
 }
 function sheetSVG(){
   const b = sheetBounds() || { x:0, y:0, w:100, h:100 };
@@ -1157,6 +1211,6 @@ if (typeof window !== 'undefined') window.__CE = {
   placeLibComponent, dropLibComponent, applyLibComponent, libPartFields,
   DB, finishWire, sheetBounds, selectOnly, toggleSel, clearSel,
   moveVertex, ensureBends, ensureSegBends, simplifyWire, orthogonalize, rubberBandStart, rubberBandApply, rubberBandEnd,
-  rotateSel, mirrorSel, duplicateSel, nudgeSel, bomCSV, loadSession, sheetSVG,
+  rotateSel, mirrorSel, duplicateSel, nudgeSel, bomCSV, loadSession, sheetSVG, exportAltium, openExport, AltiumProject,
   get wireDraft(){ return wireDraft; }, set wireDraft(v){ wireDraft = v; },
 };

@@ -25,7 +25,8 @@ python3 -m http.server 8123      # or: npm run serve
 
 Then **Import → Sample → Load sample/circuit_data.json** (236 components,
 192 nets). `Arrange` re-places everything by functional group, `Check` runs the
-rules, `Export` gives you the session, the drawn netlist or the sheet as SVG.
+rules, `Export` gives you the session, the drawn netlist, the BOM, the sheet as
+SVG — or the whole sheet as an **Altium Designer project**.
 
 Opening `index.html` straight from disk works too, except for the things a
 browser refuses to `fetch` over `file://`: the bundled sample, the component
@@ -117,8 +118,49 @@ in the library dialog instead — all three read the files straight off your dis
      not know, duplicate references.
 5. **Export** the session (everything), the *drawn* netlist in `circuit_data`
    shape (diff it against the imported one), the **BOM** as CSV (one line per
-   component with the part picked on DigiKey / Mouser, its price and stock), or
-   the sheet as SVG.
+   component with the part picked on DigiKey / Mouser, its price and stock),
+   the sheet as SVG, or an **Altium project** (below).
+
+### Export → Altium project
+
+The **Altium project** tab of the Export dialog writes the sheet as an Altium
+Designer project, zipped into one download named after the project:
+
+```
+<Project>/<Project>.PrjPcb      the project, listing its documents
+<Project>/<Sheet>.SchDoc        the sheet: every component, wire, junction, net label,
+                                power port, no-connect and note where it is drawn here
+<Project>/<Project>.SchLib      every symbol the sheet uses, once
+```
+
+The project and sheet names are the project's own (*Title* and *Sheet name* in
+the Project panel); whatever you type in the dialog is kept. **Export Altium
+project** does the rest.
+
+- **Coordinates carry over one for one.** An editor world unit *is* an Altium
+  schematic unit (10 mil): the 10-unit grid here is Altium's 100-mil grid, so
+  the export only flips the y axis and shifts the drawing inside the sheet
+  border. The sheet is sized to the drawing.
+- **Library parts keep their Altium symbol.** A part placed from the component
+  library whose `.SchLib` can be read is written with *that* symbol, record for
+  record, turned and mirrored as on the sheet — after checking that its pins
+  land where the editor drew them. Every other part (the built-in resistors,
+  FETs, generated ICs…) is converted from the editor's own drawing.
+- **Every pin connects where it does here.** The test suite checks it pin end by
+  pin end on the 236-part sample, and the export warns when the sheet has a wire
+  running *over* a pin end without a vertex on it (Altium joins those; the
+  editor does not).
+- Part numbers, values, the DigiKey / Mouser pick and the type parameters ride
+  along as component parameters; the project fields fill the sheet's title
+  block (Title, DocumentNumber, Revision, Author…).
+- **Binary** writes the `.SchDoc` the way Altium saves it: the `|KEY=VALUE|`
+  records inside an OLE2 compound file. **ASCII** writes the same records as a
+  plain-text `.SchDoc`, which Altium opens too.
+
+It is built to run backwards: every layer has its reader next to its writer, and
+reading an exported project back into editor parts and wires is already done and
+tested — an *Import Altium project* button only has to hand it the files.
+`docs/altium-export.md` has the format notes and the layers.
 
 ### Wires
 
@@ -232,11 +274,11 @@ checked against the pinout that went in, pin by pin, and thrown away whole if it
 does not hold up — the rules (supplies up, grounds down, outputs right) stand in.
 The result is marked *generated · not reviewed* until you **Approve** it.
 
-Writing the real `.SchLib` is an optional step you can run whenever you want,
-from the same panel (`npm run symbol:schlib -- <PN>`). It builds the Altium
-records; **putting them inside the OLE2 container is still to do**, so it writes
-them as `<PN>.schlib.txt` and says so rather than leaving a file that only looks
-like a `.SchLib`.
+Writing the Altium records is an optional offline step you can run whenever you
+want, from the same panel (`npm run symbol:schlib -- <PN>`): it writes them as
+`<PN>.schlib.txt`. The OLE2 container itself is written in the browser
+(`Altium.writeSchLib`, what the Altium project export uses) — the export's
+`.SchLib` already carries every generated symbol placed on the sheet.
 
 **(B) From an Altium file.** Attach a `.SchLib` and the parser below draws it. A
 `.SchLib` always wins over a generated symbol — it is the source of truth.
@@ -247,13 +289,14 @@ like a `.SchLib`.
 .SchLib  →  Altium.parseSchLib()  →  IR  →  Altium.symbolDefFromAltium()  →  the symbol on the sheet
 ```
 
-**The `.SchLib` and `.PcbLib` readers are placeholders for now** — they report
-that they are not implemented, and the component still places, drawn as a body
-with the pins the record lists (a 17-pin part gets its 17 pins), with the panel
-saying why. Everything downstream of the IR is real and tested: mils become grid
-units, Altium's upward y axis is flipped, pins are snapped onto the lattice and
-hung off the edge Altium put them on. `docs/component-library.md` has the IR and
-the notes for filling the reader in.
+**The `.SchLib` reader is real**: it opens the OLE2 compound file, finds every
+component (long names through `SectionKeys`), decodes the binary pin records and
+the drawing primitives, and hands back the IR — mils become grid units, Altium's
+upward y axis is flipped, pins are snapped onto the lattice and hung off the edge
+Altium put them on. A component whose `.SchLib` cannot be read still places,
+drawn from its generated symbol or as a body with the pins the record lists, with
+the panel saying why. **The `.PcbLib` reader is still a placeholder.**
+`docs/component-library.md` has the IR.
 
 ## The component database
 
@@ -313,12 +356,15 @@ styles.css          design tokens and every piece of chrome
 symbols.js          the symbol library and its geometry
 netlist.js          import, placement, connectivity engine, rules check, export
 db.js               the GPN database and the required-external-parts report
-altium.js           the Altium/LTspice model readers (the .SchLib parser is a placeholder)
+cfb.js              the OLE2 compound file (read + write) and a stored .zip writer
+altium.js           the Altium formats, both ways: records, .SchLib, .SchDoc, .PrjPcb;
+                    the LTspice reader (the .PcbLib reader is a placeholder)
+altium-project.js   the sheet as an Altium project, and an Altium sheet back as parts
 library.js          the component library: sources, records, models, symbols
 parts.js            DigiKey + Mouser part search (ported from the architecture editor)
 panels.js           the panel dock and the seven panels
 app.js              state, view, grid, rendering, tools, import/export
-sample/             an example circuit_data.json
+sample/             an example circuit_data.json; altium/ an Altium .SchLib test part
 db/                 the component database + its generated index
 library/            a sample component library + its models
 credential/         digikey_credentials.json, mouser_credentials.json (one-click load)
@@ -345,12 +391,18 @@ sources, family matching, the Altium IR → symbol conversion and placing a
 library component on the sheet) and the symbol generator end to end: the layout
 rules against a real datasheet record, what the agent is and is not allowed to
 change, the CLI, the Altium records, and the generated symbol being drawn and
-approved in the panel.
+approved in the panel. And the Altium formats: the OLE2 container (streams, mini
+stream, a valid directory tree), the records (text, `%UTF8%`, binary pins,
+fractions, placement and its inverse), reading a `.SchLib`, and the project
+export — every pin end of the sample landing where the sheet draws it, library
+parts written with their own symbol at every rotation, the ASCII flavour, the
+Export dialog, and the project read back into the same parts and wires.
 
 ## Not there yet
 
 Buses and bus entries, multi-sheet projects and hierarchical blocks, copy/paste
 across sessions, PDF output, and writing values back into the imported netlist.
-In the component library: the Altium `.SchLib` and `.PcbLib` readers, the OLE2
-container of the writer (the records are there), and pushing a library back to a
-cloud repository.
+In the component library: the Altium `.PcbLib` reader (so the export can attach
+footprints), and pushing a library back to a cloud repository. The Altium
+import: the reading half is done (`AltiumProject.readProject` →
+`editorFromSheet`); the button and the file picker are not.

@@ -186,6 +186,7 @@ function paneProject(body){
     ${field('standards','Standards / compliance')}
     ${field('notes','Notes','area')}
     <div class="sechead">Sheet</div>
+    ${field('sheetName','Sheet name')}
     <div class="kv"><label>Netlist</label><div class="val">${esc(S.netlist ? (S.netlist.source || 'imported') : 'none imported')}</div></div>
     <div class="kv"><label>Counts</label><div class="val">
       ${stats.placed} parts placed · ${stats.components} in netlist · ${stats.nets} nets · ${stats.wires} wires</div></div>
@@ -553,8 +554,8 @@ function openSearchSettings(){
    LIBRARY — the component library: part numbers, the parameters the
    designer chose to keep, and the four models attached to each one.
    The sheet symbol comes from the Altium .SchLib through altium.js;
-   while that parser is a placeholder the component still places, with
-   a body generated from its pin list, and the panel says so.
+   a component without a readable one still places, with a body
+   generated from its pin list, and the panel says so.
    ================================================================ */
 function paneLibrary(body){
   if (!LIB.connected){

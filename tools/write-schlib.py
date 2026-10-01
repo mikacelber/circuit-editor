@@ -30,8 +30,12 @@ To finish it:
   * pin records (RECORD=2) are stored in Altium's packed binary form rather
     than as plain text - the text this file emits is the same information in
     the readable shape, so the mapping is mechanical;
-  * coordinates are in Altium internal units, 1/10000 inch, which is what
-    to_internal() below produces from the IR's mils.
+  * coordinates are in Altium schematic units of 10 mil (the 100-mil grid is
+    10), which is what to_internal() below produces from the IR's mils.
+
+The browser side already does all of this: altium.js writeSchLib() writes a
+real .SchLib (OLE2 container, binary pins) and is what the Altium project
+export uses; this script stays the offline, records-only twin.
 
 Usage:
     python3 tools/write-schlib.py <PN or file.sym.json> [--lib library] [--out file]
@@ -39,21 +43,21 @@ Usage:
 """
 import argparse, json, os, re, sys
 
-MIL_TO_INTERNAL = 10            # the IR is in mils; Altium counts 1/10000 inch
+MIL_PER_UNIT = 10               # the IR is in mils; an Altium schematic unit is 10 mil
 
 # Altium's electrical-type codes for a pin.
 ELECTRICAL = {
     'input': 0, 'io': 1, 'output': 2, 'open_collector': 3,
     'passive': 4, 'hiz': 5, 'emitter': 6, 'power': 7,
 }
-# Bits 0-1 of PINCONGLOMERATE hold the orientation (0/90/180/270 -> 0..3);
-# the two bits above them show the pin's name and its designator.
+# Bits 0-1 of PINCONGLOMERATE hold the way the pin points AWAY from the body
+# (0 right, 1 up, 2 left, 3 down); 0x08 and 0x10 show its name and designator.
 PIN_SHOW_NAME = 0x08
 PIN_SHOW_DESIGNATOR = 0x10
 
 
 def to_internal(mils):
-    return int(round(float(mils) * MIL_TO_INTERNAL))
+    return int(round(float(mils) / MIL_PER_UNIT))
 
 
 def record(fields):
@@ -120,16 +124,21 @@ def records_from_ir(symbol):
             ]))
 
     for pin in symbol.get('pins', []):
-        orientation = int(pin.get('orientation', 0)) % 360 // 90
-        conglomerate = orientation | PIN_SHOW_NAME | PIN_SHOW_DESIGNATOR
+        # The IR anchors a pin at its electrical end with `orientation` running
+        # INTO the body; Altium anchors it at the body end, pointing out of it.
+        into = int(pin.get('orientation', 0)) % 360
+        length = float(pin.get('length', 300))
+        dx, dy = {0: (1, 0), 90: (0, 1), 180: (-1, 0), 270: (0, -1)}.get(into, (1, 0))
+        conglomerate = ((into + 180) % 360 // 90) | PIN_SHOW_NAME | PIN_SHOW_DESIGNATOR
         out.append(record([
             ('RECORD', 2), ('OWNERPARTID', 1),
             ('DESIGNATOR', pin.get('designator', '')),
             ('NAME', pin.get('name', '')),
             ('ELECTRICAL', ELECTRICAL.get(str(pin.get('electrical', 'passive')).lower(), 4)),
             ('PINCONGLOMERATE', conglomerate),
-            ('PINLENGTH', to_internal(pin.get('length', 300))),
-            ('LOCATION.X', to_internal(pin['x'])), ('LOCATION.Y', to_internal(pin['y'])),
+            ('PINLENGTH', to_internal(length)),
+            ('LOCATION.X', to_internal(float(pin['x']) + dx * length)),
+            ('LOCATION.Y', to_internal(float(pin['y']) + dy * length)),
         ]))
     return out
 
@@ -140,8 +149,9 @@ def write_schlib(path, records):
     See the notes at the top of this file. Raising is deliberate - a file
     with the right name and the wrong insides is worse than no file."""
     raise NotImplementedError(
-        'writing the OLE2 container is not implemented yet; '
-        'the records were written next to it as .schlib.txt')
+        'writing the OLE2 container is not implemented yet here (altium.js '
+        'writeSchLib does it in the browser); the records were written next to '
+        'it as .schlib.txt')
 
 
 def load_ir(arg, lib_dir):

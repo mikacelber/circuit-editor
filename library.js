@@ -22,9 +22,9 @@
                 a `LIB.registerAdapter('nexo-cloud', {load})` away.
 
    The symbol the editor draws comes from altium.js: the .SchLib is
-   parsed into an IR and converted into a symbols.js def. While that
-   parser is a placeholder the component still places — with a body
-   generated from its pin list — and the panel says why.
+   parsed into an IR and converted into a symbols.js def. A component
+   with no readable .SchLib still places — with its generated symbol, or
+   a body generated from its pin list — and the panel says why.
    ================================================================== */
 'use strict';
 
@@ -347,9 +347,9 @@ const LIB = {
   },
 
   /* ---------------- the symbol ----------------
-     The Altium symbol is what the editor wants to draw. While the .SchLib
-     parser is a placeholder this falls back to a body generated from the
-     component's pin list, and says so. */
+     The Altium symbol is what the editor wants to draw. Without a readable
+     .SchLib this falls back to the generated symbol, then to a body
+     generated from the component's pin list, and says so. */
   async symbolFor(c){
     if (!c) return null;
     if (c.symbol && c.symbol.def) return c.symbol;

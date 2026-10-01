@@ -78,7 +78,7 @@ until then **Export library.json** downloads it.
 | `parameters` | free-form: **the fields are the user's to choose**. `params`, `attributes`, `specs` and `properties` are read as well, and any loose scalar key on the record (`rds_on: "1.6 mΩ"`) becomes a parameter. |
 | `models` | the four slots. A value is a path relative to the library, an absolute URL, or an object `{path, name, size}`. The slot may also be named at the top level of the record (`datasheet`, `schlib`, `pcblib`, `ltspice`…). |
 | `category` | free text. It groups the panel's filter, and when it names one of the generic component types (`capacitor`, `MOSFET`, `connector`…) it also picks the fallback symbol. |
-| `pins` | the pin names, in order. They draw the fallback symbol while the `.SchLib` parser is a placeholder, so a 17-pin part is drawn with its 17 pins. |
+| `pins` | the pin names, in order. They draw the fallback symbol when there is no readable `.SchLib`, so a 17-pin part is drawn with its 17 pins. |
 | `value`, `package`, `description`, `manufacturer`, `notes` | optional, shown in the panel. |
 
 The file may also be a bare array of components, or `{parts: […]}`, or one
@@ -162,10 +162,11 @@ python3 tools/write-schlib.py <PN>        # npm run symbol:schlib -- <PN>
 ```
 
 It turns the IR into the `|KEY=VALUE|` records of a SchLib component (real,
-deterministic, tested) and writes them as `<PN>.schlib.txt`. **Putting those
-records inside the OLE2 container is not implemented yet**, so it says so and
-writes no `.SchLib` rather than a file that only looks like one. The notes for
-finishing it are at the top of the script.
+deterministic, tested, in Altium's 10-mil units) and writes them as
+`<PN>.schlib.txt`. This offline script stops at the records; the OLE2 container
+is written in the browser by `Altium.writeSchLib()`, which is what the Altium
+project export uses — a generated symbol placed on the sheet lands in the
+exported project's `.SchLib` as a real Altium symbol.
 
 ### (B) From an Altium file
 
@@ -183,12 +184,12 @@ generated IR: it is the source of truth.
 .SchLib  →  Altium.parseSchLib()  →  IR  →  Altium.symbolDefFromAltium()  →  a symbols.js def
 ```
 
-**`parseSchLib()` and `parsePcbLib()` are placeholders.** They report
-`implemented:false`, and the component still places — with a body generated from
-its pin list — while the Library panel says why. Everything *downstream* of the
-IR is real: the conversion, the mil→unit scaling, the y-axis flip, the grid
-snap, the pin sides and the body all work and are covered by the test suite, so
-implementing the reader is a matter of filling the IR in.
+**`parseSchLib()` is real; `parsePcbLib()` is still a placeholder.** A
+component whose `.SchLib` cannot be read still places — with its generated
+symbol, or a body generated from its pin list — while the Library panel says
+why. Each IR symbol also carries `altium`: the library symbol itself, every
+record in Altium's own shape, which is what the Altium project export copies
+onto the sheet so a library part keeps its exact Altium drawing.
 
 ### The IR a reader must produce
 
@@ -219,15 +220,22 @@ implementing the reader is a matter of filling the IR in.
 - 100 mil becomes one grid cell (10 world units), the y axis is flipped for the
   sheet, and every pin is snapped onto the lattice so wires land on it.
 
-### Reading the file itself, when the time comes
+### The file itself
 
-A `.SchLib` is an OLE2 compound document. Each component is a storage whose
-`Data` stream is a run of records — a 4-byte little-endian length, then that
-many bytes of ASCII made of `|KEY=VALUE` pairs. `RECORD=1` opens a component,
-`RECORD=2` is a pin, `RECORD=14` a rectangle, `RECORD=13` a line, `RECORD=6` a
-polyline, `RECORD=7` a polygon, `RECORD=12` an arc, `RECORD=4` a label.
-`LOCATION.X` / `LOCATION.Y` are in Altium internal units (1/10000 inch), so
-divide by 10 for the mils the IR wants.
+A `.SchLib` is an OLE2 compound document. `FileHeader` lists the components
+(`COMPCOUNT`, `LIBREF0…`); each component is a storage (named after it, or
+mapped through `SectionKeys` when the name does not fit 31 characters) whose
+`Data` stream is a run of records — a little-endian uint32 whose low 24 bits are
+the length and high byte the type: `0` for `|KEY=VALUE|` text, `1` for binary.
+`RECORD=1` opens the component, `RECORD=2` is a pin (stored **binary**),
+`RECORD=14` a rectangle, `RECORD=13` a line, `RECORD=6` a polyline, `RECORD=7` a
+polygon, `RECORD=12` an arc, `RECORD=8` an ellipse, `RECORD=4` a label,
+`RECORD=34` the designator, `RECORD=41` a parameter. Coordinates are Altium
+schematic units of **10 mil** (`LOCATION.X=10` is 100 mil), with an optional
+`_FRAC` key in 1/100000 of a unit; multiply by 10 for the mils the IR wants. A
+pin's `LOCATION` is its body end and bits 0–1 of `PINCONGLOMERATE` the way it
+points out of the body (0 right, 1 up, 2 left, 3 down). `docs/altium-export.md`
+has the rest.
 
 ---
 

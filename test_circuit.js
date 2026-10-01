@@ -23,14 +23,15 @@ window.Element.prototype.setPointerCapture = () => {};
 window.Element.prototype.releasePointerCapture = () => {};
 /* The browser loads the five scripts into ONE global lexical scope; a single
    eval reproduces that, and the epilogue hands the test what it needs. */
-window.eval(['symbols.js', 'netlist.js', 'db.js', 'altium.js', 'library.js', 'parts.js', 'panels.js', 'app.js']
+window.eval(['symbols.js', 'netlist.js', 'db.js', 'cfb.js', 'altium.js', 'altium-project.js', 'library.js', 'parts.js', 'panels.js', 'app.js']
   .map(f => fs.readFileSync(f, 'utf8')).join('\n;\n') + `
   window.__T = { SYMBOLS, PANELS, COMPONENT_TYPES, renderDbDetail, paneDatabase, defOf, partPins, partBounds, kindForComponent, pinNameFor,
     LIB_MODEL_SLOTS, normalizeLibComponent, componentsFromFiles, serializeLibComponent, libFallbackKind, libPinNames,
     paneLibrary, renderLibDetail, makeIcDef, makeLibDef, defPreviewSVG,
     componentType, typeFields, propValue, symbolBodySVG,
     connectivity, checkDesign, netlistFromSheet, parseCircuitData, partsFromNetlist, arrangeParts, DB,
-    dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor };`);
+    dkNormalizeProducts, msNormalizeParts, msParsePrice, mergePartResults, dkFmtPrice, partQueryFor,
+    CFB, ZIP };`);
 const T = window.__CE, W = window.__T, S = T.S;
 const raw = JSON.parse(fs.readFileSync('sample/circuit_data.json', 'utf8'));
 
@@ -604,9 +605,9 @@ const spiceText = fs.readFileSync('library/models/CSD17573Q5B.lib', 'utf8');
 
 section('Component library — the Altium models');
 {
-  const parsed = T.Altium.parseSchLib('PLACEHOLDER-BINARY', { name:'X' });
-  check('the .SchLib parser is still the placeholder, and says so',
-    parsed.ok === false && parsed.implemented === false && /not implemented/.test(parsed.reason));
+  const parsed = T.Altium.parseSchLib('NOT-AN-OLE2-FILE', { name:'X' });
+  check('the .SchLib parser refuses what is not a compound document, and says why',
+    parsed.ok === false && parsed.implemented === true && /not an OLE2 file/.test(parsed.reason));
   check('the .PcbLib parser says the same', T.Altium.parsePcbLib('X').implemented === false);
   const sp = T.Altium.parseLtspice(spiceText);
   check('the LTspice model is read: its subcircuit and the pin order (' +
@@ -790,9 +791,15 @@ section('Symbol generation — the offline step, end to end');
   check('the writer turns the IR into Altium records: a component, a body, six pins',
     recs.length === 8 && /^\|RECORD=1\|LIBREFERENCE=BQ29707\|/.test(recs[0]) &&
     recs.filter(r => /^\|RECORD=2\|/.test(r)).length === 6 && /RECORD=14/.test(recs[1]));
-  check('…in Altium internal units, 1/10000 inch (the 600-mil body is 6000)',
-    /LOCATION\.X=-3000\|LOCATION\.Y=-2000\|CORNER\.X=3000/.test(recs[1]) &&
-    /PINLENGTH=3000/.test(recs[2]));
+  check('…in Altium schematic units of 10 mil (the 600-mil body is 60, a 300-mil pin 30)',
+    /LOCATION\.X=-30\|LOCATION\.Y=-20\|CORNER\.X=30/.test(recs[1]) &&
+    /PINLENGTH=30\|/.test(recs[2]));
+  check('…each pin anchored at the body, pointing out of it the way Altium counts',
+    recs.filter(r => /^\|RECORD=2\|/.test(r)).every(r => {
+      const g = k => Number((new RegExp('\\|' + k + '=(-?\\d+)').exec(r) || [])[1]);
+      const d = g('PINCONGLOMERATE') & 3, x = g('LOCATION.X'), y = g('LOCATION.Y');
+      return (d === 2 && x === -30) || (d === 0 && x === 30) || (d === 1 && y === 20) || (d === 3 && y === -20);
+    }));
   check('…and it refuses to write a .SchLib it cannot write yet, saying so',
     /not implemented yet/.test(wrote) && !fs.existsSync(path.join(tmp, 'models', 'BQ29707.SchLib')));
 
@@ -835,6 +842,268 @@ section('Symbol generation — the offline step, end to end');
   check('a symbol file that cannot be read falls back to the generated body, and says so',
     bad.state === 'fallback' && /could not read the generated symbol|no Altium/.test(bad.reason));
   LIB.disconnect();
+}
+
+section('Altium — the OLE2 container');
+{
+  const { CFB, ZIP } = W;
+  const bytes = (n, k) => Uint8Array.from({ length:n }, (_, i) => (i * 31 + k) & 255);
+  const files = { FileHeader:bytes(300, 1), Storage:bytes(20, 2), Big:bytes(70000, 3), Empty:new Uint8Array(0) };
+  for (let i = 0; i < 30; i++) files['Comp' + i + '/Data'] = bytes(10 + i * 170, i);
+  const out = CFB.write(files), back = CFB.read(out);
+  const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => v === b[i]);
+  check('a compound file written here reads back stream for stream (' + back.list().length + ' streams, mini and regular sectors)',
+    Object.entries(files).every(([k, v]) => same(back.get(k), v)) && back.storages.has('Comp7'));
+  check('…starting with the OLE2 signature, in 512-byte sectors', CFB.isCFB(out) && out.length % 512 === 0);
+  // every storage's children must form a binary search tree in CFB order, and a
+  // valid red-black tree: no red node with a red child, one black height everywhere
+  const dv = new DataView(out.buffer), dirStart = dv.getUint32(48, true);
+  const fatAt = s => dv.getUint32(512 + dv.getUint32(76 + Math.floor(s / 128) * 4, true) * 512 + (s % 128) * 4, true);
+  const entries = [];
+  for (let s = dirStart; s < 0xFFFFFFFA; s = fatAt(s)){
+    for (let o = 512 + s * 512; o < 512 + s * 512 + 512; o += 128){
+      const len = dv.getUint16(o + 64, true);
+      let name = ''; for (let c = 0; c < len / 2 - 1; c++) name += String.fromCharCode(dv.getUint16(o + c * 2, true));
+      entries.push({ name, color:out[o + 67], left:dv.getUint32(o + 68, true), right:dv.getUint32(o + 72, true), child:dv.getUint32(o + 76, true) });
+    }
+  }
+  const cmp = (a, b) => (a.length - b.length) || (a.toUpperCase() < b.toUpperCase() ? -1 : a.toUpperCase() > b.toUpperCase() ? 1 : 0);
+  let treeOk = true;
+  const walk = (sid, lo, hi, parentRed) => {
+    if (sid === 0xFFFFFFFF) return 1;
+    const e = entries[sid];
+    if ((lo && cmp(e.name, lo) <= 0) || (hi && cmp(e.name, hi) >= 0) || (parentRed && e.color === 0)) treeOk = false;
+    const l = walk(e.left, lo, e.name, e.color === 0), r = walk(e.right, e.name, hi, e.color === 0);
+    if (l !== r) treeOk = false;
+    if (e.child !== 0xFFFFFFFF) walk(e.child, null, null, false);
+    return l + (e.color === 1 ? 1 : 0);
+  };
+  walk(entries[0].child, null, null, false);
+  check('…its directory siblings are ordered the CFB way and form a valid red-black tree', treeOk && entries.length >= 35);
+
+  const z = ZIP.write({ 'P/P.PrjPcb':'[Design]\r\n', 'P/S.SchDoc':bytes(1000, 9) });
+  const zr = ZIP.read(z);
+  check('a project zips into one stored archive and reads back', zr.size === 2 && same(zr.get('P/S.SchDoc'), bytes(1000, 9)) &&
+    new TextDecoder().decode(zr.get('P/P.PrjPcb')) === '[Design]\r\n');
+}
+
+section('Altium — records');
+{
+  const A = T.Altium;
+  const rec = { RECORD:'41', NAME:'Resistance', TEXT:'4.7 kΩ ±1% (µ)', 'LOCATION.X':'10' };
+  const enc = A.encodeRecords([rec]), dec = A.decodeRecords(enc)[0];
+  check('a text record round-trips, characters outside Windows-1252 riding in %UTF8% (' + dec.TEXT + ')',
+    dec.TEXT === rec.TEXT && dec.NAME === 'Resistance' && enc[3] === 0 &&
+    /%UTF8%TEXT=/.test(String.fromCharCode(...enc)) && /\|TEXT=4\.7 k\?/.test(String.fromCharCode(...enc)));
+  const pin = { RECORD:'2', OWNERPARTID:'1', ELECTRICAL:'7', PINCONGLOMERATE:String(0x20 | 0x08 | 2), PINLENGTH:'30',
+                'LOCATION.X':'-10', 'LOCATION.Y':'-40', NAME:'VIN', DESIGNATOR:'1', DESCRIPTION:'supply' };
+  const penc = A.encodeRecords([pin], true), pdec = A.decodeRecords(penc)[0];
+  check('a .SchLib pin is written in Altium\'s packed binary form and read back field for field',
+    penc[3] === 1 && ['ELECTRICAL', 'PINCONGLOMERATE', 'PINLENGTH', 'LOCATION.X', 'LOCATION.Y', 'NAME', 'DESIGNATOR', 'DESCRIPTION']
+      .every(k => pdec[k] === pin[k]) && pdec.PARTANDSEQUENCE === '|&|');
+  const r = {}; A.setCoord(r, 'X1', -3.75); A.setCoord(r, 'Y1', 12);
+  check('coordinates carry their fraction in _FRAC keys (' + JSON.stringify(r) + ')',
+    r.X1 === '-3' && r.X1_FRAC === '-75000' && r.Y1 === '12' && !('Y1_FRAC' in r) && A.coord(r, 'X1') === -3.75);
+  // a component turned and mirrored: points, pin direction, arc sweep — and back again
+  const Tr = { x:100, y:200, orientation:1, mirrored:true };
+  const arc = { RECORD:'12', 'LOCATION.X':'10', 'LOCATION.Y':'0', RADIUS:'5', STARTANGLE:'0', ENDANGLE:'90' };
+  const moved = A.transformRecord(arc, Tr), home = A.transformRecord(moved, Tr, true);
+  const pinM = A.transformRecord(pin, Tr);
+  check('placing a record moves it through the component\'s turn and mirror (arc at ' + moved['LOCATION.X'] + ',' + moved['LOCATION.Y'] +
+        ', ' + moved.STARTANGLE + '…' + moved.ENDANGLE + '°)',
+    moved['LOCATION.X'] === '100' && moved['LOCATION.Y'] === '190' && moved.STARTANGLE === '180' && moved.ENDANGLE === '270' &&
+    (Number(pinM.PINCONGLOMERATE) & 3) === 1 && pinM['LOCATION.X'] === '140' && pinM['LOCATION.Y'] === '210');
+  check('…and un-placing it gives the library record back',
+    ['LOCATION.X', 'LOCATION.Y', 'STARTANGLE', 'ENDANGLE'].every(k => A.coord(home, k) === A.coord(arc, k)));
+}
+
+section('Altium — reading a .SchLib');
+const altFixture = fs.readFileSync('sample/altium/NX_LDO6.SchLib');
+{
+  const A = T.Altium;
+  const ir = A.parseSchLib(new Uint8Array(altFixture), { name:'NX_LDO6' });
+  const s = ir.symbols[0] || { pins:[], primitives:[] };
+  check('the .SchLib is read: one component, its description and designator prefix',
+    ir.ok && ir.implemented && ir.symbols.length === 1 && s.name === 'NX_LDO6' && s.designator === 'U' && /LDO/.test(s.description));
+  check('…its six pins, each at its electrical end in mils (' + s.pins.map(p => p.name + '@' + p.x + ',' + p.y).join(' ') + ')',
+    s.pins.length === 6 && s.pins[0].name === 'VIN' && s.pins[0].x === -300 && s.pins[0].y === -100 &&
+    s.pins[2].name === 'GND' && s.pins[2].y === -1000 && s.pins[3].x === 900);
+  check('…with the lead running into the body, Altium\'s binary pin decoded (VIN 0°, GND 90°, VOUT 180°)',
+    s.pins[0].orientation === 0 && s.pins[2].orientation === 90 && s.pins[3].orientation === 180 &&
+    s.pins[0].electrical === 'power' && s.pins[3].electrical === 'output' && s.pins[0].length === 300);
+  check('…and the drawing: body, polyline and arc', s.primitives.map(p => p.type).join(',') === 'rect,polyline,arc');
+  const def = A.symbolDefFromAltium(s, {});
+  check('…which becomes the symbol the sheet draws, pins on the edges Altium put them on (' + def.pins.map(p => p.dir).join('') + ')',
+    def.pins.map(p => p.dir).join('') === 'llbrrr' && def.body.w === 60 && def.body.h === 70);
+  // and the writer agrees with the reader
+  const long = { ...s.altium, name:'A_VERY_LONG_LIBRARY_REFERENCE_NAME_THAT_DOES_NOT_FIT' };
+  const lib2 = A.readSchLib(A.writeSchLib([s.altium, long]));
+  check('a .SchLib written here reads back: both symbols, pins and primitives (long names through SectionKeys)',
+    lib2.symbols.length === 2 && lib2.symbols[1].name === long.name &&
+    lib2.symbols.every(x => x.records.length === s.altium.records.length) &&
+    JSON.stringify(A.irFromLibSymbol(lib2.symbols[0]).pins) === JSON.stringify(s.pins));
+}
+
+section('Altium — exporting the sheet');
+{
+  const A = T.Altium, AP = T.AltiumProject;
+  // the whole imported sample, plus a few ports and wires, every way round
+  T.importAny(raw, 'sample/circuit_data.json');
+  const r1 = S.parts.find(p => p.ref === 'R1');
+  const p1 = W.partPins(r1);
+  const gnd = T.addPart('gnd', p1[0].x, p1[0].y + 40);
+  const gp = W.partPins(gnd)[0];
+  S.wires.push({ id:'aw1', pts:[{ x:p1[0].x, y:p1[0].y }, { x:gp.x, y:gp.y }] });
+  const lbl = T.addPart('netlabel', p1[1].x + 30, p1[1].y); lbl.net = 'VOUT_TEST';
+  S.wires.push({ id:'aw2', pts:[{ x:p1[1].x, y:p1[1].y }, { x:lbl.x, y:lbl.y }] });
+  const vcc = T.addPart('vcc', -500, -500); vcc.rot = 90;
+  const gnd2 = T.addPart('gnd', -400, -500); gnd2.rot = 180;
+  S.project.title = 'Export Test'; S.project.sheetName = 'Power Stage';
+
+  const res = await T.exportAltium({ format:'binary' });
+  const names = Object.keys(res.files);
+  check('the project is a .PrjPcb, a .SchDoc named after the sheet and a .SchLib (' + names.join(', ') + ')',
+    names.length === 3 && names.includes('Export Test/Export Test.PrjPcb') && names.includes('Export Test/Power Stage.SchDoc') &&
+    names.includes('Export Test/Export Test.SchLib'));
+  const prj = A.readPrjPcb(res.files['Export Test/Export Test.PrjPcb']);
+  check('…the project lists its documents', prj.documents.map(d => d.path).join('|') === 'Power Stage.SchDoc|Export Test.SchLib');
+  const schBytes = res.files['Export Test/Power Stage.SchDoc'];
+  check('…the sheet is an OLE2 compound file with Altium\'s streams',
+    W.CFB.isCFB(schBytes) && W.CFB.read(schBytes).list().sort().join(',') === 'FileHeader,Storage');
+  const doc = A.readSchDoc(schBytes), recs = doc.records;
+  const head = A.decodeRecords(W.CFB.read(schBytes).get('FileHeader'))[0];
+  check('…whose FileHeader is the binary schematic header, then the sheet record (' + recs.length + ' records)',
+    head.HEADER === A.HEADERS.schDocBinary && Number(head.WEIGHT) === recs.length && recs[0].RECORD === '31' &&
+    recs.find(r => r.NAME === 'Title').TEXT === 'Export Test');
+  const comps = recs.filter(r => r.RECORD === '1');
+  const placed = S.parts.filter(p => !W.SYMBOLS[p.kind].port);
+  check('every component is on the sheet (' + comps.length + '), each with its designator and comment',
+    comps.length === placed.length && placed.every(p => recs.some(r => r.RECORD === '34' && r.TEXT === p.ref)) &&
+    recs.some(r => r.RECORD === '41' && r.NAME === 'Comment' && r.TEXT === r1.value));
+  check('…owning its pins, drawing and texts by OWNERINDEX',
+    comps.every(c => recs.filter(r => r.OWNERINDEX === String(recs.indexOf(c)) && r.RECORD === '2').length === Number(c.ALLPINCOUNT)));
+
+  // THE property that matters: every pin's hot spot lands where the editor drew it
+  const off = (await AP.sheetFromEditor({ name:'x', parts:S.parts, wires:S.wires }, { symbols:{ add:s => s }, warnings:[] })).offset;
+  const toAlt = (x, y) => (x + off.x) + ',' + (off.y - y);
+  const want = new Set(), got = new Set();
+  for (const p of placed) for (const pin of W.partPins(p)) want.add(toAlt(pin.x, pin.y));
+  for (const r of recs.filter(x => x.RECORD === '2')){
+    const d = Number(r.PINCONGLOMERATE) & 3, L = A.coord(r, 'PINLENGTH');
+    got.add((A.coord(r, 'LOCATION.X') + [L, 0, -L, 0][d]) + ',' + (A.coord(r, 'LOCATION.Y') + [0, L, 0, -L][d]));
+  }
+  check('every pin connects in Altium exactly where it does on the sheet (' + got.size + ' pin ends)',
+    want.size === got.size && [...want].every(k => got.has(k)));
+  const wires = recs.filter(r => r.RECORD === '27');
+  check('wires keep their vertices, moved onto the sheet', wires.length === 2 &&
+    wires[0].X1 + ',' + wires[0].Y1 === toAlt(p1[0].x, p1[0].y) && wires[1].X2 + ',' + wires[1].Y2 === toAlt(lbl.x, lbl.y));
+  const ports = recs.filter(r => r.RECORD === '17'), labels = recs.filter(r => r.RECORD === '25');
+  const port = t => ports.filter(p => p.TEXT === t);
+  check('power ports keep their net, style and the way they point (GND down, VCC turned right, GND turned up)',
+    port('GND').length === 2 && port('GND')[0].STYLE === '4' && port('GND')[0].ORIENTATION === '3' &&
+    port('GND')[1].ORIENTATION === '1' && port('VCC')[0].STYLE === '2' && !port('VCC')[0].ORIENTATION &&
+    port('GND')[0]['LOCATION.X'] + ',' + port('GND')[0]['LOCATION.Y'] === toAlt(gp.x, gp.y));
+  check('net labels are net labels, on their wire', labels.length === 1 && labels[0].TEXT === 'VOUT_TEST' &&
+    labels[0]['LOCATION.X'] + ',' + labels[0]['LOCATION.Y'] === toAlt(lbl.x, lbl.y));
+  check('the sheet is sized to the drawing, inside its border',
+    Number(recs[0].CUSTOMX) >= Math.max(...[...got].map(k => Number(k.split(',')[0]))) &&
+    Math.min(...[...got].map(k => Number(k.split(',')[1]))) > 0);
+  check('the parts\' parameters ride along as hidden component parameters',
+    recs.some(r => r.RECORD === '41' && r.NAME === 'Part Number' && r.TEXT === 'resistor' && r.ISHIDDEN === 'T'));
+
+  const lib = A.readSchLib(res.files['Export Test/Export Test.SchLib']);
+  check('the .SchLib holds every symbol the sheet uses, once (' + lib.symbols.length + ')',
+    lib.symbols.length === res.report.symbols && new Set(comps.map(c => c.LIBREFERENCE)).size === lib.symbols.length &&
+    comps.every(c => c.SOURCELIBRARYNAME === 'Export Test.SchLib'));
+
+  const asc = await T.exportAltium({ format:'ascii' });
+  const text = new TextDecoder('latin1').decode(asc.files['Export Test/Power Stage.SchDoc']);
+  check('the ASCII flavour carries the same records as text lines',
+    /^\|HEADER=Protel for Windows - Schematic Capture Ascii File Version 5\.0\|WEIGHT=\d+/.test(text) &&
+    A.readSchDoc(text).records.length === recs.length && A.readSchDoc(text).format === 'ascii');
+  const again = await T.exportAltium({ format:'binary' });
+  check('the export is deterministic: same sheet, same bytes',
+    again.files['Export Test/Power Stage.SchDoc'].every((b, i) => b === schBytes[i]));
+
+  // and the way back — the reading half of every layer, inverting the export
+  const proj = AP.readProject(res.files);
+  const model = proj.sheets[0].model;
+  check('reading the project back finds the sheet and its library', proj.name === 'Export Test' && proj.sheets.length === 1 &&
+    proj.sheets[0].name === 'Power Stage' && Object.keys(proj.libraries).length === 1 && model.components.length === placed.length);
+  const back = AP.editorFromSheet(model, { offset:off });
+  const pinsOf = parts => new Set(parts.filter(p => !W.SYMBOLS[p.kind].port)
+    .flatMap(p => W.partPins(p).map(q => p.ref + '|' + q.name + '|' + q.x + ',' + q.y)));
+  const before = pinsOf(S.parts), after = pinsOf(back.parts);
+  check('…and turned back into editor parts, every pin of every part is where it was (' + after.size + ')',
+    before.size === after.size && [...before].every(k => after.has(k)));
+  check('…with its wires, power ports and net labels', back.wires.length === 2 &&
+    back.parts.filter(p => p.kind === 'gnd').length === 2 && back.parts.some(p => p.kind === 'netlabel' && p.net === 'VOUT_TEST') &&
+    back.parts.filter(p => p.kind === 'gnd').every(p => W.partPins(p)[0].x === gp.x || p.rot === 180));
+  const conn = W.connectivity(back.parts, back.wires);
+  check('…so the netlist reads the same: R1 still reaches GND through its wire',
+    conn.groupOf.get(back.parts.find(p => p.ref === 'R1').id + '|' + W.partPins(back.parts.find(p => p.ref === 'R1'))[0].name) ===
+    conn.groupOf.get(back.parts.find(p => p.kind === 'gnd' && p.rot === 0).id + '|1'));
+}
+
+section('Altium — library symbols in the export');
+{
+  const A = T.Altium;
+  const buf = altFixture.buffer.slice(altFixture.byteOffset, altFixture.byteOffset + altFixture.length);
+  const f = new window.File([new window.Uint8Array(buf)], 'NX_LDO6.SchLib');
+  Object.defineProperty(f, 'relativePath', { value:'lib/regulators/NX_LDO6.SchLib' });
+  await LIB.loadFiles([f], { label:'altium fixture' });
+  const c = LIB.match('NX_LDO6');
+  const sym = await LIB.symbolFor(c);
+  check('a library component with a .SchLib is drawn from it, not from a fallback', sym.state === 'altium' && sym.def.pins.length === 6);
+  S.parts = []; S.wires = []; S.project.title = 'Lib Test'; S.project.sheetName = 'Sheet1';
+  const turns = [[0, 0], [90, 0], [180, 1], [270, 1]];
+  for (const [rot, mir] of turns){
+    const p = await T.dropLibComponent(c.id, 200 + rot * 3, 200);
+    p.rot = rot; p.mir = mir;
+  }
+  const res = await T.exportAltium({});
+  const recs = A.readSchDoc(res.files['Lib Test/Sheet1.SchDoc']).records;
+  const comps = recs.filter(r => r.RECORD === '1');
+  check('placed library parts are written with their own .SchLib symbol (' + res.report.sheets[0].library + ' of 4)',
+    res.report.sheets[0].library === 4 && comps.every(x => x.LIBREFERENCE === 'NX_LDO6') && res.report.symbols === 1);
+  check('…turned and mirrored the way they are on the sheet (' + comps.map(x => (x.ORIENTATION || 0) + (x.ISMIRRORED ? 'M' : '')).join(' ') + ')',
+    comps.map(x => (x.ORIENTATION || '0') + (x.ISMIRRORED ? 'M' : '')).join(' ') === '0 3 2M 1M');
+  const arcs = recs.filter(r => r.RECORD === '12');
+  check('…their drawing copied record for record — the arc follows each turn (' + arcs.map(a => a.STARTANGLE + '-' + a.ENDANGLE).join(' ') + ')',
+    arcs.length === 4 && arcs.map(a => a.STARTANGLE + '-' + a.ENDANGLE).join(' ') === '0-180 270-90 180-0 90-270' &&
+    recs.filter(r => r.RECORD === '6').length === 4);
+  check('…their designator from the library, renamed', recs.filter(r => r.RECORD === '34').map(r => r.TEXT).join(',') === 'U1,U2,U3,U4');
+  const libOut = A.readSchLib(res.files['Lib Test/Lib Test.SchLib']).symbols[0];
+  check('…and the project library carries that same symbol',
+    libOut.name === 'NX_LDO6' && libOut.records.filter(r => r.RECORD === '2').length === 6);
+  LIB.disconnect();
+}
+
+section('Altium — the Export dialog');
+{
+  window.URL.createObjectURL = window.URL.createObjectURL || (() => 'blob:x');
+  window.URL.revokeObjectURL = window.URL.revokeObjectURL || (() => {});
+  let downloaded = null;
+  const click = window.HTMLAnchorElement.prototype.click;
+  window.HTMLAnchorElement.prototype.click = function(){ downloaded = this.download; };
+  T.openExport('altium');
+  const doc = window.document;
+  const pane = doc.querySelector('[data-epane="altium"]');
+  check('Export has an "Altium project" tab, opened on request', !!pane && !pane.hidden &&
+    doc.querySelector('[data-etab="altium"]').classList.contains('on'));
+  const btn = doc.getElementById('dlAltium');
+  check('…with the Export Altium project button, the project and sheet names filled in',
+    btn && btn.textContent === 'Export Altium project' && doc.getElementById('altName').value === 'Lib Test' &&
+    doc.getElementById('altSheet').value === 'Sheet1');
+  doc.getElementById('altName').value = 'Renamed Project'; doc.getElementById('altSheet').value = 'Main Sheet';
+  await btn.onclick();
+  check('clicking it downloads the project as one .zip named after the project', downloaded === 'Renamed Project.zip');
+  check('…keeps the names it was given as the project\'s own', S.project.title === 'Renamed Project' && S.project.sheetName === 'Main Sheet');
+  check('…and says what it wrote', /Main Sheet\.SchDoc/.test(doc.getElementById('altReport').textContent) &&
+    /Renamed Project\.PrjPcb/.test(doc.getElementById('altReport').textContent));
+  window.HTMLAnchorElement.prototype.click = click;
+  T.S.project.title = 'Untitled circuit';
+  window.document.getElementById('modalClose').click();
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
